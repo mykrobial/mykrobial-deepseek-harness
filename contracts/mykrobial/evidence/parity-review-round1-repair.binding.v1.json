@@ -1,0 +1,35 @@
+{
+  "schema": "mykrobial.next-deepseek-cordis.parity-review-repair-binding.v1",
+  "review_round": 1,
+  "reviewed_source": {
+    "commit": "8fff130bb0683c3774341f1499f08e78864ee47e",
+    "tree": "a6f9c80b3e91fa6212e5f731b8b91ac0b9578563",
+    "manifest_sha256": "0d73701810b7eb971cab4912639994e6cc2123be181a55994f429d7336d5cec0"
+  },
+  "verdict": {
+    "state": "rejected",
+    "finding_id": "NGP-001",
+    "verdict_ref": "/Users/kalcypher/Documents/Codex/2026-08-30/mykrobial-deepseek-harness/outputs/deepseek-cordis-rsi-kickoff/independent-parity-review/VERDICT.v1.json",
+    "verdict_sha256": "3ffa5330897b5e13215af837457ac4c2e3f698ae9ffaf0ce61bf53547a57f5d9",
+    "findings_ref": "/Users/kalcypher/Documents/Codex/2026-08-30/mykrobial-deepseek-harness/outputs/deepseek-cordis-rsi-kickoff/independent-parity-review/FINDINGS.v1.md",
+    "findings_sha256": "46226fe8152f8cbad852241ffb4a33dbe37c00e75859957fa7dbe25300db0ae0"
+  },
+  "counterexample": {
+    "current_production_reset_action_sha256": "eb44b916e4f77a3d78a3c2ec263aebf9416deeb0b51c4278d454ca3f2f388335",
+    "rejected_next_generation_reset_action_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "projection_effect": "reset transitions remain in the generation-neutral Timeline and event projection"
+  },
+  "successor_repair": {
+    "reset_action_sha256": "eb44b916e4f77a3d78a3c2ec263aebf9416deeb0b51c4278d454ca3f2f388335",
+    "source_ref": "packages/mykrobial/scientific-retrodiction/src/commands.ts",
+    "regression_ref": "packages/mykrobial/scientific-retrodiction/tests/core-source-safe.test.ts",
+    "regression": "both harness generations record the same reset and produce byte-equal canonical behavior projections"
+  },
+  "status": "repaired_awaiting_fresh_review",
+  "non_claims": [
+    "not_fresh_review_acceptance",
+    "not_current_production_runtime_execution",
+    "not_deepseek_runtime_execution",
+    "not_deployment"
+  ]
+}

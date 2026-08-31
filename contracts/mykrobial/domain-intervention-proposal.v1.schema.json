@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mykrobial.org/schemas/domain-intervention-proposal.v1.schema.json",
+  "title": "Cross-generation proposal-only domain intervention",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "registry_sha256",
+    "proposal_id",
+    "signal_ids",
+    "intervention_order",
+    "intervention_class",
+    "intervention_rank",
+    "target_component_id",
+    "candidate_delta_ref",
+    "expected_result_sha256",
+    "falsifier_sha256",
+    "evaluation_epoch_ref",
+    "state",
+    "authority"
+  ],
+  "properties": {
+    "schema": { "const": "mykrobial.harness.domain-intervention-proposal.v1" },
+    "registry_sha256": { "const": "dd84971b0d9350921326d9711c5022ff5cf2bc1d80e52df024316eacc03a296f" },
+    "proposal_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+    "signal_ids": { "type": "array", "minItems": 1, "maxItems": 256, "uniqueItems": true, "items": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" } },
+    "intervention_order": { "const": ["weights", "harness", "memory_skill", "tool", "no_op"] },
+    "intervention_class": { "enum": ["weights", "harness", "memory_skill", "tool", "no_op"] },
+    "intervention_rank": { "type": "integer", "minimum": 0, "maximum": 4 },
+    "target_component_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+    "candidate_delta_ref": { "$ref": "harness-parity.v1.schema.json#/$defs/artifactRef" },
+    "expected_result_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+    "falsifier_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+    "evaluation_epoch_ref": { "$ref": "harness-parity.v1.schema.json#/$defs/artifactRef" },
+    "state": { "const": "proposed_unapplied" },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["training_authorized", "promotion_authorized", "application_authorized", "deployment_authorized"],
+      "properties": {
+        "training_authorized": { "const": false },
+        "promotion_authorized": { "const": false },
+        "application_authorized": { "const": false },
+        "deployment_authorized": { "const": false }
+      }
+    }
+  },
+  "allOf": [
+    { "if": { "properties": { "intervention_class": { "const": "weights" } } }, "then": { "properties": { "intervention_rank": { "const": 0 } } } },
+    { "if": { "properties": { "intervention_class": { "const": "harness" } } }, "then": { "properties": { "intervention_rank": { "const": 1 } } } },
+    { "if": { "properties": { "intervention_class": { "const": "memory_skill" } } }, "then": { "properties": { "intervention_rank": { "const": 2 } } } },
+    { "if": { "properties": { "intervention_class": { "const": "tool" } } }, "then": { "properties": { "intervention_rank": { "const": 3 } } } },
+    { "if": { "properties": { "intervention_class": { "const": "no_op" } } }, "then": { "properties": { "intervention_rank": { "const": 4 } } } }
+  ]
+}

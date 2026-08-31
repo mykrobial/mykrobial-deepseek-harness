@@ -1,0 +1,30 @@
+# Mykrobial scientific bundle, applied after the official base and Web layers.
+# Existing row updates replace their whole config, so the preset row restates
+# its only owned setting. The scientific provider is a new host-plane row.
+
+- id: agent-presets
+  config:
+    default: mykrobial-retrodict
+
+- insert:
+  - id: mykrobial-scientific-retrodiction
+    name: '@mykrobial/dsh-scientific-retrodiction'
+    config:
+      maxRealActionsCap: 10000
+      maxSimulatorThreshold: 5000
+      maxNoveltyThreshold: 10000
+      maxResetThreshold: 100
+  # The source row is present but cannot activate until a separately admitted
+  # transport, receipt sink, policy, and authority binding exist.
+  - id: mykrobial-omniroute-adapter
+    name: '@mykrobial/dsh-llm-omniroute'
+    disabled: true
+    config:
+      endpointRef: omniroute://unadmitted/blocked
+      routePolicySha256: '0000000000000000000000000000000000000000000000000000000000000000'
+      authorityRefSha256: '0000000000000000000000000000000000000000000000000000000000000000'
+      displayName: Mykrobial OmniRoute
+  # The bridge stays disabled until the RSI-owned Trace V2.3 sink is admitted.
+  - id: mykrobial-trace-v23-bridge
+    name: '@mykrobial/dsh-trace-v23-bridge'
+    disabled: true

@@ -1,0 +1,34 @@
+{
+  "schema": "mykrobial.next-deepseek-cordis.domain-learning-signal-registry-binding.v1",
+  "status": "public_contract_bound_source_only",
+  "reviewed": false,
+  "current_production_merge": {
+    "pull_request": "https://github.com/mykrobial/mykrobial-harness/pull/636",
+    "commit": "cdaa6ee1ebb11569af3dc19ecbdd0d85053e65c0",
+    "tree": "59f7a7efc898a35caa8b9a06d3ee46c4be89c7e1"
+  },
+  "registry": {
+    "ref": "/Users/kalcypher/Projects/_worktrees/mykrobial-harness-current-production-rsi-integration/contracts/evolution/domain-learning-signal-registry.v1.json",
+    "sha256": "dd84971b0d9350921326d9711c5022ff5cf2bc1d80e52df024316eacc03a296f",
+    "schema": "mykrobial.domain-learning-signal-registry.v1"
+  },
+  "route_ucp": {
+    "ref": "/Users/kalcypher/Projects/_worktrees/mykrobial-harness-current-production-rsi-integration/contracts/skills/route__domain_learning_signal.mdp.ucp.json",
+    "sha256": "acd918443344dfb7d68b080092f1559147fc3d1e7385d45e013b9ef83747a5e7"
+  },
+  "intervention_order": ["weights", "harness", "memory_skill", "tool", "no_op"],
+  "domain_ids": ["biofoundry", "customer_support", "economics", "engineering", "finance", "future_domain_template", "hr", "marketing", "product", "science"],
+  "next_generation_exports": [
+    "domain-learning-signal-event.v1.schema.json",
+    "domain-intervention-proposal.v1.schema.json",
+    "@mykrobial/dsh-learning-signal-contracts"
+  ],
+  "ownership_boundary": "Next-Generation emits compatible source-tagged signals and proposal-only interventions; Current Production RSI owns optimization, training, evaluation, promotion, application, rollback decision, and causal value readback.",
+  "non_claims": [
+    "not_registry_internal_implementation_copy",
+    "not_reward_truth_or_causal_identification",
+    "not_training_authority",
+    "not_intervention_promotion",
+    "not_runtime_adoption_or_deployment"
+  ]
+}
