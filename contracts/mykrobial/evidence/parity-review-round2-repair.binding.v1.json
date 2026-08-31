@@ -1,0 +1,37 @@
+{
+  "schema": "mykrobial.next-deepseek-cordis.parity-review-repair-binding.v1",
+  "review_round": 2,
+  "reviewed_source": {
+    "commit": "43190674f4d1840482819583fa2c0442a888f040",
+    "tree": "aa6e8be60e931aff279fd9f4235ad906db1e782e",
+    "manifest_sha256": "d1fc83a4de4b2c8056ad0450394a0cdfd0b8857451f7480dff7f555b57ca93e5"
+  },
+  "verdict": {
+    "state": "rejected",
+    "finding_id": "NGP-002",
+    "verdict_ref": "/Users/kalcypher/Documents/Codex/2026-08-30/mykrobial-deepseek-harness/outputs/deepseek-cordis-rsi-kickoff/independent-parity-review-v2/VERDICT.v2.json",
+    "verdict_sha256": "fe235aec4acae70988061bc8074d800a77334f9f36afcb498369c062e95aca00",
+    "findings_ref": "/Users/kalcypher/Documents/Codex/2026-08-30/mykrobial-deepseek-harness/outputs/deepseek-cordis-rsi-kickoff/independent-parity-review-v2/FINDINGS.v2.md",
+    "findings_sha256": "f4f07670f25c1f9f26450cb92f46ee006649ee661e80b2de2f142443c1f02d00",
+    "output_manifest_sha256": "7d88243d797b571d29860f41675aeb0265eaf015aad75e77322f02dedbdac98b"
+  },
+  "counterexample": {
+    "active_plan_count": 10,
+    "current_production_order": ["plan-1", "plan-2", "plan-3", "plan-4", "plan-5", "plan-6", "plan-7", "plan-8", "plan-9", "plan-10"],
+    "rejected_successor_order": ["plan-1", "plan-10", "plan-2", "plan-3", "plan-4", "plan-5", "plan-6", "plan-7", "plan-8", "plan-9"],
+    "projection_effect": "invalidated_plan_ids array order is retained by the canonical generation-neutral projection"
+  },
+  "successor_repair": {
+    "ordering_rule": "preserve plan insertion and creation order exactly",
+    "source_ref": "packages/mykrobial/scientific-retrodiction/src/commands.ts",
+    "regression_ref": "packages/mykrobial/scientific-retrodiction/tests/core-source-safe.test.ts",
+    "regression": "12 simultaneously active plans reset in both generation labels; exact invalidated plan order and full canonical behavior projections must match"
+  },
+  "status": "repaired_awaiting_fresh_review",
+  "non_claims": [
+    "not_fresh_review_acceptance",
+    "not_current_production_runtime_execution",
+    "not_deepseek_runtime_execution",
+    "not_deployment"
+  ]
+}

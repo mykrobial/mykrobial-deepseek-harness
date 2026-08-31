@@ -1,0 +1,55 @@
+{
+  "schema": "mykrobial.next-deepseek-cordis.parity-review-repair-binding.v1",
+  "review_round": 3,
+  "reviewed_source": {
+    "commit": "196856452d21ab5d87c46731616695576a3b4384",
+    "tree": "7034eeb8f2fcd2761bfc278b97857aa4c0f8eaec",
+    "manifest_sha256": "99abe5a886a2f9f391bce528da84531c0d9287cd3b03e9c8f0ecd3abf753c3fb"
+  },
+  "verdict": {
+    "state": "rejected",
+    "finding_id": "NGP-003",
+    "typed_blocker": "typed_blocker:operator_projection_constructor_schema_parity_failed",
+    "blocker_ref": "/Users/kalcypher/Documents/Codex/2026-08-30/mykrobial-deepseek-harness/outputs/deepseek-cordis-rsi-kickoff/independent-parity-review-v3/BLOCKER.v3.json",
+    "blocker_sha256": "1a6500c9a5d5aad01921d682cd69ed38d2cd75101cccabf106bdcd111214c72d"
+  },
+  "passing_results_preserved": {
+    "ngp_001_reset_projection_sha256": "ba922f669d5f43e0b1c4af00275af88fd0bea41cdfbd288f2ef514b30b2da7c5",
+    "ngp_002_twelve_plan_projection_sha256": "e1390c4711096f629f6ac4a367309c7aad5375b483fc62d8cd5e0b6aa5cff9a6",
+    "complete_event_vocabulary_projection_sha256": "b8a93dd546490fd63318630497d62b23212c3b7d2b9bd81dd3b3bc78e2824ca2",
+    "domain_registry_sha256": "dd84971b0d9350921326d9711c5022ff5cf2bc1d80e52df024316eacc03a296f",
+    "domain_route_ucp_sha256": "acd918443344dfb7d68b080092f1559147fc3d1e7385d45e013b9ef83747a5e7"
+  },
+  "counterexamples": [
+    "invalid generated_at accepted",
+    "invalid source commit or tree accepted",
+    "invalid route or Trace receipt digest accepted",
+    "verified replay without receipt accepted",
+    "rehearsed or verified rollback without receipt accepted",
+    "invalid Factory enum accepted",
+    "Factory next_action longer than the closed-schema maximum accepted"
+  ],
+  "successor_repair": {
+    "generation": "source-overlay-hardening-v6",
+    "constructor_ref": "packages/mykrobial/operator-projections/src/index.ts",
+    "constructor_sha256": "695c51102375312ec1103ecbef0ba8b2734ff0dc0c7310ae2ad421ea059433b7",
+    "omnigent_schema_ref": "contracts/mykrobial/omnigent-harness-read-model.v1.schema.json",
+    "omnigent_schema_sha256": "717b63830a064b7db03773099930444a10ba1c572968d82fc164bb0cda6ee50a",
+    "factory_schema_ref": "contracts/mykrobial/software-factory-handoff.v1.schema.json",
+    "factory_schema_sha256": "514993c6301a3fcd0ab3da8045021fe91bcf3eefc82cfa66f9a97691488d6399",
+    "regression_ref": "packages/mykrobial/operator-projections/tests/source-safe.test.ts",
+    "regression_sha256": "f9a4efb8a5a53abd235bcba39c51d1b2ea3761771e49b050298e89cc6f943755",
+    "runtime_rule": "constructors reject every reproduced malformed value and enforce verified-state receipt prerequisites",
+    "schema_rule": "closed schema conditionally requires receipts for served_verified, append_verified, replay verified, rollback rehearsed or verified, and passed end-user acceptance",
+    "oracle_rule": "every valid constructor output and every hostile fixture is checked against the exact public schema bytes without external dependencies"
+  },
+  "status": "repaired_awaiting_distinct_fresh_review",
+  "non_claims": [
+    "not_fresh_review_acceptance",
+    "not_deepseek_or_cordis_runtime_execution",
+    "not_omniroute_or_omnigent_runtime_execution",
+    "not_trace_append",
+    "not_runtime_adoption",
+    "not_deployment"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "schema": "mykrobial.next-deepseek-cordis.donor-organ-backlog-binding.v1",
+  "status": "source_backlog_bound_unported",
+  "reviewed": false,
+  "catalog": {
+    "ref": "/Users/kalcypher/Projects/mykrobial-deepseek-harness-program/evidence/worker-results/mykrobial-donor-interface-census/component-organ-catalog.v1.json",
+    "sha256": "4eade9c6b0dc2288d670a13c7dac3f7aebaa847a2ff97868e0d17a6e0fd09ce2",
+    "schema": "mykrobial.deepseek.cordis.component-organ-catalog.v1",
+    "row_count": 83,
+    "source_entry_count": 130,
+    "contract_count": 37,
+    "donor_commit": "1e26775b3ff965d5011f3d16985e69afbc2b1d37"
+  },
+  "port_rule": "one reversible organ at a time with source mapping, CORDIS dependencies, mount/unmount/restart/replay/rollback fixtures, behavior equivalence or intentional dominance, and donor rollback retained",
+  "current_implemented_next_generation_organs": [
+    "scientific-retrodiction-service",
+    "scientific-retrodiction-tool-consumer",
+    "retrodict-agent-preset",
+    "mykrobial-scientific-profile-bundle",
+    "bounded-simulator-search",
+    "dynamic-loadout-planner",
+    "trace-v2-3-intent-projection",
+    "omniroute-receipt-projection",
+    "mindwalk-temporal-projection",
+    "semantica-bitemporal-projection",
+    "omnigent-scientific-read-model"
+  ],
+  "remaining_catalog_rows_are": "port_backlog_not_implementation",
+  "non_claims": [
+    "not_83_organs_implemented",
+    "not_donor_runtime_execution",
+    "not_catalog_independent_review",
+    "not_component_activation",
+    "not_migration_completion"
+  ]
+}

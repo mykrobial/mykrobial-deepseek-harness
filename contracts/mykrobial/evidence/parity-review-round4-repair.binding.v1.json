@@ -1,0 +1,71 @@
+{
+  "schema": "mykrobial.next-deepseek-cordis.parity-review-repair-binding.v1",
+  "review_round": 4,
+  "reviewed_source": {
+    "commit": "73fcb180d6b9875c522a3cc60316c9f2a77ebb55",
+    "tree": "1d94a207e0fd9df0e199908e7fe55b05fd61eb7b",
+    "manifest_sha256": "f697df02dc2d261e932d4af2c0796ff9e9895035d3d9322e2a0ec66610ee7514"
+  },
+  "repair_predecessor": {
+    "commit": "68ec8709f35dac70eb7cd85f09c4e33116ce963f",
+    "tree": "4d5d01c5490aba1647b941488fb48860712d89b2",
+    "manifest_sha256": "0029ef34fe4e45934c06788184a65730d8521487a920f59678fd13ce2279a85e",
+    "state": "closure_and_calendar_repair_prepared_unreviewed"
+  },
+  "verdict": {
+    "state": "rejected",
+    "finding_id": "NGP-004",
+    "typed_blocker": "typed_blocker:operator_projection_exact_schema_oracle_closure_failed",
+    "blocker_ref": "/Users/kalcypher/Documents/Codex/2026-08-30/mykrobial-deepseek-harness/outputs/deepseek-cordis-rsi-kickoff/independent-parity-review-v4/BLOCKER.v4.json",
+    "blocker_sha256": "e1f4810e855b7c5b67a01300ca58e8697824efa6edec4cc580e21e35eec88824"
+  },
+  "passing_results_preserved": {
+    "ngp_001_reset_projection_sha256": "c2e1ac894028cfa2bab39215b22466875c35d34d6748acc9621961606ee888ea",
+    "ngp_002_twelve_plan_projection_sha256": "e1390c4711096f629f6ac4a367309c7aad5375b483fc62d8cd5e0b6aa5cff9a6",
+    "complete_event_vocabulary_projection_sha256": "b5e64b8affe88caae5b9a04c360109e8ea272fbf3921bcc1f8f511df2d49fb7e",
+    "domain_registry_sha256": "dd84971b0d9350921326d9711c5022ff5cf2bc1d80e52df024316eacc03a296f",
+    "domain_route_ucp_sha256": "acd918443344dfb7d68b080092f1559147fc3d1e7385d45e013b9ef83747a5e7"
+  },
+  "counterexample_classes": [
+    "unknown properties at closed top-level and nested objects",
+    "impossible RFC 3339 calendar dates",
+    "nested trace blocker code-point maximum",
+    "duplicate uniqueItems arrays silently rewritten",
+    "schema-valid empty aliases rejected",
+    "incomplete schema-vocabulary evaluator coverage"
+  ],
+  "successor_repair": {
+    "generation": "source-overlay-exact-schema-v8",
+    "constructor_ref": "packages/mykrobial/operator-projections/src/index.ts",
+    "constructor_sha256": "f2e9ecfe9daa1be880de889f783f6a72b803cf3fbf5c8620043742afed0cd7ed",
+    "omnigent_schema_ref": "contracts/mykrobial/omnigent-harness-read-model.v1.schema.json",
+    "omnigent_schema_sha256": "e616e4e436baaf4ee6513cdae857e03d6a6596943737414a419d062384720765",
+    "shared_schema_ref": "contracts/mykrobial/harness-parity.v1.schema.json",
+    "shared_schema_sha256": "39bc8a88ca7b0161a95497568cdd8e18c1102871d3b515d996302ea45dd06f1d",
+    "factory_schema_ref": "contracts/mykrobial/software-factory-handoff.v1.schema.json",
+    "factory_schema_sha256": "514993c6301a3fcd0ab3da8045021fe91bcf3eefc82cfa66f9a97691488d6399",
+    "regression_ref": "packages/mykrobial/operator-projections/tests/source-safe.test.ts",
+    "regression_sha256": "a18fe1fa4a58a438bd7f98434b0dbea5862729b5caba30394a0d523069a4f899",
+    "verifier_ref": "verify_source_overlay.py",
+    "verifier_sha256": "f72074834937bfa5a62d7a4de016f348902bf6b388b42da1de7093ebb8440972",
+    "rules": [
+      "require exact own-key closure before cloning or spreading every closed object",
+      "reject duplicate uniqueItems inputs rather than deduplicating schema-invalid values",
+      "measure schema string bounds by Unicode code points",
+      "narrow the shared timestamp schema to the canonical uppercase-Z UTC grammar and validate real calendar dates",
+      "encode route, Trace, receipt, and deployed-proof state constraints in the public schema",
+      "use a fail-closed evaluator for the exact public schema vocabulary used by these constructors"
+    ]
+  },
+  "status": "repaired_awaiting_distinct_fresh_review",
+  "non_claims": [
+    "not_fresh_review_acceptance",
+    "not_source_acquisition",
+    "not_overlay_application",
+    "not_dependency_install_or_build",
+    "not_deepseek_or_cordis_runtime_execution",
+    "not_omniroute_or_omnigent_runtime_execution",
+    "not_trace_append",
+    "not_deployment"
+  ]
+}

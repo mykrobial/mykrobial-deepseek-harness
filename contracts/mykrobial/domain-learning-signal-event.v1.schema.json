@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mykrobial.org/schemas/domain-learning-signal-event.v1.schema.json",
+  "title": "Cross-generation domain learning signal event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "registry_sha256",
+    "signal_id",
+    "trajectory_event_id",
+    "domain",
+    "reward_signal",
+    "reward_definition",
+    "provenance",
+    "max_delay_seconds",
+    "counterfactual_design",
+    "data_classification",
+    "causal_method",
+    "minimum_confidence",
+    "maximum_uncertainty_width",
+    "uncertainty",
+    "evaluator",
+    "allowed_interventions",
+    "applicability_state",
+    "authority",
+    "signal_sha256"
+  ],
+  "properties": {
+    "schema": { "const": "mykrobial.harness.domain-learning-signal-event.v1" },
+    "registry_sha256": { "const": "dd84971b0d9350921326d9711c5022ff5cf2bc1d80e52df024316eacc03a296f" },
+    "signal_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+    "trajectory_event_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+    "domain": {
+      "enum": [
+        "biofoundry",
+        "customer_support",
+        "economics",
+        "engineering",
+        "finance",
+        "future_domain_template",
+        "hr",
+        "marketing",
+        "product",
+        "science"
+      ]
+    },
+    "reward_signal": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "reward_definition": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["direction", "unit", "aggregation", "value"],
+          "properties": {
+            "direction": { "enum": ["maximize", "minimize", "constraint"] },
+            "unit": { "type": "string", "minLength": 1, "maxLength": 128 },
+            "aggregation": { "enum": ["mean", "sum", "median", "minimum", "maximum"] },
+            "value": { "type": ["number", "null"] }
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_class", "source_event_ids", "evidence_sha256", "observed_at", "delay_seconds", "delayed_final", "tenant_id", "privacy"],
+      "properties": {
+        "source_class": { "enum": ["human", "provider", "tool", "environment", "evaluator", "derived", "unavailable"] },
+        "source_event_ids": { "type": "array", "uniqueItems": true, "maxItems": 256, "items": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" } },
+        "evidence_sha256": { "type": "array", "uniqueItems": true, "maxItems": 256, "items": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" } },
+        "observed_at": { "$ref": "harness-parity.v1.schema.json#/$defs/timestamp" },
+        "delay_seconds": { "type": "integer", "minimum": 0 },
+        "delayed_final": { "type": "boolean" },
+        "tenant_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+        "privacy": { "enum": ["public", "internal", "confidential", "restricted"] }
+      }
+    },
+    "max_delay_seconds": { "type": "integer", "minimum": 0 },
+    "counterfactual_design": {
+      "enum": [null, "randomized", "matched_control", "difference_in_differences", "geo_holdout", "natural_experiment"]
+    },
+    "data_classification": {
+      "enum": [null, "public", "internal", "confidential", "restricted"]
+    },
+    "causal_method": {
+      "enum": [null, "randomized", "matched_control", "difference_in_differences", "natural_experiment"]
+    },
+    "minimum_confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "maximum_uncertainty_width": { "type": "number", "minimum": 0 },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lower", "point", "upper", "confidence", "basis"],
+      "properties": {
+        "lower": { "type": ["number", "null"] },
+        "point": { "type": ["number", "null"] },
+        "upper": { "type": ["number", "null"] },
+        "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "basis": { "enum": ["measured", "estimated", "declared_unverified", "unavailable"] }
+      }
+    },
+    "evaluator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evaluator_id", "evaluator_sha256", "hidden_promotion_cells_exposed"],
+      "properties": {
+        "evaluator_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+        "evaluator_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        "hidden_promotion_cells_exposed": { "const": false }
+      }
+    },
+    "allowed_interventions": {
+      "type": "array",
+      "uniqueItems": true,
+      "minItems": 1,
+      "maxItems": 5,
+      "items": { "enum": ["weights", "harness", "memory_skill", "tool", "no_op"] }
+    },
+    "applicability_state": { "enum": ["proposal_only", "no_op"] },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["training_authorized", "promotion_authorized", "application_authorized"],
+      "properties": {
+        "training_authorized": { "const": false },
+        "promotion_authorized": { "const": false },
+        "application_authorized": { "const": false }
+      }
+    },
+    "signal_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "domain": { "const": "future_domain_template" } }, "required": ["domain"] },
+      "then": {
+        "properties": {
+          "reward_signal": { "type": "null" },
+          "reward_definition": { "type": "null" },
+          "max_delay_seconds": { "const": 0 },
+          "counterfactual_design": { "type": "null" },
+          "data_classification": { "type": "null" },
+          "causal_method": { "type": "null" },
+          "minimum_confidence": { "const": 1.0 },
+          "maximum_uncertainty_width": { "const": 0.0 },
+          "allowed_interventions": { "const": ["no_op"] },
+          "applicability_state": { "const": "no_op" }
+        }
+      },
+      "else": {
+        "properties": {
+          "reward_signal": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "reward_definition": { "type": "object" },
+          "counterfactual_design": { "type": "string" },
+          "data_classification": { "type": "string" },
+          "causal_method": { "type": "string" },
+          "applicability_state": { "const": "proposal_only" }
+        }
+      }
+    }
+  ]
+}

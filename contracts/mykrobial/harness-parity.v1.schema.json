@@ -1,0 +1,979 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mykrobial.org/schemas/harness-parity.v1.schema.json",
+  "title": "Mykrobial cross-generation harness parity contracts",
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\\.[0-9]{1,6})?Z$"
+    },
+    "generation": {
+      "enum": [
+        "current_production",
+        "next_deepseek_cordis"
+      ]
+    },
+    "artifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "sha256",
+        "bytes",
+        "media_type",
+        "storage_class"
+      ],
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "media_type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "storage_class": {
+          "enum": [
+            "public",
+            "restricted",
+            "provider_opaque",
+            "external"
+          ]
+        }
+      }
+    },
+    "proofState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "receipt_refs",
+        "blocker"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "unavailable",
+            "candidate",
+            "verified",
+            "blocked"
+          ]
+        },
+        "receipt_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/artifactRef"
+          },
+          "maxItems": 64
+        },
+        "blocker": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_tokens",
+        "output_tokens",
+        "cached_tokens",
+        "monetary_usd",
+        "energy_wh",
+        "wall_ms",
+        "human_minutes",
+        "basis"
+      ],
+      "properties": {
+        "input_tokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "output_tokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "cached_tokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "monetary_usd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "energy_wh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "wall_ms": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "human_minutes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "basis": {
+          "enum": [
+            "provider_receipt",
+            "meter_receipt",
+            "measured_local",
+            "declared_unverified",
+            "unavailable"
+          ]
+        }
+      }
+    },
+    "sourceIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "commit",
+        "tree",
+        "dirty_state",
+        "configuration_sha256"
+      ],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tree": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "dirty_state": {
+          "enum": [
+            "clean",
+            "dirty_bound",
+            "unknown"
+          ]
+        },
+        "configuration_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "temporalCoordinates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transaction_time",
+        "valid_from",
+        "valid_until",
+        "valid_time_basis",
+        "supersedes_event_id",
+        "parent_event_id",
+        "branch_id",
+        "component_generation",
+        "duration_ms",
+        "deadline_at",
+        "causality_state"
+      ],
+      "properties": {
+        "transaction_time": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "valid_until": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "valid_time_basis": {
+          "enum": [
+            "not_asserted",
+            "producer_declared"
+          ]
+        },
+        "supersedes_event_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/identifier"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parent_event_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/identifier"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "branch_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "component_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "duration_ms": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "deadline_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "causality_state": {
+          "enum": [
+            "not_asserted",
+            "asserted_unverified",
+            "verified"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "valid_time_basis": {
+                "const": "not_asserted"
+              }
+            },
+            "required": [
+              "valid_time_basis"
+            ]
+          },
+          "then": {
+            "properties": {
+              "valid_from": {
+                "type": "null"
+              },
+              "valid_until": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "valid_from": {
+                "$ref": "#/$defs/timestamp"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "taskCapsule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "capsule_id",
+        "task_ref",
+        "task_sha256",
+        "tenant_scope",
+        "privacy_scope",
+        "authority_ref",
+        "budgets",
+        "business_hypothesis_sha256",
+        "held_out_population_ref",
+        "created_at"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.harness.task-capsule.v1"
+        },
+        "capsule_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "task_ref": {
+          "$ref": "#/$defs/identifier"
+        },
+        "task_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "tenant_scope": {
+          "$ref": "#/$defs/identifier"
+        },
+        "privacy_scope": {
+          "enum": [
+            "public",
+            "internal",
+            "restricted",
+            "sealed"
+          ]
+        },
+        "authority_ref": {
+          "$ref": "#/$defs/artifactRef"
+        },
+        "budgets": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "max_real_actions",
+            "max_input_tokens",
+            "max_output_tokens",
+            "max_monetary_usd",
+            "max_wall_ms",
+            "max_human_minutes"
+          ],
+          "properties": {
+            "max_real_actions": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_input_tokens": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_output_tokens": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_monetary_usd": {
+              "type": "number",
+              "minimum": 0
+            },
+            "max_wall_ms": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_human_minutes": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "business_hypothesis_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "held_out_population_ref": {
+          "$ref": "#/$defs/artifactRef"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      }
+    },
+    "loadoutManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "loadout_id",
+        "harness_generation",
+        "model_route_id",
+        "agent_preset_id",
+        "component_ids",
+        "tool_ids",
+        "skill_ids",
+        "memory_ids",
+        "retrieval_ids",
+        "guardrail_ids",
+        "workflow_ids",
+        "scientific_posture",
+        "mutation_surface_ids",
+        "cost_policy_sha256",
+        "manifest_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.harness.loadout-manifest.v1"
+        },
+        "loadout_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "harness_generation": {
+          "$ref": "#/$defs/generation"
+        },
+        "model_route_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "agent_preset_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "component_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true,
+          "maxItems": 512
+        },
+        "tool_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true,
+          "maxItems": 256
+        },
+        "skill_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true,
+          "maxItems": 256
+        },
+        "memory_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true,
+          "maxItems": 256
+        },
+        "retrieval_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true,
+          "maxItems": 256
+        },
+        "guardrail_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true,
+          "maxItems": 256
+        },
+        "workflow_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true,
+          "maxItems": 256
+        },
+        "scientific_posture": {
+          "enum": [
+            "base",
+            "retrodict_default",
+            "retrodict_simulator_escalated",
+            "retrodict_novelty_escape"
+          ]
+        },
+        "mutation_surface_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true,
+          "maxItems": 256
+        },
+        "cost_policy_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "manifest_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "componentIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "component_id",
+        "logical_identity",
+        "implementation_generation",
+        "source",
+        "configuration_sha256",
+        "dependency_ids",
+        "lifecycle_state",
+        "mounted_at_sequence"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.harness.component-identity.v1"
+        },
+        "component_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "logical_identity": {
+          "$ref": "#/$defs/identifier"
+        },
+        "implementation_generation": {
+          "$ref": "#/$defs/generation"
+        },
+        "source": {
+          "$ref": "#/$defs/sourceIdentity"
+        },
+        "configuration_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "dependency_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true,
+          "maxItems": 128
+        },
+        "lifecycle_state": {
+          "enum": [
+            "registered",
+            "pending_dependencies",
+            "active",
+            "unloading",
+            "inactive",
+            "disposed",
+            "failed"
+          ]
+        },
+        "mounted_at_sequence": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "trajectoryEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "event_id",
+        "run_id",
+        "task_capsule_id",
+        "loadout_id",
+        "harness_generation",
+        "sequence",
+        "previous_event_sha256",
+        "kind",
+        "source_component_id",
+        "occurred_at",
+        "temporal",
+        "payload_sha256",
+        "payload_ref",
+        "component_ids",
+        "cost",
+        "proof",
+        "event_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.harness.trajectory-event.v1"
+        },
+        "event_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "run_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "task_capsule_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "loadout_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "harness_generation": {
+          "$ref": "#/$defs/generation"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "previous_event_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "kind": {
+          "enum": [
+            "observation",
+            "hypothesis",
+            "experiment",
+            "model_revision",
+            "backtest",
+            "plan",
+            "action_expectation",
+            "action_result",
+            "mismatch",
+            "escalation",
+            "checkpoint",
+            "result",
+            "cost",
+            "value_signal"
+          ]
+        },
+        "source_component_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "temporal": {
+          "$ref": "#/$defs/temporalCoordinates"
+        },
+        "payload_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "payload_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/artifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "component_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true,
+          "maxItems": 128
+        },
+        "cost": {
+          "$ref": "#/$defs/cost"
+        },
+        "proof": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source",
+            "execution",
+            "review",
+            "deployment"
+          ],
+          "properties": {
+            "source": {
+              "$ref": "#/$defs/proofState"
+            },
+            "execution": {
+              "$ref": "#/$defs/proofState"
+            },
+            "review": {
+              "$ref": "#/$defs/proofState"
+            },
+            "deployment": {
+              "$ref": "#/$defs/proofState"
+            }
+          }
+        },
+        "event_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "replayReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "replay_id",
+        "run_id",
+        "source",
+        "loadout_manifest_sha256",
+        "event_chain_head_sha256",
+        "event_count",
+        "determinism_class",
+        "equivalence_rule",
+        "behavior_projection_sha256",
+        "replayed_projection_sha256",
+        "verdict",
+        "proof"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.harness.replay-receipt.v1"
+        },
+        "replay_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "run_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "source": {
+          "$ref": "#/$defs/sourceIdentity"
+        },
+        "loadout_manifest_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "event_chain_head_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "event_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "determinism_class": {
+          "enum": [
+            "byte_exact",
+            "behavior_projection_exact",
+            "bounded_nondeterministic"
+          ]
+        },
+        "equivalence_rule": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "behavior_projection_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "replayed_projection_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "verdict": {
+          "enum": [
+            "matches",
+            "differs",
+            "blocked"
+          ]
+        },
+        "proof": {
+          "$ref": "#/$defs/proofState"
+        }
+      }
+    },
+    "rollbackReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "rollback_id",
+        "from_component_id",
+        "parent_component_id",
+        "restore_action_sha256",
+        "pre_state_sha256",
+        "post_state_sha256",
+        "observed_readback_ref",
+        "health_horizon_ms",
+        "contamination_boundary",
+        "verdict",
+        "proof"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.harness.rollback-receipt.v1"
+        },
+        "rollback_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "from_component_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "parent_component_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "restore_action_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "pre_state_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "post_state_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "observed_readback_ref": {
+          "$ref": "#/$defs/artifactRef"
+        },
+        "health_horizon_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "contamination_boundary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "verdict": {
+          "enum": [
+            "restored",
+            "failed",
+            "blocked"
+          ]
+        },
+        "proof": {
+          "$ref": "#/$defs/proofState"
+        }
+      }
+    },
+    "businessResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "result_id",
+        "cell_id",
+        "run_id",
+        "task_correctness",
+        "cost",
+        "adoption_integrity",
+        "delayed_reward",
+        "causal_attribution",
+        "uncertainty",
+        "evaluator_ref",
+        "proof"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.harness.business-result.v1"
+        },
+        "result_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "cell_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "run_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "task_correctness": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "cost": {
+          "$ref": "#/$defs/cost"
+        },
+        "adoption_integrity": {
+          "enum": [
+            "valid",
+            "invalid",
+            "unknown"
+          ]
+        },
+        "delayed_reward": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "causal_attribution": {
+          "enum": [
+            "matched_control",
+            "randomized",
+            "quasi_experimental",
+            "observational",
+            "unavailable"
+          ]
+        },
+        "uncertainty": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "lower",
+            "point",
+            "upper",
+            "confidence"
+          ],
+          "properties": {
+            "lower": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "point": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "upper": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "confidence": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "evaluator_ref": {
+          "$ref": "#/$defs/artifactRef"
+        },
+        "proof": {
+          "$ref": "#/$defs/proofState"
+        }
+      }
+    }
+  }
+}

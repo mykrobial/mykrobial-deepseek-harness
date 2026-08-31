@@ -1,0 +1,16 @@
+{
+  "name": "mykrobial-retrodict-profile",
+  "private": true,
+  "dependencies": {
+    "@mykrobial/dsh-scientific-retrodiction-bundle": "link:../../packages/bundle/mykrobial-scientific"
+  },
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@deepseek-ai/dsh-web-app",
+        "@mykrobial/dsh-scientific-retrodiction-bundle"
+      ]
+    }
+  }
+}

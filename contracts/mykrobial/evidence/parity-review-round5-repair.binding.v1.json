@@ -1,0 +1,70 @@
+{
+  "schema": "mykrobial.next-deepseek-cordis.parity-review-repair-binding.v1",
+  "review_round": 5,
+  "reviewed_source": {
+    "commit": "8b87059174ee4f6fde7693c7ccc2ff7ba5b2078f",
+    "tree": "3a409efe5b98c4bf7f08488033648c5cc4f00080",
+    "manifest_sha256": "4237ba1f5fac9a87a9b15a4704171ed71f0a5056889aec73bf66e972c673c8cb"
+  },
+  "repair_predecessor": {
+    "commit": "634f5676562c28eb2fb80e064d1caab2c08db7bb",
+    "tree": "6e80f6c472d7fdc6d8edb7b8d68ea0fbd86e31b5",
+    "manifest_sha256": "49ae54bf4287620a4cf845b4b9140ce1ae9caa304f5a61f1f10fcbc17a945bcc",
+    "state": "proof_lattice_repair_prepared_unreviewed"
+  },
+  "verdict": {
+    "state": "blocked",
+    "finding_id": "NGP-005",
+    "blocker_ref": "/Users/kalcypher/Documents/Codex/2026-08-30/mykrobial-deepseek-harness/outputs/deepseek-cordis-rsi-kickoff/independent-parity-review-v5/BLOCKER.v5.json",
+    "blocker_sha256": "8b50bf4cbb9af2c8150d071a1dd9e003493e6093695375a29a22cf81c3e3dec5"
+  },
+  "passing_results_preserved": {
+    "ngp_001_reset_projection_sha256": "c2e1ac894028cfa2bab39215b22466875c35d34d6748acc9621961606ee888ea",
+    "ngp_002_twelve_plan_projection_sha256": "e1390c4711096f629f6ac4a367309c7aad5375b483fc62d8cd5e0b6aa5cff9a6",
+    "complete_event_vocabulary_projection_sha256": "b5e64b8affe88caae5b9a04c360109e8ea272fbf3921bcc1f8f511df2d49fb7e",
+    "domain_registry_sha256": "dd84971b0d9350921326d9711c5022ff5cf2bc1d80e52df024316eacc03a296f",
+    "round4_blocker_sha256": "e1f4810e855b7c5b67a01300ca58e8697824efa6edec4cc580e21e35eec88824"
+  },
+  "counterexample_classes": [
+    "runtime_verified emitted with blocked route and Trace, unverified replay and rollback, and contract-only Factory",
+    "deployed_verified emitted without inheriting the complete runtime evidence floor"
+  ],
+  "successor_repair": {
+    "generation": "source-overlay-proof-lattice-v9",
+    "constructor_ref": "packages/mykrobial/operator-projections/src/index.ts",
+    "constructor_sha256": "1c647b9734dba6629fec3ebe1f165293c90b0a687dbe9587dd41e23edcd37672",
+    "omnigent_schema_ref": "contracts/mykrobial/omnigent-harness-read-model.v1.schema.json",
+    "omnigent_schema_sha256": "61bc5b7234bdb450fb1831c68212af985068caa9fd1e182f57d51c6a6fa7f4db",
+    "shared_schema_ref": "contracts/mykrobial/harness-parity.v1.schema.json",
+    "shared_schema_sha256": "39bc8a88ca7b0161a95497568cdd8e18c1102871d3b515d996302ea45dd06f1d",
+    "regression_ref": "packages/mykrobial/operator-projections/tests/source-safe.test.ts",
+    "regression_sha256": "8db73f992c3834ff1eaf8f5232200894785f75520204cb03ce33fc29d9afbdf6",
+    "verifier_ref": "verify_source_overlay.py",
+    "verifier_sha256": "a0c4d0ba2dfe5ffdb2fd07ca25a31e584d2572223fbb045c49d7008f44f0e906",
+    "proof_lattice": {
+      "runtime_verified_requires": [
+        "route.state=served_verified with receipt_sha256",
+        "trace.state=append_verified with canonical_append_receipt_sha256",
+        "replay.state=verified with receipt_sha256",
+        "rollback.state=verified with receipt_sha256",
+        "factory.integration_state=runtime_verified"
+      ],
+      "deployed_verified_requires": [
+        "all runtime_verified requirements",
+        "every end_user_acceptance entry state=passed with receipt_sha256"
+      ],
+      "lower_levels": "designed, source_built, and source_verified retain valid honest blocked/source-only projections"
+    }
+  },
+  "status": "repaired_awaiting_distinct_fresh_review",
+  "non_claims": [
+    "not_fresh_review_acceptance",
+    "not_source_acquisition",
+    "not_overlay_application",
+    "not_dependency_install_or_build",
+    "not_runtime_provider_trace_or_factory_execution",
+    "not_replay_or_rollback_execution",
+    "not_end_user_acceptance",
+    "not_deployment"
+  ]
+}

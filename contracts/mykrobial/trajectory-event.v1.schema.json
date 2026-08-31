@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mykrobial.org/schemas/trajectory-event.v1.schema.json",
+  "$ref": "./harness-parity.v1.schema.json#/$defs/trajectoryEvent"
+}

@@ -1,0 +1,34 @@
+{
+  "name": "@mykrobial/dsh-scientific-retrodiction-bundle",
+  "description": "DeepSeek profile patch mounting the Mykrobial RetroDICT service and default agent preset",
+  "version": "0.1.2-alpha.2",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "cordis.patch.yml",
+    "lib/types/**/*.d.ts"
+  ],
+  "license": "MIT",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "dependencies": {
+    "@mykrobial/dsh-llm-omniroute": "workspace:^",
+    "@mykrobial/dsh-scientific-retrodiction": "workspace:^",
+    "@mykrobial/dsh-trace-v23-bridge": "workspace:^",
+    "@mykrobial/dsh-tool-scientific-retrodiction": "workspace:^"
+  }
+}
