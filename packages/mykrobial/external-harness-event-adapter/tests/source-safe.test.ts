@@ -358,6 +358,27 @@ function terminalContext(
   }
 }
 
+function resealProjection(
+  source: ReturnType<typeof projectExternalHarnessEvent>,
+): ReturnType<typeof projectExternalHarnessEvent> {
+  const value = structuredClone(source)
+  value.trajectory_event.event_sha256 = externalEventCanonicalSha256(
+    Object.fromEntries(
+      Object.entries(value.trajectory_event).filter(([key]) => key !== 'event_sha256'),
+    ),
+  )
+  value.trace_v2_3_intent.source_event_sha256 = value.trajectory_event.event_sha256
+  value.loss_accounting.loss_accounting_sha256 = externalEventCanonicalSha256(
+    Object.fromEntries(
+      Object.entries(value.loss_accounting).filter(([key]) => key !== 'loss_accounting_sha256'),
+    ),
+  )
+  value.projection_sha256 = externalEventCanonicalSha256(
+    Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'projection_sha256')),
+  )
+  return value
+}
+
 test('terminal context request carries the exact V37 public context without issuing it', () => {
   const projection = projectExternalHarnessEvent(
     fixture('rebuild_and_restart_outcome'),
@@ -478,6 +499,51 @@ test('all V37 digest and identifier fields are exact and projection-bound', () =
     () => prepareTerminalTaskContextRequest(forged, terminalContext()),
     /typed_blocker:external_event_projection_invalid/,
   )
+})
+
+test('rehashed projection extras and altered nonclaims cannot authorize a context request', () => {
+  const baseline = projectExternalHarnessEvent(
+    fixture('tool_result'),
+    'trace-terminal-closure',
+    'session-terminal-closure',
+  )
+  const mutations: Array<(value: Record<string, unknown>) => void> = [
+    value => { value.unexpected = true },
+    value => {
+      (value.trajectory_event as unknown as Record<string, unknown>).unexpected = true
+    },
+    value => {
+      const event = value.trajectory_event as unknown as Record<string, unknown>
+      const temporal = event.temporal as Record<string, unknown>
+      temporal.unexpected = true
+    },
+    value => {
+      const event = value.trajectory_event as unknown as Record<string, unknown>
+      const proof = event.proof as Record<string, unknown>
+      const execution = proof.execution as Record<string, unknown>
+      execution.unexpected = true
+    },
+    value => {
+      (value.trace_v2_3_intent as unknown as Record<string, unknown>).unexpected = true
+    },
+    value => {
+      (value.loss_accounting as unknown as Record<string, unknown>).unexpected = true
+    },
+    value => {
+      value.non_claims = ['not_trace_append']
+    },
+  ]
+  for (const mutate of mutations) {
+    const candidate = structuredClone(baseline) as unknown as Record<string, unknown>
+    mutate(candidate)
+    const resealed = resealProjection(
+      candidate as unknown as ReturnType<typeof projectExternalHarnessEvent>,
+    )
+    assert.throws(
+      () => prepareTerminalTaskContextRequest(resealed, terminalContext()),
+      /typed_blocker:external_event_projection_invalid/,
+    )
+  }
 })
 
 test('both canonical terminal families are explicit request inputs, never derived outputs', () => {

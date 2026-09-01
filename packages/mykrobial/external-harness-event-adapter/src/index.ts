@@ -245,6 +245,41 @@ const TERMINAL_CONTEXT_INPUT_KEYS = [
   'visible_event_count', 'created_at',
 ] as const
 
+const PROJECTION_KEYS = [
+  'schema', 'source_system', 'source_event_kind', 'trajectory_event',
+  'trace_v2_3_intent', 'loss_accounting', 'trajectory_append_authorized',
+  'trace_append_authorized', 'optimizer_execution_authorized',
+  'component_application_authorized', 'non_claims', 'projection_sha256',
+] as const
+
+const TRAJECTORY_KEYS = [
+  'schema', 'event_id', 'run_id', 'task_capsule_id', 'loadout_id',
+  'harness_generation', 'sequence', 'previous_event_sha256', 'kind',
+  'source_component_id', 'occurred_at', 'temporal', 'payload_sha256',
+  'payload_ref', 'component_ids', 'cost', 'proof', 'event_sha256',
+] as const
+
+const TEMPORAL_KEYS = [
+  'transaction_time', 'valid_from', 'valid_until', 'valid_time_basis',
+  'supersedes_event_id', 'parent_event_id', 'branch_id', 'component_generation',
+  'duration_ms', 'deadline_at', 'causality_state',
+] as const
+
+const PROOF_KEYS = ['source', 'execution', 'review', 'deployment'] as const
+const PROOF_STATE_KEYS = ['state', 'receipt_refs', 'blocker'] as const
+const TRACE_KEYS = [
+  'schema', 'target_schema', 'target_schema_version', 'trace_id', 'session_id',
+  'source_event_sha256', 'source_event_sequence', 'source_event_kind', 'scope',
+  'phase', 'content_mode', 'status', 'blocker', 'non_claims',
+] as const
+
+const LOSS_KEYS = [
+  'mapping', 'mapped_fields', 'unavailable_fields', 'dropped_fields',
+  'metadata_projection_lossy', 'raw_event_content_addressed',
+  'hidden_reasoning_accessed', 'external_state_rollback_covered',
+  'loss_accounting_sha256',
+] as const
+
 const UNAVAILABLE_FIELDS = [
   'causal_verification',
   'deadline_at',
@@ -257,6 +292,24 @@ const UNAVAILABLE_FIELDS = [
 
 const DROPPED_FIELDS = ['hidden_reasoning', 'raw_payload_body', 'secret_material']
 
+const TRACE_NON_CLAIMS: ExternalTraceV23Intent['non_claims'] = [
+  'not_trace_append',
+  'not_hidden_chain_of_thought_access',
+  'not_provider_execution',
+  'not_external_state_rollback',
+  'not_deployment',
+]
+
+const PROJECTION_NON_CLAIMS: ExternalHarnessEventProjection['non_claims'] = [
+  'not_external_harness_execution',
+  'not_optimizer_execution',
+  'not_component_application',
+  'not_external_state_rollback',
+  'not_trace_append',
+  'not_promotion',
+  'not_deployment',
+]
+
 const MAPPING: Record<ExternalHarnessEventKind, string> = {
   message: 'message_direction_to_observation_or_result',
   tool_requested: 'tool_requested_to_action_expectation',
@@ -265,6 +318,15 @@ const MAPPING: Record<ExternalHarnessEventKind, string> = {
   thread_forked: 'thread_forked_to_experiment',
   rebuild_and_restart_outcome: 'rebuild_and_restart_outcome_to_result',
   usage: 'usage_record_to_cost',
+}
+
+const EXPECTED_TRAJECTORY_KIND: Record<Exclude<ExternalHarnessEventKind, 'message'>, TrajectoryKind> = {
+  tool_requested: 'action_expectation',
+  tool_result: 'action_result',
+  sandbox_snapshotted: 'checkpoint',
+  thread_forked: 'experiment',
+  rebuild_and_restart_outcome: 'result',
+  usage: 'cost',
 }
 
 const SOURCE_KINDS = Object.keys(MAPPING) as ExternalHarnessEventKind[]
@@ -297,6 +359,12 @@ function exactKeys(value: unknown, expected: readonly string[]): boolean {
   const actual = Object.keys(value).sort()
   const wanted = [...expected].sort()
   return actual.length === wanted.length && actual.every((key, index) => key === wanted[index])
+}
+
+function exactArray(value: unknown, expected: readonly string[]): boolean {
+  return Array.isArray(value)
+    && value.length === expected.length
+    && value.every((item, index) => item === expected[index])
 }
 
 function timestamp(value: string): string {
@@ -503,13 +571,7 @@ export function projectExternalHarnessEvent(
     content_mode: 'metadata_only',
     status: 'candidate_report_only',
     blocker: 'typed_blocker:mykrobial_trace_v2_3_schema_and_append_authority_unadmitted',
-    non_claims: [
-      'not_trace_append',
-      'not_hidden_chain_of_thought_access',
-      'not_provider_execution',
-      'not_external_state_rollback',
-      'not_deployment',
-    ],
+    non_claims: [...TRACE_NON_CLAIMS] as ExternalTraceV23Intent['non_claims'],
   }
   const projectionBody = {
     schema: 'mykrobial.external-harness-event-projection.v1' as const,
@@ -525,15 +587,7 @@ export function projectExternalHarnessEvent(
     trace_append_authorized: false as const,
     optimizer_execution_authorized: false as const,
     component_application_authorized: false as const,
-    non_claims: [
-      'not_external_harness_execution',
-      'not_optimizer_execution',
-      'not_component_application',
-      'not_external_state_rollback',
-      'not_trace_append',
-      'not_promotion',
-      'not_deployment',
-    ] as ExternalHarnessEventProjection['non_claims'],
+    non_claims: [...PROJECTION_NON_CLAIMS] as ExternalHarnessEventProjection['non_claims'],
   }
   return {
     ...projectionBody,
@@ -542,27 +596,113 @@ export function projectExternalHarnessEvent(
 }
 
 function validateExternalProjection(source: ExternalHarnessEventProjection): ExternalHarnessEventProjection {
-  if (typeof source !== 'object' || source === null || Array.isArray(source)) {
+  if (!exactKeys(source, PROJECTION_KEYS)) throw new Error('typed_blocker:external_event_projection_invalid')
+  const value = structuredClone(source)
+  if (!exactKeys(value.trajectory_event, TRAJECTORY_KEYS)
+    || !exactKeys(value.trace_v2_3_intent, TRACE_KEYS)
+    || !exactKeys(value.loss_accounting, LOSS_KEYS)) {
     throw new Error('typed_blocker:external_event_projection_invalid')
   }
-  const value = structuredClone(source)
+  const event = value.trajectory_event
+  const temporal = event.temporal
+  const proof = event.proof
+  const trace = value.trace_v2_3_intent
+  const loss = value.loss_accounting
+  if (!exactKeys(temporal, TEMPORAL_KEYS)
+    || !exactKeys(proof, PROOF_KEYS)
+    || !exactKeys(proof.source, PROOF_STATE_KEYS)
+    || !exactKeys(proof.execution, PROOF_STATE_KEYS)
+    || !exactKeys(proof.review, PROOF_STATE_KEYS)
+    || !exactKeys(proof.deployment, PROOF_STATE_KEYS)
+    || !exactKeys(trace, TRACE_KEYS)
+    || !exactKeys(loss, LOSS_KEYS)
+    || !Array.isArray(event.component_ids)
+    || !Array.isArray(proof.source.receipt_refs)
+    || !Array.isArray(proof.execution.receipt_refs)
+    || !Array.isArray(proof.review.receipt_refs)
+    || !Array.isArray(proof.deployment.receipt_refs)) {
+    throw new Error('typed_blocker:external_event_projection_invalid')
+  }
   const { projection_sha256: _projectionSha256, ...projectionCandidate } = value
-  const { event_sha256: _eventSha256, ...eventCandidate } = value.trajectory_event
-  const { loss_accounting_sha256: _lossSha256, ...lossCandidate } = value.loss_accounting
+  const { event_sha256: _eventSha256, ...eventCandidate } = event
+  const { loss_accounting_sha256: _lossSha256, ...lossCandidate } = loss
+  const payload = artifactRef(event.payload_ref)
+  const componentIds = event.component_ids.map(identifier)
+  const outputCost = usageRecord(event.cost, value.source_event_kind)
+  const expectedKind = value.source_event_kind === 'message'
+    ? ['observation', 'result'].includes(event.kind)
+    : event.kind === EXPECTED_TRAJECTORY_KIND[value.source_event_kind]
+  const mappedFields = [
+    'branch_id', 'component_generation', 'component_ids', 'loadout_id', 'occurred_at',
+    'primary_component_id', 'raw_event_artifact', 'run_id', 'source_event_id',
+    'source_event_kind', 'source_sequence', 'task_capsule_id',
+  ]
+  if (value.source_event_kind === 'message') mappedFields.push('direction')
+  if (value.source_event_kind === 'rebuild_and_restart_outcome') mappedFields.push('execution_outcome')
+  if (value.source_event_kind === 'usage') mappedFields.push('usage')
+  mappedFields.sort()
   if (value.schema !== 'mykrobial.external-harness-event-projection.v1'
     || value.source_system !== 'exo'
     || !SOURCE_KINDS.includes(value.source_event_kind)
-    || value.trajectory_event.schema !== 'mykrobial.harness.trajectory-event.v1'
-    || value.trajectory_event.event_sha256 !== externalEventCanonicalSha256(eventCandidate)
-    || value.trace_v2_3_intent.source_event_sha256 !== value.trajectory_event.event_sha256
-    || value.trace_v2_3_intent.status !== 'candidate_report_only'
-    || value.loss_accounting.loss_accounting_sha256 !== externalEventCanonicalSha256(lossCandidate)
-    || value.loss_accounting.hidden_reasoning_accessed !== false
-    || value.loss_accounting.external_state_rollback_covered !== false
+    || !expectedKind
+    || event.schema !== 'mykrobial.harness.trajectory-event.v1'
+    || event.harness_generation !== 'next_deepseek_cordis'
+    || event.event_id !== `external-${payload.sha256.slice(0, 24)}`
+    || identifier(event.run_id) !== event.run_id
+    || identifier(event.task_capsule_id) !== event.task_capsule_id
+    || identifier(event.loadout_id) !== event.loadout_id
+    || identifier(event.source_component_id) !== event.source_component_id
+    || !componentIds.includes(event.source_component_id)
+    || !Number.isSafeInteger(event.sequence) || event.sequence < 0
+    || digest(event.previous_event_sha256) !== event.previous_event_sha256
+    || timestamp(event.occurred_at) !== event.occurred_at
+    || event.payload_sha256 !== payload.sha256
+    || new Set(componentIds).size !== componentIds.length
+    || !exactKeys(outputCost, USAGE_KEYS)
+    || temporal.transaction_time !== event.occurred_at
+    || temporal.valid_from !== null || temporal.valid_until !== null
+    || temporal.valid_time_basis !== 'not_asserted'
+    || temporal.supersedes_event_id !== null || temporal.parent_event_id !== null
+    || identifier(temporal.branch_id) !== temporal.branch_id
+    || !Number.isSafeInteger(temporal.component_generation) || temporal.component_generation < 0
+    || temporal.duration_ms !== (value.source_event_kind === 'usage' ? outputCost.wall_ms : null)
+    || temporal.deadline_at !== null || temporal.causality_state !== 'not_asserted'
+    || proof.source.state !== 'candidate' || proof.source.blocker !== null
+    || proof.source.receipt_refs.length !== 1
+    || canonical(proof.source.receipt_refs[0]) !== canonical(payload)
+    || proof.execution.state !== 'blocked' || proof.execution.receipt_refs.length !== 0
+    || proof.execution.blocker !== 'typed_blocker:external_harness_event_execution_unverified'
+    || proof.review.state !== 'unavailable' || proof.review.receipt_refs.length !== 0
+    || proof.review.blocker !== 'typed_blocker:external_harness_event_review_unavailable'
+    || proof.deployment.state !== 'unavailable' || proof.deployment.receipt_refs.length !== 0
+    || proof.deployment.blocker !== 'typed_blocker:external_harness_event_deployment_unavailable'
+    || event.event_sha256 !== externalEventCanonicalSha256(eventCandidate)
+    || trace.schema !== 'mykrobial.deepseek.trace-v2.3-intent.v1'
+    || trace.target_schema !== 'mykrobial.trace.v2.3.event.v1'
+    || trace.target_schema_version !== '2.3.0'
+    || identifier(trace.trace_id) !== trace.trace_id
+    || identifier(trace.session_id) !== trace.session_id
+    || trace.source_event_sha256 !== event.event_sha256
+    || trace.source_event_sequence !== event.sequence
+    || trace.source_event_kind !== event.kind
+    || trace.scope !== 'root_run' || trace.phase !== 'progress'
+    || trace.content_mode !== 'metadata_only' || trace.status !== 'candidate_report_only'
+    || trace.blocker !== 'typed_blocker:mykrobial_trace_v2_3_schema_and_append_authority_unadmitted'
+    || !exactArray(trace.non_claims, TRACE_NON_CLAIMS)
+    || loss.mapping !== MAPPING[value.source_event_kind]
+    || !exactArray(loss.mapped_fields, mappedFields)
+    || !exactArray(loss.unavailable_fields, UNAVAILABLE_FIELDS)
+    || !exactArray(loss.dropped_fields, DROPPED_FIELDS)
+    || loss.metadata_projection_lossy !== true
+    || loss.raw_event_content_addressed !== true
+    || loss.loss_accounting_sha256 !== externalEventCanonicalSha256(lossCandidate)
+    || loss.hidden_reasoning_accessed !== false
+    || loss.external_state_rollback_covered !== false
     || value.trajectory_append_authorized !== false
     || value.trace_append_authorized !== false
     || value.optimizer_execution_authorized !== false
     || value.component_application_authorized !== false
+    || !exactArray(value.non_claims, PROJECTION_NON_CLAIMS)
     || value.projection_sha256 !== externalEventCanonicalSha256(projectionCandidate)) {
     throw new Error('typed_blocker:external_event_projection_invalid')
   }
