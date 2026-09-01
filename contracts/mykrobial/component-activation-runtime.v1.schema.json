@@ -1,0 +1,396 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mykrobial.org/schemas/component-activation-runtime.v1.schema.json",
+  "title": "Mykrobial component-local activation runtime contracts",
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+    },
+    "permit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "transaction_id",
+        "plan_sha256",
+        "target_component_id",
+        "before_snapshot_sha256",
+        "candidate_definition_sha256",
+        "prediction_rehearsal_receipt_sha256",
+        "replay_receipt_sha256",
+        "rollback_contract_sha256",
+        "external_effect_boundary_sha256",
+        "expires_at",
+        "permit_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.component-activation-permit.v1"
+        },
+        "transaction_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "plan_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "target_component_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "before_snapshot_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "candidate_definition_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "prediction_rehearsal_receipt_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "replay_receipt_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "rollback_contract_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "external_effect_boundary_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "permit_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "permitDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "status",
+        "expectation_sha256",
+        "permit_sha256",
+        "verifier_identity_sha256",
+        "verifier_source_sha256",
+        "execution_authorized",
+        "decision_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.component-activation-permit-decision.v1"
+        },
+        "status": {
+          "enum": [
+            "admitted",
+            "rejected"
+          ]
+        },
+        "expectation_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "permit_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "verifier_identity_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "verifier_source_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "execution_authorized": {
+          "type": "boolean"
+        },
+        "decision_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "admitted"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "execution_authorized": {
+                "const": true
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "execution_authorized": {
+                "const": false
+              }
+            }
+          }
+        }
+      ]
+    },
+    "healthObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence",
+        "check_id",
+        "passed",
+        "snapshot_sha256"
+      ],
+      "properties": {
+        "sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 31
+        },
+        "check_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "passed": {
+          "type": "boolean"
+        },
+        "snapshot_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "transactionReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "transaction_id",
+        "plan_sha256",
+        "component_id",
+        "before_generation",
+        "candidate_generation",
+        "final_generation",
+        "before_snapshot_sha256",
+        "candidate_definition_sha256",
+        "candidate_snapshot_sha256",
+        "final_snapshot_sha256",
+        "prediction_rehearsal_receipt_sha256",
+        "replay_receipt_sha256",
+        "rollback_contract_sha256",
+        "external_effect_boundary_sha256",
+        "permit_sha256",
+        "permit_decision_sha256",
+        "permit_verifier_identity_sha256",
+        "permit_verifier_source_sha256",
+        "planned_health_observation_count",
+        "completed_health_observation_count",
+        "health_observations",
+        "outcome",
+        "blocker",
+        "component_effects_executed",
+        "promotion_authorized",
+        "trace_append_authorized",
+        "deployment_authorized",
+        "non_claims",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.component-activation-transaction-receipt.v1"
+        },
+        "transaction_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "plan_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "component_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "before_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "candidate_generation": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "final_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "before_snapshot_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "candidate_definition_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "candidate_snapshot_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "final_snapshot_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "prediction_rehearsal_receipt_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "replay_receipt_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "rollback_contract_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "external_effect_boundary_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "permit_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "permit_decision_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "permit_verifier_identity_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "permit_verifier_source_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "planned_health_observation_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 32
+        },
+        "completed_health_observation_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 32
+        },
+        "health_observations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/healthObservation"
+          },
+          "maxItems": 1024
+        },
+        "outcome": {
+          "enum": [
+            "committed",
+            "rolled_back",
+            "rollback_failed"
+          ]
+        },
+        "blocker": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^typed_blocker:"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "component_effects_executed": {
+          "const": true
+        },
+        "promotion_authorized": {
+          "const": false
+        },
+        "trace_append_authorized": {
+          "const": false
+        },
+        "deployment_authorized": {
+          "const": false
+        },
+        "non_claims": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "const": "not_optimizer_execution"
+            },
+            {
+              "const": "not_evaluator_execution"
+            },
+            {
+              "const": "not_permit_issuer_or_verifier_implementation"
+            },
+            {
+              "const": "not_trace_append"
+            },
+            {
+              "const": "not_promotion"
+            },
+            {
+              "const": "not_deployment"
+            }
+          ],
+          "items": false,
+          "minItems": 6,
+          "maxItems": 6
+        },
+        "receipt_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "committed"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "blocker": {
+                "type": "null"
+              },
+              "candidate_generation": {
+                "type": "integer"
+              },
+              "candidate_snapshot_sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "blocker": {
+                "type": "string",
+                "pattern": "^typed_blocker:"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

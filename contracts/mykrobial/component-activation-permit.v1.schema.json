@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mykrobial.org/schemas/component-activation-permit.v1.schema.json",
+  "$ref": "./component-activation-runtime.v1.schema.json#/$defs/permit"
+}
