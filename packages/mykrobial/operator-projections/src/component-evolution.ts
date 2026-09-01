@@ -206,6 +206,7 @@ export interface ComponentExperimentViewInput {
     capsule_sha256: string | null
     disposition: 'accept_candidate' | 'reject_candidate' | 'revise_candidate' | 'no_change' | 'rollback' | null
     authority_receipt_sha256: string | null
+    training_gate_receipt_sha256: string | null
     artifact: ExternalComponentDecision | null
   }
   plan: {
@@ -215,12 +216,14 @@ export interface ComponentExperimentViewInput {
     capsule_id: string | null
     decision_id: string | null
     plan_sha256: string | null
+    post_loadout_manifest_sha256: string | null
     capsule_sha256: string | null
     decision_external_input_sha256: string | null
     verification_receipt_sha256: string | null
     applied_receipt_sha256: string | null
     replay_receipt_sha256: string | null
     rollback_receipt_sha256: string | null
+    blocker_resolutions: Array<{ blocker: string; receipt_sha256: string }>
     artifact: ComponentReconfigurationPlan | null
   }
   proof_level: EvolutionProofLevel
@@ -339,6 +342,27 @@ function experimentArm(value: unknown): ExperimentArmViewInput {
   return row
 }
 
+function blockerResolutions(
+  value: unknown,
+): Array<{ blocker: string; receipt_sha256: string }> {
+  if (!Array.isArray(value) || value.length > 16) {
+    throw new Error('typed_blocker:component_view_blocker_resolutions_invalid')
+  }
+  const rows = value.map(item => {
+    exact(item, ['blocker', 'receipt_sha256'], 'component_view_blocker_resolution_closure_invalid')
+    const row = structuredClone(item) as { blocker: string; receipt_sha256: string }
+    if (typeof row.blocker !== 'string' || !BLOCKER.test(row.blocker)) {
+      throw new Error('typed_blocker:component_view_blocker_resolutions_invalid')
+    }
+    row.receipt_sha256 = digest(row.receipt_sha256, 'component_view_blocker_resolution_receipt_invalid')
+    return row
+  }).sort((left, right) => left.blocker.localeCompare(right.blocker))
+  if (new Set(rows.map(row => row.blocker)).size !== rows.length) {
+    throw new Error('typed_blocker:component_view_blocker_resolutions_invalid')
+  }
+  return rows
+}
+
 function experimentRow(value: unknown): ComponentExperimentViewInput {
   exact(value, [
     'experiment_id', 'capsule_id', 'capsule_sha256', 'plane',
@@ -395,7 +419,7 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
   }
   exact(row.decision, [
     'state', 'decision_id', 'capsule_id', 'external_input_sha256', 'capsule_sha256', 'disposition',
-    'authority_receipt_sha256', 'artifact',
+    'authority_receipt_sha256', 'training_gate_receipt_sha256', 'artifact',
   ], 'component_view_decision_closure_invalid')
   row.decision.state = oneOf(row.decision.state, ['none', 'untrusted', 'verified', 'blocked'] as const, 'component_view_decision_state_invalid')
   row.decision.decision_id = row.decision.decision_id === null ? null : identifier(row.decision.decision_id)
@@ -405,6 +429,9 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
   )
   row.decision.capsule_sha256 = optionalDigest(row.decision.capsule_sha256, 'component_view_decision_capsule_invalid')
   row.decision.authority_receipt_sha256 = optionalDigest(row.decision.authority_receipt_sha256, 'component_view_authority_receipt_invalid')
+  row.decision.training_gate_receipt_sha256 = optionalDigest(
+    row.decision.training_gate_receipt_sha256, 'component_view_training_receipt_invalid',
+  )
   if (row.decision.disposition !== null) {
     row.decision.disposition = oneOf(row.decision.disposition, [
       'accept_candidate', 'reject_candidate', 'revise_candidate', 'no_change', 'rollback',
@@ -414,12 +441,16 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
     row.decision.decision_id, row.decision.capsule_id, row.decision.external_input_sha256,
     row.decision.capsule_sha256, row.decision.disposition,
   ]
-  if ((row.decision.state === 'none' && [...decisionCore, row.decision.authority_receipt_sha256].some(item => item !== null))
+  if ((row.decision.state === 'none' && [
+    ...decisionCore, row.decision.authority_receipt_sha256,
+    row.decision.training_gate_receipt_sha256,
+  ].some(item => item !== null))
     || (row.decision.state !== 'none' && decisionCore.some(item => item === null))
     || (row.decision.state !== 'none' && (row.decision.capsule_id !== row.capsule_id
       || row.decision.capsule_sha256 !== row.capsule_sha256))
     || (row.decision.state === 'verified' && row.decision.authority_receipt_sha256 === null)
-    || (row.decision.state !== 'verified' && row.decision.authority_receipt_sha256 !== null)) {
+    || (row.decision.state !== 'verified' && (row.decision.authority_receipt_sha256 !== null
+      || row.decision.training_gate_receipt_sha256 !== null))) {
     throw new Error('typed_blocker:component_view_decision_state_invalid')
   }
   if (row.decision.state === 'none') {
@@ -430,7 +461,7 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
     if (row.decision.artifact === null) {
       throw new Error('typed_blocker:component_view_decision_state_invalid')
     }
-    row.decision.artifact = validateExternalComponentDecision(row.decision.artifact)
+    row.decision.artifact = validateExternalComponentDecision(row.decision.artifact, capsule)
     if (row.decision.artifact.decision_id !== row.decision.decision_id
       || row.decision.artifact.capsule_id !== row.decision.capsule_id
       || row.decision.artifact.capsule_sha256 !== row.decision.capsule_sha256
@@ -438,12 +469,19 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
       || row.decision.artifact.disposition !== row.decision.disposition) {
       throw new Error('typed_blocker:component_view_decision_artifact_mismatch')
     }
+    const trainingBlocker = row.decision.artifact.blockers.includes(
+      'typed_blocker:model_weights_training_gate_unverified',
+    )
+    if (row.decision.state === 'verified'
+      && trainingBlocker !== (row.decision.training_gate_receipt_sha256 !== null)) {
+      throw new Error('typed_blocker:component_view_decision_state_invalid')
+    }
   }
   exact(row.plan, [
     'state', 'operation', 'plan_id', 'capsule_id', 'decision_id', 'plan_sha256',
-    'capsule_sha256', 'decision_external_input_sha256',
+    'post_loadout_manifest_sha256', 'capsule_sha256', 'decision_external_input_sha256',
     'verification_receipt_sha256', 'applied_receipt_sha256',
-    'replay_receipt_sha256', 'rollback_receipt_sha256', 'artifact',
+    'replay_receipt_sha256', 'rollback_receipt_sha256', 'blocker_resolutions', 'artifact',
   ], 'component_view_plan_closure_invalid')
   row.plan.state = oneOf(row.plan.state, [
     'none', 'prepared_unexecuted', 'verified_unapplied', 'applied', 'rolled_back', 'blocked',
@@ -455,6 +493,9 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
   row.plan.capsule_id = row.plan.capsule_id === null ? null : identifier(row.plan.capsule_id)
   row.plan.decision_id = row.plan.decision_id === null ? null : identifier(row.plan.decision_id)
   row.plan.plan_sha256 = optionalDigest(row.plan.plan_sha256, 'component_view_plan_digest_invalid')
+  row.plan.post_loadout_manifest_sha256 = optionalDigest(
+    row.plan.post_loadout_manifest_sha256, 'component_view_plan_loadout_invalid',
+  )
   row.plan.capsule_sha256 = optionalDigest(row.plan.capsule_sha256, 'component_view_plan_capsule_invalid')
   row.plan.decision_external_input_sha256 = optionalDigest(
     row.plan.decision_external_input_sha256, 'component_view_plan_decision_invalid',
@@ -463,6 +504,7 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
   row.plan.applied_receipt_sha256 = optionalDigest(row.plan.applied_receipt_sha256, 'component_view_plan_receipt_invalid')
   row.plan.replay_receipt_sha256 = optionalDigest(row.plan.replay_receipt_sha256, 'component_view_plan_receipt_invalid')
   row.plan.rollback_receipt_sha256 = optionalDigest(row.plan.rollback_receipt_sha256, 'component_view_plan_receipt_invalid')
+  row.plan.blocker_resolutions = blockerResolutions(row.plan.blocker_resolutions)
   const planCore = [
     row.plan.operation, row.plan.plan_id, row.plan.capsule_id, row.plan.decision_id,
     row.plan.plan_sha256, row.plan.capsule_sha256,
@@ -470,7 +512,8 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
   ]
   if ((row.plan.state === 'none' && [
     ...planCore, row.plan.verification_receipt_sha256, row.plan.applied_receipt_sha256, row.plan.replay_receipt_sha256,
-    row.plan.rollback_receipt_sha256,
+    row.plan.rollback_receipt_sha256, row.plan.post_loadout_manifest_sha256,
+    ...row.plan.blocker_resolutions,
   ].some(item => item !== null))
     || (row.plan.state !== 'none' && planCore.some(item => item === null))
     || (row.plan.state !== 'none' && (row.decision.state === 'none'
@@ -483,8 +526,12 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
     || (row.plan.state === 'applied' && row.plan.applied_receipt_sha256 === null)
     || (row.plan.state === 'rolled_back'
       && (row.plan.applied_receipt_sha256 === null || row.plan.rollback_receipt_sha256 === null))
+    || (['applied', 'rolled_back'].includes(row.plan.state)
+      !== (row.plan.post_loadout_manifest_sha256 !== null))
     || (!['applied', 'rolled_back'].includes(row.plan.state) && row.plan.applied_receipt_sha256 !== null)
-    || (row.plan.state !== 'rolled_back' && row.plan.rollback_receipt_sha256 !== null)) {
+    || (row.plan.state !== 'rolled_back' && row.plan.rollback_receipt_sha256 !== null)
+    || (!['verified_unapplied', 'applied', 'rolled_back'].includes(row.plan.state)
+      && row.plan.blocker_resolutions.length !== 0)) {
     throw new Error('typed_blocker:component_view_plan_state_invalid')
   }
   if (row.plan.state === 'none') {
@@ -495,7 +542,12 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
     if (row.plan.artifact === null) {
       throw new Error('typed_blocker:component_view_plan_state_invalid')
     }
-    row.plan.artifact = validateComponentReconfigurationPlan(row.plan.artifact)
+    if (row.decision.artifact === null) {
+      throw new Error('typed_blocker:component_view_plan_state_invalid')
+    }
+    row.plan.artifact = validateComponentReconfigurationPlan(
+      row.plan.artifact, capsule, row.decision.artifact,
+    )
     if (row.plan.artifact.operation !== row.plan.operation
       || row.plan.artifact.plan_id !== row.plan.plan_id
       || row.plan.artifact.plan_sha256 !== row.plan.plan_sha256
@@ -506,6 +558,35 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
       || row.plan.artifact.target_component_ids.join('\u0000') !== row.target_component_ids.join('\u0000')
       || row.plan.artifact.target_surface_ids.join('\u0000') !== row.target_surface_ids.join('\u0000')) {
       throw new Error('typed_blocker:component_view_plan_artifact_mismatch')
+    }
+    if (['verified_unapplied', 'applied', 'rolled_back'].includes(row.plan.state)) {
+      const structurallyUnresolved = row.plan.artifact.blockers.filter(blocker => ![
+        'typed_blocker:external_decision_authority_unverified',
+        'typed_blocker:model_weights_training_gate_unverified',
+      ].includes(blocker))
+      const expectedResolutions = row.plan.artifact.blockers
+        .filter(blocker => !structurallyUnresolved.includes(blocker))
+        .map(blocker => ({
+          blocker,
+          receipt_sha256: blocker === 'typed_blocker:external_decision_authority_unverified'
+            ? row.decision.authority_receipt_sha256
+            : row.decision.training_gate_receipt_sha256,
+        }))
+      if (structurallyUnresolved.length !== 0
+        || expectedResolutions.some(item => item.receipt_sha256 === null)
+        || JSON.stringify(row.plan.blocker_resolutions) !== JSON.stringify(expectedResolutions)) {
+        throw new Error('typed_blocker:component_view_plan_execution_admission_invalid')
+      }
+      if ((row.plan.operation === 'swap' && row.decision.disposition !== 'accept_candidate')
+        || (row.plan.operation === 'rollback' && row.decision.disposition !== 'rollback')
+        || (row.plan.operation === 'replay' && (row.plan.artifact.replay_receipt_sha256 === null
+          || row.plan.replay_receipt_sha256 !== row.plan.artifact.replay_receipt_sha256))
+        || (row.plan.operation === 'rollback' && (row.plan.artifact.rollback_receipt_sha256 === null
+          || row.plan.rollback_receipt_sha256 !== row.plan.artifact.rollback_receipt_sha256))
+        || (['applied', 'rolled_back'].includes(row.plan.state)
+          && ((row.plan.operation === 'rollback') !== (row.plan.state === 'rolled_back')))) {
+        throw new Error('typed_blocker:component_view_plan_execution_admission_invalid')
+      }
     }
   }
   row.proof_level = oneOf(row.proof_level, PROOF_LEVELS, 'component_view_proof_level_invalid')
@@ -639,6 +720,24 @@ export function buildOmniGentComponentEvolutionView(
     throw new Error('typed_blocker:component_view_experiment_identity_invalid')
   }
   for (const experiment of input.experiments) {
+    const taskLoadout = experiment.capsule_artifact.task_binding
+    if (taskLoadout.task_capsule_id !== input.task_capsule_id
+      || taskLoadout.loadout_id !== input.active_loadout.loadout_id
+      || experiment.capsule_artifact.source_binding.mutation_surface_registry_sha256
+        !== input.mutation_surface_registry_sha256) {
+      throw new Error('typed_blocker:component_view_capsule_run_binding_invalid')
+    }
+    if (['applied', 'rolled_back'].includes(experiment.plan.state)) {
+      if (experiment.plan.post_loadout_manifest_sha256 !== input.active_loadout.manifest_sha256
+        || (experiment.plan.operation === 'swap'
+          && experiment.plan.post_loadout_manifest_sha256 === taskLoadout.loadout_manifest_sha256)
+        || (experiment.plan.operation !== 'swap'
+          && experiment.plan.post_loadout_manifest_sha256 !== taskLoadout.loadout_manifest_sha256)) {
+        throw new Error('typed_blocker:component_view_active_loadout_binding_invalid')
+      }
+    } else if (taskLoadout.loadout_manifest_sha256 !== input.active_loadout.manifest_sha256) {
+      throw new Error('typed_blocker:component_view_active_loadout_binding_invalid')
+    }
     const targetSurfaces = [...new Set(experiment.target_component_ids.map(
       id => componentById.get(id)!.surface_id,
     ))].sort()
@@ -688,6 +787,19 @@ export function buildOmniGentComponentEvolutionView(
   input.rollback.receipt_sha256 = optionalDigest(input.rollback.receipt_sha256, 'component_view_rollback_digest_invalid')
   if ((['rehearsed', 'verified'].includes(input.rollback.state)) !== (input.rollback.receipt_sha256 !== null)) {
     throw new Error('typed_blocker:component_view_rollback_state_invalid')
+  }
+  for (const experiment of input.experiments) {
+    if (!['verified_unapplied', 'applied', 'rolled_back'].includes(experiment.plan.state)) continue
+    if (experiment.plan.operation === 'replay'
+      && (input.replay.state !== 'verified'
+        || experiment.plan.replay_receipt_sha256 !== input.replay.receipt_sha256)) {
+      throw new Error('typed_blocker:component_view_replay_admission_invalid')
+    }
+    if (experiment.plan.operation === 'rollback'
+      && (input.rollback.state !== 'verified'
+        || experiment.plan.rollback_receipt_sha256 !== input.rollback.receipt_sha256)) {
+      throw new Error('typed_blocker:component_view_rollback_admission_invalid')
+    }
   }
   input.proof_level = oneOf(input.proof_level, PROOF_LEVELS, 'component_view_proof_level_invalid')
   input.deployment_receipt_sha256 = optionalDigest(input.deployment_receipt_sha256, 'component_view_deployment_digest_invalid')

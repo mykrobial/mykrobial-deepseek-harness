@@ -11,6 +11,9 @@ capsule, external decision, and reconfiguration plan retain matching identities
 and digests. Four-digit UTC civil time is ordered literally, including years
 0000 through 0099. Complete accepted-seam capsule, decision, and no-apply plan
 artifacts are revalidated before their immutable identities are paired with
-mutable execution and receipt state. It projects backend facts only;
+mutable execution and receipt state. Runtime proof also requires a causally
+ordered proposal/capsule/decision/plan chain, exact blocker resolutions,
+operation-specific replay or rollback evidence, compatible disposition, and
+post-operation active-loadout readback. It projects backend facts only;
 it cannot run an optimizer, apply a component, append Trace, train, promote, or
 deploy.

@@ -16,6 +16,8 @@
     "BASE TRUE SHAM experiment projection",
     "complete accepted capsule decision and plan artifact revalidation",
     "mutable execution-state separation from immutable no-apply plan artifacts",
+    "operation-specific execution-admission and blocker-resolution projection",
+    "proposal lineage causal time and active-loadout generation binding",
     "four-plane proposal-only optimizer port projection",
     "transaction-time and valid-time timeline projection",
     "Trace replay rollback and proof-level readback",

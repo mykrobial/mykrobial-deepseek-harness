@@ -326,7 +326,19 @@
           "const": false
         },
         "non_claims": {
-          "$ref": "#/$defs/nonClaims"
+          "type": "array",
+          "prefixItems": [
+            { "const": "not_optimizer_execution" },
+            { "const": "not_evaluation" },
+            { "const": "not_training" },
+            { "const": "not_component_application" },
+            { "const": "not_promotion" },
+            { "const": "not_trace_append" },
+            { "const": "not_deployment" }
+          ],
+          "items": false,
+          "minItems": 7,
+          "maxItems": 7
         },
         "proposal_sha256": {
           "$ref": "#/$defs/sha256"
@@ -581,6 +593,7 @@
         "experiment_id",
         "proposal_id",
         "proposal_sha256",
+        "proposal_artifact",
         "plane",
         "delta_mode",
         "target_component_ids",
@@ -614,6 +627,9 @@
         },
         "proposal_sha256": {
           "$ref": "#/$defs/sha256"
+        },
+        "proposal_artifact": {
+          "$ref": "#/$defs/mutationProposal"
         },
         "plane": {
           "$ref": "#/$defs/plane"
@@ -699,7 +715,19 @@
           "const": false
         },
         "non_claims": {
-          "$ref": "#/$defs/nonClaims"
+          "type": "array",
+          "prefixItems": [
+            { "const": "not_evaluator_execution" },
+            { "const": "not_optimizer_execution" },
+            { "const": "not_training" },
+            { "const": "not_component_application" },
+            { "const": "not_promotion" },
+            { "const": "not_trace_append" },
+            { "const": "not_deployment" }
+          ],
+          "items": false,
+          "minItems": 7,
+          "maxItems": 7
         },
         "capsule_sha256": {
           "$ref": "#/$defs/sha256"
@@ -844,7 +872,19 @@
           "uniqueItems": true
         },
         "non_claims": {
-          "$ref": "#/$defs/nonClaims"
+          "type": "array",
+          "prefixItems": [
+            { "const": "not_optimizer_execution" },
+            { "const": "not_independent_evaluation" },
+            { "const": "not_authority_verification" },
+            { "const": "not_training_gate_verification" },
+            { "const": "not_component_application" },
+            { "const": "not_promotion" },
+            { "const": "not_deployment" }
+          ],
+          "items": false,
+          "minItems": 7,
+          "maxItems": 7
         },
         "external_input_sha256": {
           "$ref": "#/$defs/sha256"
@@ -999,7 +1039,19 @@
           "const": false
         },
         "non_claims": {
-          "$ref": "#/$defs/nonClaims"
+          "type": "array",
+          "prefixItems": [
+            { "const": "not_component_activation" },
+            { "const": "not_component_deactivation" },
+            { "const": "not_replay_execution" },
+            { "const": "not_rollback_execution" },
+            { "const": "not_authority_verification" },
+            { "const": "not_trace_append" },
+            { "const": "not_deployment" }
+          ],
+          "items": false,
+          "minItems": 7,
+          "maxItems": 7
         },
         "plan_sha256": {
           "$ref": "#/$defs/sha256"

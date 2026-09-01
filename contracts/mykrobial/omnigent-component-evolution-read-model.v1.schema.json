@@ -135,6 +135,15 @@
         { "type": "null" }
       ]
     },
+    "blockerResolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["blocker", "receipt_sha256"],
+      "properties": {
+        "blocker": { "type": "string", "pattern": "^typed_blocker:[a-z0-9_:-]+$" },
+        "receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" }
+      }
+    },
     "component": {
       "type": "object",
       "additionalProperties": false,
@@ -211,7 +220,7 @@
       "additionalProperties": false,
       "required": [
         "state", "decision_id", "capsule_id", "external_input_sha256", "capsule_sha256",
-        "disposition", "authority_receipt_sha256", "artifact"
+        "disposition", "authority_receipt_sha256", "training_gate_receipt_sha256", "artifact"
       ],
       "properties": {
         "state": { "enum": ["none", "untrusted", "verified", "blocked"] },
@@ -224,6 +233,7 @@
           "enum": ["accept_candidate", "reject_candidate", "revise_candidate", "no_change", "rollback", null]
         },
         "authority_receipt_sha256": { "$ref": "#/$defs/nullableSha" },
+        "training_gate_receipt_sha256": { "$ref": "#/$defs/nullableSha" },
         "artifact": {
           "anyOf": [
             { "$ref": "component-rsi-seam.v1.schema.json#/$defs/externalDecision" },
@@ -242,6 +252,7 @@
               "capsule_sha256": { "const": null },
               "disposition": { "const": null },
               "authority_receipt_sha256": { "const": null },
+              "training_gate_receipt_sha256": { "const": null },
               "artifact": { "const": null }
             }
           },
@@ -262,6 +273,10 @@
             "properties": { "authority_receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" } }
           },
           "else": { "properties": { "authority_receipt_sha256": { "const": null } } }
+        },
+        {
+          "if": { "properties": { "state": { "const": "verified" } }, "required": ["state"] },
+          "else": { "properties": { "training_gate_receipt_sha256": { "const": null } } }
         }
       ]
     },
@@ -270,9 +285,9 @@
       "additionalProperties": false,
       "required": [
         "state", "operation", "plan_id", "capsule_id", "decision_id", "plan_sha256",
-        "capsule_sha256", "decision_external_input_sha256",
+        "post_loadout_manifest_sha256", "capsule_sha256", "decision_external_input_sha256",
         "verification_receipt_sha256", "applied_receipt_sha256",
-        "replay_receipt_sha256", "rollback_receipt_sha256", "artifact"
+        "replay_receipt_sha256", "rollback_receipt_sha256", "blocker_resolutions", "artifact"
       ],
       "properties": {
         "state": { "enum": ["none", "prepared_unexecuted", "verified_unapplied", "applied", "rolled_back", "blocked"] },
@@ -281,12 +296,17 @@
         "capsule_id": { "$ref": "#/$defs/nullableId" },
         "decision_id": { "$ref": "#/$defs/nullableId" },
         "plan_sha256": { "$ref": "#/$defs/nullableSha" },
+        "post_loadout_manifest_sha256": { "$ref": "#/$defs/nullableSha" },
         "capsule_sha256": { "$ref": "#/$defs/nullableSha" },
         "decision_external_input_sha256": { "$ref": "#/$defs/nullableSha" },
         "verification_receipt_sha256": { "$ref": "#/$defs/nullableSha" },
         "applied_receipt_sha256": { "$ref": "#/$defs/nullableSha" },
         "replay_receipt_sha256": { "$ref": "#/$defs/nullableSha" },
         "rollback_receipt_sha256": { "$ref": "#/$defs/nullableSha" },
+        "blocker_resolutions": {
+          "type": "array", "maxItems": 16, "uniqueItems": true,
+          "items": { "$ref": "#/$defs/blockerResolution" }
+        },
         "artifact": {
           "anyOf": [
             { "$ref": "component-rsi-seam.v1.schema.json#/$defs/reconfigurationPlan" },
@@ -304,12 +324,14 @@
               "capsule_id": { "const": null },
               "decision_id": { "const": null },
               "plan_sha256": { "const": null },
+              "post_loadout_manifest_sha256": { "const": null },
               "capsule_sha256": { "const": null },
               "decision_external_input_sha256": { "const": null },
               "verification_receipt_sha256": { "const": null },
               "applied_receipt_sha256": { "const": null },
               "replay_receipt_sha256": { "const": null },
               "rollback_receipt_sha256": { "const": null },
+              "blocker_resolutions": { "maxItems": 0 },
               "artifact": { "const": null }
             }
           },
@@ -339,9 +361,17 @@
         {
           "if": { "properties": { "state": { "enum": ["applied", "rolled_back"] } }, "required": ["state"] },
           "then": {
-            "properties": { "applied_receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" } }
+            "properties": {
+              "applied_receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+              "post_loadout_manifest_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" }
+            }
           },
-          "else": { "properties": { "applied_receipt_sha256": { "const": null } } }
+          "else": {
+            "properties": {
+              "applied_receipt_sha256": { "const": null },
+              "post_loadout_manifest_sha256": { "const": null }
+            }
+          }
         },
         {
           "if": { "properties": { "state": { "const": "rolled_back" } }, "required": ["state"] },
@@ -352,6 +382,24 @@
             }
           },
           "else": { "properties": { "rollback_receipt_sha256": { "const": null } } }
+        },
+        {
+          "if": {
+            "properties": { "state": { "enum": ["verified_unapplied", "applied", "rolled_back"] } },
+            "required": ["state"]
+          },
+          "then": { "properties": { "blocker_resolutions": { "minItems": 1 } } },
+          "else": { "properties": { "blocker_resolutions": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "state": { "const": "rolled_back" } }, "required": ["state"] },
+          "then": { "properties": { "operation": { "const": "rollback" } } }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "rollback" } }, "required": ["operation"] },
+          "then": {
+            "properties": { "state": { "enum": ["prepared_unexecuted", "verified_unapplied", "rolled_back", "blocked"] } }
+          }
         }
       ]
     },

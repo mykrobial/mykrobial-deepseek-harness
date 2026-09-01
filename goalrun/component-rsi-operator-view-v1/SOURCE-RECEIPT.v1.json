@@ -6,15 +6,16 @@
   },
   "content_manifest": {
     "ref": "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
-    "sha256": "384c1ff04491b14b5303d63b89887fd8488d1cce5656f95d6c208e8ab7683225",
-    "content_file_count": 11,
+    "sha256": "c9b2aa54a17c98ac16beb37c78fcc88539fbb751bda0d9ce16023ecba57b38d1",
+    "content_file_count": 12,
     "manifest_excludes": [
       "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
       "goalrun/component-rsi-operator-view-v1/SOURCE-RECEIPT.v1.json",
       "goalrun/component-rsi-operator-view-v1/FRESH-CRITIC-BLOCKER.v1.json",
       "goalrun/component-rsi-operator-view-v1/ROUND-2-FRESH-CRITIC-BLOCKER.v1.json",
       "goalrun/component-rsi-operator-view-v1/ROUND-3-FRESH-CRITIC-BLOCKER.v1.json",
-      "goalrun/component-rsi-operator-view-v1/ROUND-4-FRESH-CRITIC-BLOCKER.v1.json"
+      "goalrun/component-rsi-operator-view-v1/ROUND-4-FRESH-CRITIC-BLOCKER.v1.json",
+      "goalrun/component-rsi-operator-view-v1/ROUND-5-FRESH-CRITIC-BLOCKER.v1.json"
     ]
   },
   "verification": {
@@ -22,13 +23,13 @@
     "node_version": "v25.9.0",
     "test_command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/operator-projections/tests/source-safe.test.ts",
     "component_seam_test_command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts",
-    "tests_passed": 52,
+    "tests_passed": 54,
     "tests_failed": 0,
-    "operator_projection_tests_passed": 28,
-    "component_seam_tests_passed": 24,
+    "operator_projection_tests_passed": 29,
+    "component_seam_tests_passed": 25,
     "typescript_syntax_checks": 6,
     "strict_authored_json_checks": 3,
-    "content_hash_checks": 11,
+    "content_hash_checks": 12,
     "git_diff_check": "passed"
   },
   "view_contract": {
@@ -39,6 +40,9 @@
     "capsule_decision_plan_binding_exact": true,
     "accepted_artifact_content_identity_revalidated": true,
     "immutable_plan_artifact_separate_from_execution_state": true,
+    "proposal_capsule_decision_plan_causal_chain_exact": true,
+    "operation_specific_admission_exact": true,
+    "active_loadout_postcondition_exact": true,
     "transaction_and_valid_time": true,
     "optimizer_ports_proposal_only": true,
     "trace_replay_rollback_readback": true,
@@ -98,6 +102,22 @@
       "separate immutable plan content from mutable verification application and rollback state",
       "reject synchronized identity semantic loadout target and digest substitutions",
       "revalidate the same artifacts at every public consumer boundary"
+    ]
+  },
+  "round_5_repair_basis": {
+    "critic_ref": "goalrun/component-rsi-operator-view-v1/ROUND-5-FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "9abdc43b64a6ad104d0d5f23b316b164e941aec6931ec91e9d16a61298a449de",
+    "finding": "typed_blocker:component_evolution_accepted_artifact_execution_admission_missing",
+    "repairs": [
+      "embed and revalidate the complete proposal artifact in every capsule",
+      "rederive proposal capsule decision and plan policy and nonclaim sets",
+      "derive plan identity from every immutable plan semantic",
+      "enforce proposal capsule decision and plan causal time order",
+      "separate resolvable verification blockers from structural operation blockers",
+      "require exact per-blocker verification receipts before runtime proof",
+      "require operation-specific replay rollback and disposition compatibility",
+      "bind applied or rolled-back state to exact post-operation active-loadout readback",
+      "reject both exact Round 5 runtime and public-revalidator counterexamples"
     ]
   },
   "authority": {

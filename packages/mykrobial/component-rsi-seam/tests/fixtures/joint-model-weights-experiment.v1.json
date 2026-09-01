@@ -37,7 +37,7 @@
   "decision_input": {
     "decision_id": "decision-joint-v1",
     "capsule_id": "capsule-joint-v1",
-    "capsule_sha256": "98c3a4bd75a2cf3b60bd8080be291131a43976e7c190b243da41987e1c370cce",
+    "capsule_sha256": "403a01451da2570403543e2c33ba5488d2ff621a385580113da39c7f1a7d2838",
     "decision_kind": "promotion_recommendation",
     "disposition": "accept_candidate",
     "issuer_id": "external-optimizer-v1",

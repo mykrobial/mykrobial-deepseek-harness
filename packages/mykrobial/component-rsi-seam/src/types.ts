@@ -156,6 +156,7 @@ export interface ComponentExperimentCapsule {
   experiment_id: string
   proposal_id: string
   proposal_sha256: string
+  proposal_artifact: ComponentMutationProposal
   plane: EvolutionPlane
   delta_mode: 'single_component' | 'declared_joint'
   target_component_ids: string[]

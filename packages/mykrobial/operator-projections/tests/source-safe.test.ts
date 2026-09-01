@@ -705,7 +705,7 @@ function componentEvolutionView(): OmniGentComponentEvolutionViewInput {
     harness_generation: 'next_deepseek_cordis',
     active_loadout: { loadout_id: 'retrodict-default-v1', manifest_sha256: digest('a') },
     component_manifest_sha256: digest('b'),
-    mutation_surface_registry_sha256: digest('c'),
+    mutation_surface_registry_sha256: artifacts.capsule.source_binding.mutation_surface_registry_sha256,
     components: [
       {
         component_id: 'prompt-v1',
@@ -766,6 +766,7 @@ function componentEvolutionView(): OmniGentComponentEvolutionViewInput {
           capsule_sha256: artifacts.decision.capsule_sha256,
           disposition: artifacts.decision.disposition,
           authority_receipt_sha256: null,
+          training_gate_receipt_sha256: null,
           artifact: artifacts.decision,
         },
         plan: {
@@ -773,11 +774,13 @@ function componentEvolutionView(): OmniGentComponentEvolutionViewInput {
           plan_id: artifacts.plan.plan_id,
           capsule_id: artifacts.plan.capsule_id, decision_id: artifacts.plan.decision_id,
           plan_sha256: artifacts.plan.plan_sha256,
+          post_loadout_manifest_sha256: null,
           capsule_sha256: artifacts.plan.capsule_sha256,
           decision_external_input_sha256: artifacts.plan.decision_external_input_sha256,
           verification_receipt_sha256: null,
           applied_receipt_sha256: null,
           replay_receipt_sha256: null, rollback_receipt_sha256: null,
+          blocker_resolutions: [],
           artifact: artifacts.plan,
         },
         proof_level: 'source_verified',
@@ -870,14 +873,21 @@ function withComponentRuntimeEvidence(
     ...experiment.decision,
     state: 'verified',
     authority_receipt_sha256: digest('1'),
+    training_gate_receipt_sha256: null,
   }
   experiment.plan = {
     ...experiment.plan,
     state: 'applied',
+    post_loadout_manifest_sha256: digest('b'),
     verification_receipt_sha256: digest('6'), applied_receipt_sha256: digest('2'),
     replay_receipt_sha256: null,
     rollback_receipt_sha256: null,
+    blocker_resolutions: [{
+      blocker: 'typed_blocker:external_decision_authority_unverified',
+      receipt_sha256: digest('1'),
+    }],
   }
+  input.active_loadout.manifest_sha256 = digest('b')
   input.proof_level = 'runtime_verified'
   return input
 }
@@ -1120,6 +1130,96 @@ test('accepted seam artifacts reject synchronized stale-digest substitutions', (
   )
 })
 
+test('runtime proof requires structurally admitted operation artifacts and exact loadout readback', () => {
+  const replayCandidate = withComponentRuntimeEvidence(componentEvolutionView())
+  const replayExperiment = replayCandidate.experiments[0]!
+  const replayFields = structuredClone(componentSeamFixture.plan_fields)
+  replayFields.operation = 'replay'
+  replayFields.current_loadout_manifest_sha256
+    = replayExperiment.capsule_artifact.task_binding.loadout_manifest_sha256
+  replayFields.replay_receipt_sha256 = null
+  const replayPlan = prepareComponentReconfigurationPlan({
+    ...replayFields,
+    capsule: replayExperiment.capsule_artifact,
+    decision: replayExperiment.decision.artifact!,
+  })
+  replayExperiment.plan = {
+    ...replayExperiment.plan,
+    operation: replayPlan.operation,
+    plan_id: replayPlan.plan_id,
+    capsule_id: replayPlan.capsule_id,
+    decision_id: replayPlan.decision_id,
+    plan_sha256: replayPlan.plan_sha256,
+    post_loadout_manifest_sha256: replayExperiment.capsule_artifact.task_binding.loadout_manifest_sha256,
+    capsule_sha256: replayPlan.capsule_sha256,
+    decision_external_input_sha256: replayPlan.decision_external_input_sha256,
+    replay_receipt_sha256: null,
+    blocker_resolutions: [{
+      blocker: 'typed_blocker:external_decision_authority_unverified',
+      receipt_sha256: replayExperiment.decision.authority_receipt_sha256!,
+    }],
+    artifact: replayPlan,
+  }
+  replayCandidate.active_loadout.manifest_sha256
+    = replayExperiment.capsule_artifact.task_binding.loadout_manifest_sha256
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(replayCandidate),
+    /typed_blocker:component_view_plan_execution_admission_invalid/,
+  )
+
+  const dispositionCandidate = withComponentRuntimeEvidence(componentEvolutionView())
+  const dispositionExperiment = dispositionCandidate.experiments[0]!
+  const decisionInput = structuredClone(componentSeamFixture.decision_input)
+  decisionInput.decision_id = 'decision-rollback-for-swap'
+  decisionInput.capsule_id = dispositionExperiment.capsule_artifact.capsule_id
+  decisionInput.capsule_sha256 = dispositionExperiment.capsule_artifact.capsule_sha256
+  decisionInput.decision_kind = 'rollback_recommendation'
+  decisionInput.disposition = 'rollback'
+  const rollbackDecision = acceptExternalComponentDecision(
+    decisionInput, dispositionExperiment.capsule_artifact,
+  )
+  const swapFields = structuredClone(componentSeamFixture.plan_fields)
+  swapFields.operation = 'swap'
+  swapFields.current_loadout_manifest_sha256
+    = dispositionExperiment.capsule_artifact.task_binding.loadout_manifest_sha256
+  const blockedSwapPlan = prepareComponentReconfigurationPlan({
+    ...swapFields,
+    capsule: dispositionExperiment.capsule_artifact,
+    decision: rollbackDecision,
+  })
+  dispositionExperiment.decision = {
+    state: 'verified', decision_id: rollbackDecision.decision_id,
+    capsule_id: rollbackDecision.capsule_id,
+    external_input_sha256: rollbackDecision.external_input_sha256,
+    capsule_sha256: rollbackDecision.capsule_sha256,
+    disposition: rollbackDecision.disposition,
+    authority_receipt_sha256: digest('1'), training_gate_receipt_sha256: null,
+    artifact: rollbackDecision,
+  }
+  dispositionExperiment.plan = {
+    ...dispositionExperiment.plan,
+    operation: blockedSwapPlan.operation,
+    plan_id: blockedSwapPlan.plan_id,
+    capsule_id: blockedSwapPlan.capsule_id,
+    decision_id: blockedSwapPlan.decision_id,
+    plan_sha256: blockedSwapPlan.plan_sha256,
+    capsule_sha256: blockedSwapPlan.capsule_sha256,
+    decision_external_input_sha256: blockedSwapPlan.decision_external_input_sha256,
+    artifact: blockedSwapPlan,
+  }
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(dispositionCandidate),
+    /typed_blocker:component_view_plan_execution_admission_invalid/,
+  )
+
+  const wrongLoadout = withComponentRuntimeEvidence(componentEvolutionView())
+  wrongLoadout.active_loadout.manifest_sha256 = digest('f')
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(wrongLoadout),
+    /typed_blocker:component_view_active_loadout_binding_invalid/,
+  )
+})
+
 test('component runtime and deployment proof levels require the complete floor', () => {
   const source = componentEvolutionView()
   source.proof_level = 'runtime_verified'
@@ -1285,6 +1385,40 @@ test('public component projection revalidation rejects semantic reseals', () => 
     () => validateOmniGentComponentEvolutionView(synchronizedCapsuleReseal),
     /component_experiment_capsule_invalid/,
   )
+  const blockedReplayReseal: any = buildOmniGentComponentEvolutionView(
+    withComponentRuntimeEvidence(componentEvolutionView()),
+  )
+  const blockedReplayExperiment = blockedReplayReseal.experiments[0]
+  const blockedReplayFields = structuredClone(componentSeamFixture.plan_fields)
+  blockedReplayFields.operation = 'replay'
+  blockedReplayFields.current_loadout_manifest_sha256
+    = blockedReplayExperiment.capsule_artifact.task_binding.loadout_manifest_sha256
+  blockedReplayFields.replay_receipt_sha256 = null
+  const blockedReplayPlan = prepareComponentReconfigurationPlan({
+    ...blockedReplayFields,
+    capsule: blockedReplayExperiment.capsule_artifact,
+    decision: blockedReplayExperiment.decision.artifact,
+  })
+  Object.assign(blockedReplayExperiment.plan, {
+    operation: blockedReplayPlan.operation,
+    plan_id: blockedReplayPlan.plan_id,
+    capsule_id: blockedReplayPlan.capsule_id,
+    decision_id: blockedReplayPlan.decision_id,
+    plan_sha256: blockedReplayPlan.plan_sha256,
+    post_loadout_manifest_sha256:
+      blockedReplayExperiment.capsule_artifact.task_binding.loadout_manifest_sha256,
+    capsule_sha256: blockedReplayPlan.capsule_sha256,
+    decision_external_input_sha256: blockedReplayPlan.decision_external_input_sha256,
+    replay_receipt_sha256: null,
+    artifact: blockedReplayPlan,
+  })
+  blockedReplayReseal.active_loadout.manifest_sha256
+    = blockedReplayExperiment.capsule_artifact.task_binding.loadout_manifest_sha256
+  blockedReplayReseal.view_sha256 = '7356f3edd788a5aec3b0d3cd1e4150f498753742d1f727c0999c29d2e4fe59ff'
+  assert.throws(
+    () => validateOmniGentComponentEvolutionView(blockedReplayReseal),
+    /typed_blocker:component_view_plan_execution_admission_invalid/,
+  )
   const wrongViewHash: any = structuredClone(source)
   wrongViewHash.view_sha256 = digest('f')
   assert.throws(() => validateOmniGentComponentEvolutionView(wrongViewHash), /public_revalidation_failed/)
@@ -1321,6 +1455,18 @@ test('component public schema mirrors every expressible proof and receipt join',
   }
   assert.notDeepEqual(schemaErrors(runtimePlannedArms, schema, schema), [])
 
+  const runtimeWithoutAdmission: any = buildOmniGentComponentEvolutionView(
+    withComponentRuntimeEvidence(componentEvolutionView()),
+  )
+  runtimeWithoutAdmission.experiments[0].plan.blocker_resolutions = []
+  assert.notDeepEqual(schemaErrors(runtimeWithoutAdmission, schema, schema), [])
+
+  const runtimeWithoutPostLoadout: any = buildOmniGentComponentEvolutionView(
+    withComponentRuntimeEvidence(componentEvolutionView()),
+  )
+  runtimeWithoutPostLoadout.experiments[0].plan.post_loadout_manifest_sha256 = null
+  assert.notDeepEqual(schemaErrors(runtimeWithoutPostLoadout, schema, schema), [])
+
   const deployedRuntimeOnly: any = buildOmniGentComponentEvolutionView(
     withComponentRuntimeEvidence(componentEvolutionView()),
   )
@@ -1328,10 +1474,11 @@ test('component public schema mirrors every expressible proof and receipt join',
   deployedRuntimeOnly.deployment_receipt_sha256 = digest('3')
   assert.notDeepEqual(schemaErrors(deployedRuntimeOnly, schema, schema), [])
 
-  const rolledBackInput = withComponentRuntimeEvidence(componentEvolutionView())
-  rolledBackInput.experiments[0]!.plan.state = 'rolled_back'
-  rolledBackInput.experiments[0]!.plan.rollback_receipt_sha256 = digest('5')
-  const rolledBack: any = buildOmniGentComponentEvolutionView(rolledBackInput)
+  const rolledBack: any = buildOmniGentComponentEvolutionView(
+    withComponentRuntimeEvidence(componentEvolutionView()),
+  )
+  rolledBack.experiments[0].plan.state = 'rolled_back'
+  rolledBack.experiments[0].plan.rollback_receipt_sha256 = digest('5')
   rolledBack.experiments[0].plan.applied_receipt_sha256 = null
   assert.notDeepEqual(schemaErrors(rolledBack, schema, schema), [])
 
