@@ -1,0 +1,291 @@
+{
+  "schema": "mykrobial.goalrun.component-rsi-operator-view-round-6-fresh-critic-blocker.v1",
+  "review_id": "component-rsi-operator-view-v1-round-6-fresh-critic",
+  "review_kind": "distinct_fresh_context_source_only_critic",
+  "generated_at": "2026-09-01T07:25:34Z",
+  "candidate": {
+    "worktree": "/Users/kalcypher/Projects/_worktrees/mykrobial-deepseek-component-rsi-operator-view-v1",
+    "commit": "c82afe669f0c8c6dffb2dea9661ceab2cf28c85e",
+    "tree": "8a15c05c10690a9e14108892f149bbcd6f6fb547",
+    "clean_before_review": true,
+    "clean_after_checks_before_review_artifact": true,
+    "candidate_source_changed_by_critic": false
+  },
+  "supplied_bindings": {
+    "round_1_blocker_ref": "goalrun/component-rsi-operator-view-v1/FRESH-CRITIC-BLOCKER.v1.json",
+    "round_1_blocker_sha256": "1d3702f803c9133e55c0397aac71c99a4fe668eb66ef04d59c06600b108abdc9",
+    "round_2_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-2-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_2_blocker_sha256": "45daa0e5193e3d9a5703c1d625b7a0c77974fcbc84d2f64d68f37f00537a3388",
+    "round_3_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-3-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_3_blocker_sha256": "bc89ca36bd4da554356bfb6e320411132107411c4bcdb4294c6fea2c53685a85",
+    "round_4_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-4-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_4_blocker_sha256": "3e7b9ff3307901105102f2e715fae9bad5c6f651dc2297914b2a238f5940d205",
+    "round_5_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-5-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_5_blocker_sha256": "9abdc43b64a6ad104d0d5f23b316b164e941aec6931ec91e9d16a61298a449de",
+    "content_manifest_ref": "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+    "content_manifest_sha256": "c9b2aa54a17c98ac16beb37c78fcc88539fbb751bda0d9ce16023ecba57b38d1",
+    "content_file_count": 12,
+    "source_receipt_ref": "goalrun/component-rsi-operator-view-v1/SOURCE-RECEIPT.v1.json",
+    "source_receipt_sha256": "d7809eadb064e83e88ee6c62171d4282bbe99b15b88361de71702799c88eb10a",
+    "accepted_component_seam_ref": "goalrun/component-rsi-seam-v1/ROUND-3-FRESH-CRITIC-ACCEPTANCE.v1.json",
+    "accepted_component_seam_sha256": "d486ad05503df956cd2195d7db7162d756f07e9575d496159640032f948ed3a5",
+    "state": "matched"
+  },
+  "decisive_source": [
+    {
+      "ref": "packages/mykrobial/operator-projections/src/component-evolution.ts",
+      "sha256": "15a150b21f2d6f6f45c3991f009ed3d98cdbdb121d5f84ffae5892e9797c309f",
+      "finding": "Applied and rolled-back plans bind only post_loadout_manifest_sha256 to the root active-loadout manifest. No post-operation component snapshot, target-generation activation, or component-identity readback is projected or checked before runtime or deployed proof."
+    },
+    {
+      "ref": "packages/mykrobial/operator-projections/tests/source-safe.test.ts",
+      "sha256": "20e0e2b8a543bd7a0d71a1018e83aee1f75572c874e10cea0b00fd9a2be5196c",
+      "finding": "The positive runtime fixture targets prompt-v2, leaves prompt-v2 inactive and prompt-v1 active, then expects the runtime projection to pass after changing only the active-loadout manifest digest."
+    },
+    {
+      "ref": "contracts/mykrobial/omnigent-component-evolution-read-model.v1.schema.json",
+      "sha256": "2abbcae01cf0a009ddd411a9d4c9c3fb2ef3f7d8a2ffc13b15009454099bb576",
+      "finding": "The public schema closes the current fields but contains no operation-bound post-component readback artifact capable of expressing the missing semantic join."
+    }
+  ],
+  "declared_verification": {
+    "node_executable": "/opt/homebrew/bin/node",
+    "node_version": "v25.9.0",
+    "integrated_node_tests": {
+      "command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts packages/mykrobial/operator-projections/tests/source-safe.test.ts",
+      "passed": 54,
+      "failed": 0,
+      "component_seam_passed": 25,
+      "operator_projection_passed": 29
+    },
+    "typescript_syntax_checks": {
+      "passed": 6,
+      "failed": 0,
+      "paths": [
+        "packages/mykrobial/component-rsi-seam/src/index.ts",
+        "packages/mykrobial/component-rsi-seam/src/types.ts",
+        "packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts",
+        "packages/mykrobial/operator-projections/src/component-evolution.ts",
+        "packages/mykrobial/operator-projections/src/index.ts",
+        "packages/mykrobial/operator-projections/tests/source-safe.test.ts"
+      ]
+    },
+    "strict_authored_json_parses": {
+      "passed": 3,
+      "failed": 0,
+      "duplicate_keys_rejected": true,
+      "nonfinite_constants_rejected": true,
+      "paths": [
+        "contracts/mykrobial/component-rsi-seam.v1.schema.json",
+        "contracts/mykrobial/omnigent-component-evolution-read-model.v1.schema.json",
+        "goalrun/component-rsi-operator-view-v1/RUN-ENVELOPE.v1.json"
+      ]
+    },
+    "sha256_manifest": {
+      "command": "shasum -a 256 -c goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+      "passed": 12,
+      "failed": 0
+    },
+    "adversarial_node_matrix": {
+      "command_shape": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --input-type=module -",
+      "status": "completed",
+      "candidate_files_written": 0,
+      "runtime_view_sha256": "a946f7968530aeff0421353c55cc148b7d39e3ef8fff520d0208311f230ddfa7",
+      "deployed_view_sha256": "5ff551b90ef21bc54d8a0fd4d15ceccba9ef09ac0dfd4bb05ab09aa9d0e3436a"
+    },
+    "git_diff_check": "pending_artifact_only_commit",
+    "working_tree_clean_after_checks_before_blocker": true
+  },
+  "prior_counterexample_replay": {
+    "round_1": {
+      "fractional_valid_time_reversal": "rejected",
+      "reversed_transaction_timeline": "rejected",
+      "cross_lineage_parent": "rejected",
+      "target_surface_component_mismatch": "rejected",
+      "verified_unapplied_without_verification_receipt": "rejected",
+      "lower_causality_with_receipt": "rejected",
+      "runtime_applied_with_planned_arms": "rejected",
+      "global_deployed_with_runtime_only_experiment": "rejected",
+      "rolled_back_without_application_receipt": "rejected"
+    },
+    "round_2": {
+      "reversed_valid_interval_0099_0100": "rejected",
+      "parent_after_child_0099_0100": "rejected",
+      "timeline_reversal_0099_0100": "rejected",
+      "exact_stale_public_projection": "rejected"
+    },
+    "round_3": {
+      "base_true_applied_delta_semantics_swapped": "rejected",
+      "wrong_control_strategy": "rejected",
+      "true_delta_not_target_set": "rejected",
+      "capsule_digest_changed_without_decision_and_plan_rebind": "rejected",
+      "decision_external_input_changed_without_plan_rebind": "rejected",
+      "stale_plan_capsule_digest": "rejected",
+      "stale_decision_capsule_id": "rejected",
+      "stale_plan_decision_id": "rejected",
+      "exact_public_reseals": "rejected"
+    },
+    "round_4": {
+      "synchronized_capsule_id_with_stale_artifact_digests": "rejected",
+      "synchronized_decision_id_with_stale_artifact_digests": "rejected",
+      "plan_id_with_stale_plan_digest": "rejected",
+      "disposition_with_stale_decision_digest": "rejected",
+      "plane_with_stale_capsule_digest": "rejected",
+      "target_with_stale_capsule_digest": "rejected",
+      "loadout_with_stale_capsule_digest": "rejected",
+      "standalone_stale_plan_digest": "rejected"
+    },
+    "round_5": {
+      "unresolved_replay": "rejected",
+      "incompatible_disposition": "rejected",
+      "decision_and_plan_policy_erasure": "rejected",
+      "full_semantic_rebound_with_stale_outer_bindings": "rejected",
+      "plan_id_alias": "rejected",
+      "reversed_capsule_decision_plan_time": "rejected",
+      "active_loadout_manifest_mismatch": "rejected",
+      "public_revalidation_of_blocked_replay": "rejected"
+    }
+  },
+  "requested_attack_matrix": {
+    "complete_proposal_capsule_decision_plan_derivation": "complete artifact validation, content hashes, policy sets, and causal-time joins passed the named regressions",
+    "exact_policy_and_nonclaim_sets": "decision and plan policy erasure plus duplicate non-claim reseals were rejected",
+    "causal_time": "capsule-before-decision and decision-before-plan reversals were rejected",
+    "operation_specific_receipts": "missing replay and rollback receipts and incompatible swap or rollback dispositions were rejected; the applied receipt remains an opaque digest with no post-component readback identity",
+    "blocker_resolutions": "known authority and model-weight training blockers require projected receipt digests; structural operation blockers remain non-resolvable",
+    "post_loadout_readback": "manifest mismatch was rejected, but a matching manifest with the target component still inactive was accepted_runtime_verified and accepted_deployed_verified",
+    "model_weight_training_receipt": "the model-weight blocker requires a separate projected training-gate receipt digest; issuer authenticity and receipt semantics remain explicitly unverified",
+    "schema_closure_and_parity": "closed-object, strict JSON, and current-field schema parity passed; the missing post-component readback cannot be expressed by the current schema",
+    "runtime_and_deployed_proof_lattice": "failed because both proof levels accept the inactive-target counterexample",
+    "full_chain_substitution": "stale and partially rebound chains were rejected; a fully rehashed chain is a different content-addressed chain and still requires external acceptance authority",
+    "plan_admission_bypass": "reproduced through missing operation-bound component-generation postcondition"
+  },
+  "new_counterexample": {
+    "name": "applied_swap_runtime_and_deployed_without_target_component_activation_or_component_readback",
+    "precondition": "The proposal, capsule, external decision, and swap plan are complete constructor-produced artifacts. All three arms are completed, authority blocker resolution is projected, Trace replay and rollback floors are marked verified, the plan has verification and application receipt digests, and the root active-loadout manifest equals the caller-supplied post-loadout manifest.",
+    "state": {
+      "target_component_id": "prompt-v2",
+      "target_component_lifecycle_state": "inactive",
+      "target_component_active": false,
+      "still_active_component_id": "prompt-v1",
+      "still_active_component_generation": 1,
+      "plan_operation": "swap",
+      "plan_state": "applied"
+    },
+    "expected": "Reject runtime and deployed proof because an applied swap has no operation-bound readback proving that the target component generation became active and that the replaced generation ceased to be active.",
+    "observed": {
+      "runtime_proof_level": "runtime_verified",
+      "runtime_view_sha256": "a946f7968530aeff0421353c55cc148b7d39e3ef8fff520d0208311f230ddfa7",
+      "runtime_public_projection_revalidation": "accepted_same_view_sha256",
+      "deployed_proof_level": "deployed_verified",
+      "deployed_view_sha256": "5ff551b90ef21bc54d8a0fd4d15ceccba9ef09ac0dfd4bb05ab09aa9d0e3436a",
+      "deployed_public_projection_revalidation": "accepted_same_view_sha256"
+    },
+    "cause": "experimentRow treats plan state, opaque verification and application receipt digests, and post_loadout_manifest_sha256 as the complete execution postcondition. The root constructor binds that manifest digest to active_loadout but never joins an applied swap to an active target component generation, an inactive replaced generation, or an operation-bound post-component snapshot or readback artifact. The public revalidator rebuilds through the same incomplete join.",
+    "falsified_claims": [
+      "active_loadout_postcondition_exact",
+      "runtime_proof_requires_complete_operation_specific_evidence",
+      "deployed_proof_requires_component_application_readback",
+      "public_revalidation_rejects_semantically_incomplete_runtime_and_deployed_projections"
+    ]
+  },
+  "preserved_prior_blockers": [
+    {
+      "round": 1,
+      "typed_blocker": "typed_blocker:component_evolution_semantic_cross_bindings_missing",
+      "artifact_sha256": "1d3702f803c9133e55c0397aac71c99a4fe668eb66ef04d59c06600b108abdc9",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 2,
+      "typed_blocker": "typed_blocker:component_evolution_year_00_99_chronology_alias",
+      "artifact_sha256": "45daa0e5193e3d9a5703c1d625b7a0c77974fcbc84d2f64d68f37f00537a3388",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 3,
+      "typed_blocker": "typed_blocker:component_evolution_exact_capsule_bindings_not_projected",
+      "artifact_sha256": "bc89ca36bd4da554356bfb6e320411132107411c4bcdb4294c6fea2c53685a85",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 4,
+      "typed_blocker": "typed_blocker:component_evolution_stale_artifact_digest_aliases_accepted",
+      "artifact_sha256": "3e7b9ff3307901105102f2e715fae9bad5c6f651dc2297914b2a238f5940d205",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 5,
+      "typed_blocker": "typed_blocker:component_evolution_accepted_artifact_execution_admission_missing",
+      "artifact_sha256": "9abdc43b64a6ad104d0d5f23b316b164e941aec6931ec91e9d16a61298a449de",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected",
+      "residual_cause": "operation admission still lacks an exact post-component generation readback"
+    }
+  ],
+  "largest_evidenced_gap": "The repair proves that the caller-supplied post-loadout manifest matches the root active-loadout manifest, but it does not prove that an applied swap changed the active component generation. A complete valid chain can therefore report runtime_verified and deployed_verified while its target component remains inactive and the replaced component remains active.",
+  "required_repair": [
+    "Project a complete immutable operation-result or post-operation readback artifact that binds operation, plan_id, plan_sha256, capsule and decision identities, before and after loadout manifests, target component identities and generations, observed lifecycle and active states, receipt class, and causal observation time.",
+    "For an applied swap, require the exact target generation to be active and the replaced same-logical-identity generation to be inactive or valid-time closed. For rollback, require the parent generation to be active and the candidate generation to be inactive. Keep replay explicitly non-activating.",
+    "Derive post_loadout_manifest_sha256 and component postconditions from the validated operation-result artifact instead of accepting independent caller-supplied digests.",
+    "Bind verification, application, replay, rollback, training-gate, and deployment receipt identities to their exact operation and artifact chain through validated receipt envelopes; keep issuer authenticity as a separate non-claim until independently verified.",
+    "Mirror every expressible postcondition in the public schema, freeze the runtime and deployed hashes above plus their public-revalidator variants as regressions, rebuild the exact manifest and source receipt, and request a distinct fresh critic."
+  ],
+  "typed_blocker": "typed_blocker:component_evolution_post_operation_component_readback_missing",
+  "verdict": "source_blocked",
+  "accepted": false,
+  "reviewed": false,
+  "execution_authorized": false,
+  "manifest_excluded": true,
+  "route": {
+    "task_class": "component_system",
+    "agent_id": "agent:mykrobial-design",
+    "registry_sha256": "6da1ae96093f6e9310878d0e3f961461a68ebcfb2b869cbb9fcfc7934d54cb29",
+    "route_outcome": "resolved",
+    "provider_execution_verified": false,
+    "downstream_agent_invoked": false
+  },
+  "trace": {
+    "emitted": false,
+    "typed_blocker": "typed_blocker:trace_execution_forbidden_by_source_only_critic_scope"
+  },
+  "operation_state": {
+    "candidate_source_edits": 0,
+    "critic_artifact_files_written": 1,
+    "dependency_acquisition_executed": false,
+    "package_manager_executed": false,
+    "build_executed": false,
+    "runtime_or_service_executed": false,
+    "provider_or_model_executed": false,
+    "trace_executed": false,
+    "training_executed": false,
+    "optimizer_executed": false,
+    "component_application_executed": false,
+    "promotion_executed": false,
+    "deployment_executed": false
+  },
+  "output_predicate": {
+    "candidate_answer_buffered_before_release": true,
+    "canonical_names_checked": true,
+    "requested_vs_verified_boundaries_checked": true,
+    "hard_live_commentary_egress_verifier_available": false,
+    "mathematical_pre_release_enforcement_claimed": false
+  },
+  "non_claims": [
+    "not_human_or_founder_review",
+    "not_reviewed_true",
+    "not_execution_authorized",
+    "not_package_install_or_build",
+    "not_runtime_or_provider_execution",
+    "not_receipt_authenticity_or_issuer_verification",
+    "not_model_or_optimizer_execution",
+    "not_trace_append",
+    "not_training",
+    "not_component_application",
+    "not_promotion",
+    "not_deployment_or_fleet_rollout"
+  ]
+}
