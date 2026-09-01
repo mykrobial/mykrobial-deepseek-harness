@@ -10,6 +10,9 @@ verifier before touching effects, mounts only the candidate component, runs a
 finite ordered health horizon, and either commits or restores the prior
 generation with an explicit rollback event. Its receipt keeps optimizer,
 evaluation, promotion, Trace append, deployment, and fleet authority false.
+Failed disposer labels remain sticky in the failed snapshot. Every normal
+mutation path stays closed until `remediateResidualEffects` retries the retained
+disposers and returns a content-addressed receipt with an empty residual set.
 
 This is a reference fixture, not a substitute for executing the actual CORDIS
 fiber and Loader tests. It does not implement the permit issuer or verifier,

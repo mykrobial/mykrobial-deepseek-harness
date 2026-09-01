@@ -169,6 +169,147 @@
         }
       }
     },
+    "residualCleanupReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "remediation_id",
+        "component_id",
+        "before_snapshot_sha256",
+        "after_snapshot_sha256",
+        "authority_receipt_sha256",
+        "attempted_effect_labels",
+        "residual_effect_labels",
+        "outcome",
+        "blocker",
+        "component_effects_executed",
+        "authority_verified",
+        "trace_append_authorized",
+        "deployment_authorized",
+        "non_claims",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.component-residual-cleanup-receipt.v1"
+        },
+        "remediation_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "component_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "before_snapshot_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "after_snapshot_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "authority_receipt_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "attempted_effect_labels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "maxItems": 128,
+          "uniqueItems": true
+        },
+        "residual_effect_labels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "maxItems": 128,
+          "uniqueItems": true
+        },
+        "outcome": {
+          "enum": [
+            "cleared",
+            "incomplete"
+          ]
+        },
+        "blocker": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^typed_blocker:"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "component_effects_executed": {
+          "const": true
+        },
+        "authority_verified": {
+          "const": false
+        },
+        "trace_append_authorized": {
+          "const": false
+        },
+        "deployment_authorized": {
+          "const": false
+        },
+        "non_claims": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "const": "not_authority_verification"
+            },
+            {
+              "const": "not_trace_append"
+            },
+            {
+              "const": "not_deployment"
+            }
+          ],
+          "items": false,
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "receipt_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "cleared"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "blocker": {
+                "type": "null"
+              },
+              "residual_effect_labels": {
+                "maxItems": 0
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "blocker": {
+                "const": "typed_blocker:component_residual_cleanup_incomplete"
+              },
+              "residual_effect_labels": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
     "transactionReceipt": {
       "type": "object",
       "additionalProperties": false,

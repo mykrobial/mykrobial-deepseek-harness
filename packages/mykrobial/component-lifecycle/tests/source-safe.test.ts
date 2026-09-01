@@ -382,6 +382,39 @@ test('candidate cleanup failure stays failed and never remounts the prior compon
   assert.equal(final.state, 'failed')
   assert.equal(final.definition.source_sha256, definition('two').source_sha256)
   assert.deepEqual(final.active_effect_labels, ['candidate-leaked-effect'])
+  const contaminated = controller.snapshot()
+  assert.throws(
+    () => executeComponentActivationTransaction(controller, activationInput(controller)),
+    /typed_blocker:component_failed_requires_remediation/,
+  )
+  assert.throws(
+    () => controller.reconcile(['session'], prior),
+    /typed_blocker:component_failed_requires_remediation/,
+  )
+  assert.throws(
+    () => controller.replace(definition('three'), prior),
+    /typed_blocker:component_failed_requires_remediation/,
+  )
+  assert.throws(
+    () => controller.restart(),
+    /typed_blocker:component_failed_requires_remediation/,
+  )
+  assert.throws(
+    () => controller.dispose(),
+    /typed_blocker:component_failed_requires_remediation/,
+  )
+  assert.deepEqual(controller.snapshot(), contaminated)
+  const remediation = controller.remediateResidualEffects(
+    'remediation-still-contaminated',
+    digest('remediation-authority'),
+  )
+  assert.equal(remediation.outcome, 'incomplete')
+  assert.equal(
+    remediation.blocker,
+    'typed_blocker:component_residual_cleanup_incomplete',
+  )
+  assert.deepEqual(remediation.residual_effect_labels, ['candidate-leaked-effect'])
+  assert.equal(controller.snapshot().state, 'failed')
 })
 
 test('health rollback cleanup failure exposes contamination and withholds prior remount', () => {
@@ -418,4 +451,47 @@ test('health rollback cleanup failure exposes contamination and withholds prior 
   assert.equal(priorMounts, 1)
   assert.equal(final.state, 'failed')
   assert.equal(final.definition.source_sha256, definition('two').source_sha256)
+})
+
+test('explicit remediation clears transient residue before later activation', () => {
+  let disposalAttempts = 0
+  const prior: ComponentInstaller = (_definition, effects) => {
+    effects.effect('prior-effect', () => {})
+  }
+  const controller = new ComponentLifecycleController(definition('one'))
+  controller.reconcile(['session'], prior)
+  const failed = executeComponentActivationTransaction(
+    controller,
+    activationInput(controller, {
+      candidate_installer: (_definition, effects) => {
+        effects.effect('candidate-transient-residue', () => {
+          disposalAttempts += 1
+          if (disposalAttempts === 1) throw new Error('synthetic first cleanup failure')
+        })
+        throw new Error('synthetic activation failure')
+      },
+      rollback_installer: prior,
+    }),
+  )
+  assert.equal(failed.outcome, 'rollback_failed')
+  assert.equal(controller.snapshot().state, 'failed')
+  const remediation = controller.remediateResidualEffects(
+    'remediation-clears-residue',
+    digest('remediation-authority'),
+  )
+  assert.equal(remediation.outcome, 'cleared')
+  assert.equal(remediation.blocker, null)
+  assert.deepEqual(remediation.attempted_effect_labels, ['candidate-transient-residue'])
+  assert.deepEqual(remediation.residual_effect_labels, [])
+  assert.equal(remediation.authority_verified, false)
+  assert.equal(
+    remediation.receipt_sha256,
+    componentCanonicalSha256({
+      ...remediation,
+      receipt_sha256: '0'.repeat(64),
+    }),
+  )
+  assert.equal(controller.snapshot().state, 'inactive')
+  assert.deepEqual(controller.snapshot().active_effect_labels, [])
+  assert.equal(disposalAttempts, 2)
 })

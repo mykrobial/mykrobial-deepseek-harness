@@ -145,6 +145,29 @@ export interface ComponentActivationTransactionReceipt {
   receipt_sha256: string
 }
 
+export interface ComponentResidualCleanupReceipt {
+  schema: 'mykrobial.component-residual-cleanup-receipt.v1'
+  remediation_id: string
+  component_id: string
+  before_snapshot_sha256: string
+  after_snapshot_sha256: string
+  authority_receipt_sha256: string
+  attempted_effect_labels: string[]
+  residual_effect_labels: string[]
+  outcome: 'cleared' | 'incomplete'
+  blocker: string | null
+  component_effects_executed: true
+  authority_verified: false
+  trace_append_authorized: false
+  deployment_authorized: false
+  non_claims: [
+    'not_authority_verification',
+    'not_trace_append',
+    'not_deployment',
+  ]
+  receipt_sha256: string
+}
+
 export interface ExecuteComponentActivationTransactionInput {
   transaction_id: string
   plan_sha256: string
@@ -230,6 +253,7 @@ export class ComponentLifecycleController {
 
   reconcile(availableDependencyIds: readonly string[], installer: ComponentInstaller): ComponentSnapshot {
     this.assertNotDisposed()
+    this.assertReadyForMutation()
     this.available = new Set(uniqueIds(availableDependencyIds))
     this.installer = installer
     const missing = this.definition.dependency_ids.filter(id => !this.available.has(id))
@@ -245,6 +269,7 @@ export class ComponentLifecycleController {
 
   replace(nextDefinition: ComponentDefinition, installer: ComponentInstaller): ComponentSnapshot {
     this.assertNotDisposed()
+    this.assertReadyForMutation()
     const previousDefinition = structuredClone(this.definition)
     const previousInstaller = this.installer
     if (this.state === 'active') this.deactivate('replacement_requested')
@@ -277,6 +302,7 @@ export class ComponentLifecycleController {
     reason = 'component_activation_health_horizon_failed',
   ): ComponentSnapshot {
     this.assertNotDisposed()
+    this.assertReadyForMutation()
     if (!ID.test(reason)) throw new Error('typed_blocker:component_rollback_reason_invalid')
     if (this.state === 'active') this.deactivate('rollback_requested')
     this.definition = validateDefinition(previousDefinition)
@@ -293,8 +319,65 @@ export class ComponentLifecycleController {
     return this.snapshot()
   }
 
+  remediateResidualEffects(
+    remediationId: string,
+    authorityReceiptSha256: string,
+  ): ComponentResidualCleanupReceipt {
+    this.assertNotDisposed()
+    if (!ID.test(remediationId) || !SHA.test(authorityReceiptSha256)) {
+      throw new Error('typed_blocker:component_remediation_identity_invalid')
+    }
+    if (this.state !== 'failed') {
+      throw new Error('typed_blocker:component_remediation_not_required')
+    }
+    const before = this.snapshot()
+    const attempted = this.effects.map(effect => effect.label)
+    const failedEffects: Array<{ label: string; dispose: () => void }> = []
+    for (const effect of [...this.effects].reverse()) {
+      try {
+        effect.dispose()
+      } catch {
+        failedEffects.push(effect)
+      }
+    }
+    this.effects = failedEffects.reverse()
+    const cleared = this.effects.length === 0
+    this.state = cleared ? 'inactive' : 'failed'
+    this.record(
+      cleared ? 'inactive' : 'failed',
+      cleared ? 'residual_cleanup_completed' : 'residual_cleanup_incomplete',
+    )
+    const after = this.snapshot()
+    const body = {
+      schema: 'mykrobial.component-residual-cleanup-receipt.v1' as const,
+      remediation_id: remediationId,
+      component_id: this.definition.component_id,
+      before_snapshot_sha256: hash(before),
+      after_snapshot_sha256: hash(after),
+      authority_receipt_sha256: authorityReceiptSha256,
+      attempted_effect_labels: attempted,
+      residual_effect_labels: [...after.active_effect_labels],
+      outcome: cleared ? 'cleared' as const : 'incomplete' as const,
+      blocker: cleared ? null : 'typed_blocker:component_residual_cleanup_incomplete',
+      component_effects_executed: true as const,
+      authority_verified: false as const,
+      trace_append_authorized: false as const,
+      deployment_authorized: false as const,
+      non_claims: [
+        'not_authority_verification',
+        'not_trace_append',
+        'not_deployment',
+      ] as ComponentResidualCleanupReceipt['non_claims'],
+    }
+    return {
+      ...body,
+      receipt_sha256: hash({ ...body, receipt_sha256: '0'.repeat(64) }),
+    }
+  }
+
   restart(): ComponentSnapshot {
     this.assertNotDisposed()
+    this.assertReadyForMutation()
     if (this.installer === null) throw new Error('typed_blocker:component_installer_unavailable')
     if (this.state === 'active') this.deactivate('restart_requested')
     this.generation += 1
@@ -303,6 +386,7 @@ export class ComponentLifecycleController {
 
   dispose(): ComponentSnapshot {
     if (this.state === 'disposed') return this.snapshot()
+    this.assertReadyForMutation()
     if (this.state === 'active') this.deactivate('component_disposed')
     this.state = 'disposed'
     this.record('disposed', 'component_disposed')
@@ -394,6 +478,12 @@ export class ComponentLifecycleController {
 
   private assertNotDisposed(): void {
     if (this.state === 'disposed') throw new Error('typed_blocker:component_disposed')
+  }
+
+  private assertReadyForMutation(): void {
+    if (this.state === 'failed') {
+      throw new Error('typed_blocker:component_failed_requires_remediation')
+    }
   }
 }
 
@@ -508,6 +598,9 @@ export function executeComponentActivationTransaction(
   input: ExecuteComponentActivationTransactionInput,
 ): ComponentActivationTransactionReceipt {
   const before = controller.snapshot()
+  if (before.state === 'failed') {
+    throw new Error('typed_blocker:component_failed_requires_remediation')
+  }
   const candidate = validateDefinition(input.candidate_definition)
   if (!ID.test(input.transaction_id)
     || !SHA.test(input.plan_sha256)
