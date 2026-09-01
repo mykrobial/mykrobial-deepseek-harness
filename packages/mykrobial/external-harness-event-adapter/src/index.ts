@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 const ID = /^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$/
 const SHA = /^[0-9a-f]{64}$/
 const UTC = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/
+const CONTEXT_ID = /^[A-Za-z0-9][A-Za-z0-9._:@/+=-]{0,255}$/
 
 export type ExternalHarnessEventKind =
   | 'message'
@@ -159,6 +160,69 @@ export interface ExternalHarnessEventProjection {
   projection_sha256: string
 }
 
+export interface PrepareTerminalTaskContextRequestInput {
+  request_id: string
+  canonical_terminal_row_sha256: string
+  terminal_family: 'answer_commit' | 'execution_timed_out'
+  task_label_sha256: string
+  session_id_sha256: string
+  tenant_scope_sha256: string
+  domain: string
+  requested_receipt_ref: string
+  served_receipt_ref: string
+  source_generation: string
+  visible_generation_sha256: string
+  first_visible_event_id: string
+  last_visible_event_id: string
+  visible_event_count: number
+  created_at: string
+}
+
+export interface TerminalTaskContextRequest {
+  schema: 'mykrobial.external-harness.terminal-task-context-request.v1'
+  request_id: string
+  source_system: 'exo'
+  source_event_kind: ExternalHarnessEventKind
+  source_event_projection_sha256: string
+  canonical_terminal_row_sha256: string
+  terminal_family: 'answer_commit' | 'execution_timed_out'
+  target_context_schema: 'mykrobial.trace.terminal_task_context_receipt.v1'
+  target_binding_schema: 'mykrobial.trace.terminal_task_binding.v1'
+  namespace: 'mykrobial.trace.terminal-task-context.v37'
+  operation: 'bind_terminal_row_to_visible_task_range'
+  task_label_sha256: string
+  session_id_sha256: string
+  tenant_scope_sha256: string
+  domain: string
+  requested_receipt_ref: string
+  served_receipt_ref: string
+  source_generation: string
+  visible_generation_sha256: string
+  first_visible_event_id: string
+  last_visible_event_id: string
+  visible_event_count: number
+  created_at: string
+  state: 'context_request_only_unissued'
+  distinct_context_signer_and_verifier_required: true
+  context_signature_authorized: false
+  terminal_binding_emission_authorized: false
+  trace_append_authorized: false
+  historical_relabel_authorized: false
+  task_inferred_from_message_or_event_order: false
+  terminal_content_persisted: false
+  non_claims: [
+    'not_terminal_row_validation',
+    'not_task_inference_from_message_or_event_order',
+    'not_context_signature_or_verification',
+    'not_terminal_binding_emission',
+    'not_historical_relabel',
+    'not_trace_append',
+    'not_projection_execution',
+    'not_evaluation_promotion_or_deployment',
+  ]
+  request_sha256: string
+}
+
 const INPUT_KEYS = [
   'schema', 'source_system', 'source_event_id', 'source_event_kind', 'source_sequence',
   'occurred_at', 'source_artifact', 'source_event_sha256', 'run_id', 'task_capsule_id',
@@ -171,6 +235,14 @@ const ARTIFACT_KEYS = ['ref', 'sha256', 'bytes', 'media_type', 'storage_class'] 
 const USAGE_KEYS = [
   'input_tokens', 'output_tokens', 'cached_tokens', 'monetary_usd', 'energy_wh',
   'wall_ms', 'human_minutes', 'basis',
+] as const
+
+const TERMINAL_CONTEXT_INPUT_KEYS = [
+  'request_id', 'canonical_terminal_row_sha256', 'terminal_family',
+  'task_label_sha256', 'session_id_sha256', 'tenant_scope_sha256', 'domain',
+  'requested_receipt_ref', 'served_receipt_ref', 'source_generation',
+  'visible_generation_sha256', 'first_visible_event_id', 'last_visible_event_id',
+  'visible_event_count', 'created_at',
 ] as const
 
 const UNAVAILABLE_FIELDS = [
@@ -220,7 +292,8 @@ export function externalEventCanonicalSha256(value: unknown): string {
   return createHash('sha256').update(canonical(value), 'utf8').digest('hex')
 }
 
-function exactKeys(value: object, expected: readonly string[]): boolean {
+function exactKeys(value: unknown, expected: readonly string[]): boolean {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
   const actual = Object.keys(value).sort()
   const wanted = [...expected].sort()
   return actual.length === wanted.length && actual.every((key, index) => key === wanted[index])
@@ -240,6 +313,13 @@ function timestamp(value: string): string {
 function identifier(value: string): string {
   if (typeof value !== 'string' || !ID.test(value)) {
     throw new Error('typed_blocker:external_event_identity_invalid')
+  }
+  return value
+}
+
+function contextIdentifier(value: string): string {
+  if (typeof value !== 'string' || !CONTEXT_ID.test(value)) {
+    throw new Error('typed_blocker:terminal_task_context_identity_invalid')
   }
   return value
 }
@@ -458,5 +538,95 @@ export function projectExternalHarnessEvent(
   return {
     ...projectionBody,
     projection_sha256: externalEventCanonicalSha256(projectionBody),
+  }
+}
+
+function validateExternalProjection(source: ExternalHarnessEventProjection): ExternalHarnessEventProjection {
+  if (typeof source !== 'object' || source === null || Array.isArray(source)) {
+    throw new Error('typed_blocker:external_event_projection_invalid')
+  }
+  const value = structuredClone(source)
+  const { projection_sha256: _projectionSha256, ...projectionCandidate } = value
+  const { event_sha256: _eventSha256, ...eventCandidate } = value.trajectory_event
+  const { loss_accounting_sha256: _lossSha256, ...lossCandidate } = value.loss_accounting
+  if (value.schema !== 'mykrobial.external-harness-event-projection.v1'
+    || value.source_system !== 'exo'
+    || !SOURCE_KINDS.includes(value.source_event_kind)
+    || value.trajectory_event.schema !== 'mykrobial.harness.trajectory-event.v1'
+    || value.trajectory_event.event_sha256 !== externalEventCanonicalSha256(eventCandidate)
+    || value.trace_v2_3_intent.source_event_sha256 !== value.trajectory_event.event_sha256
+    || value.trace_v2_3_intent.status !== 'candidate_report_only'
+    || value.loss_accounting.loss_accounting_sha256 !== externalEventCanonicalSha256(lossCandidate)
+    || value.loss_accounting.hidden_reasoning_accessed !== false
+    || value.loss_accounting.external_state_rollback_covered !== false
+    || value.trajectory_append_authorized !== false
+    || value.trace_append_authorized !== false
+    || value.optimizer_execution_authorized !== false
+    || value.component_application_authorized !== false
+    || value.projection_sha256 !== externalEventCanonicalSha256(projectionCandidate)) {
+    throw new Error('typed_blocker:external_event_projection_invalid')
+  }
+  return value
+}
+
+export function prepareTerminalTaskContextRequest(
+  projection: ExternalHarnessEventProjection,
+  input: PrepareTerminalTaskContextRequestInput,
+): TerminalTaskContextRequest {
+  const source = validateExternalProjection(projection)
+  const value = structuredClone(input)
+  if (!exactKeys(value, TERMINAL_CONTEXT_INPUT_KEYS)
+    || source.source_event_kind === 'message'
+    || !['answer_commit', 'execution_timed_out'].includes(value.terminal_family)
+    || !Number.isSafeInteger(value.visible_event_count)
+    || value.visible_event_count <= 0) {
+    throw new Error('typed_blocker:terminal_task_context_request_invalid')
+  }
+  const body = {
+    schema: 'mykrobial.external-harness.terminal-task-context-request.v1' as const,
+    request_id: contextIdentifier(value.request_id),
+    source_system: 'exo' as const,
+    source_event_kind: source.source_event_kind,
+    source_event_projection_sha256: source.projection_sha256,
+    canonical_terminal_row_sha256: digest(value.canonical_terminal_row_sha256),
+    terminal_family: value.terminal_family,
+    target_context_schema: 'mykrobial.trace.terminal_task_context_receipt.v1' as const,
+    target_binding_schema: 'mykrobial.trace.terminal_task_binding.v1' as const,
+    namespace: 'mykrobial.trace.terminal-task-context.v37' as const,
+    operation: 'bind_terminal_row_to_visible_task_range' as const,
+    task_label_sha256: digest(value.task_label_sha256),
+    session_id_sha256: digest(value.session_id_sha256),
+    tenant_scope_sha256: digest(value.tenant_scope_sha256),
+    domain: contextIdentifier(value.domain),
+    requested_receipt_ref: digest(value.requested_receipt_ref),
+    served_receipt_ref: digest(value.served_receipt_ref),
+    source_generation: contextIdentifier(value.source_generation),
+    visible_generation_sha256: digest(value.visible_generation_sha256),
+    first_visible_event_id: contextIdentifier(value.first_visible_event_id),
+    last_visible_event_id: contextIdentifier(value.last_visible_event_id),
+    visible_event_count: value.visible_event_count,
+    created_at: timestamp(value.created_at),
+    state: 'context_request_only_unissued' as const,
+    distinct_context_signer_and_verifier_required: true as const,
+    context_signature_authorized: false as const,
+    terminal_binding_emission_authorized: false as const,
+    trace_append_authorized: false as const,
+    historical_relabel_authorized: false as const,
+    task_inferred_from_message_or_event_order: false as const,
+    terminal_content_persisted: false as const,
+    non_claims: [
+      'not_terminal_row_validation',
+      'not_task_inference_from_message_or_event_order',
+      'not_context_signature_or_verification',
+      'not_terminal_binding_emission',
+      'not_historical_relabel',
+      'not_trace_append',
+      'not_projection_execution',
+      'not_evaluation_promotion_or_deployment',
+    ] as TerminalTaskContextRequest['non_claims'],
+  }
+  return {
+    ...body,
+    request_sha256: externalEventCanonicalSha256(body),
   }
 }

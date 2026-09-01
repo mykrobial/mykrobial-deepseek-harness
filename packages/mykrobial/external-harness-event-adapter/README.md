@@ -26,3 +26,11 @@ back external state; and keeps both trajectory and Trace append authority false.
 This package does not clone, install, build, test, run, or control Exo. It does
 not execute an optimizer, evaluator, model, tool, component change, replay,
 rollback, Trace append, promotion, or deployment.
+
+`prepareTerminalTaskContextRequest` supplies the public context needed by the
+Current Production V37 terminal-task binding emitter: task/session/tenant hashes,
+domain, requested/served receipt references, source generation, and an exact
+visible event range. It accepts an explicit canonical terminal-row hash and
+terminal family; it never classifies a terminal row, signs or verifies the
+context, emits a binding, infers a task from a message or event order, or
+retroactively relabels historical events.

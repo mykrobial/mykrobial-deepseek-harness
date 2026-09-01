@@ -3,9 +3,11 @@ import { createHash } from 'node:crypto'
 import test from 'node:test'
 import {
   externalEventCanonicalSha256,
+  prepareTerminalTaskContextRequest,
   projectExternalHarnessEvent,
   type ExternalHarnessEventInput,
   type ExternalHarnessEventKind,
+  type PrepareTerminalTaskContextRequestInput,
 } from '../src/index.ts'
 
 const digest = (label: string): string => createHash('sha256').update(label).digest('hex')
@@ -331,4 +333,165 @@ test('projection is deterministic and input remains unmodified', () => {
   assert.deepEqual(input, before)
   assert.deepEqual(first, second)
   assert.equal(first.projection_sha256, second.projection_sha256)
+})
+
+function terminalContext(
+  overrides: Partial<PrepareTerminalTaskContextRequestInput> = {},
+): PrepareTerminalTaskContextRequestInput {
+  return {
+    request_id: 'terminal-context-request-one',
+    canonical_terminal_row_sha256: digest('canonical-terminal-row'),
+    terminal_family: 'answer_commit',
+    task_label_sha256: digest('task-label'),
+    session_id_sha256: digest('session-label'),
+    tenant_scope_sha256: digest('tenant-scope'),
+    domain: 'engineering',
+    requested_receipt_ref: digest('requested-receipt'),
+    served_receipt_ref: digest('served-receipt'),
+    source_generation: 'next-deepseek-cordis-v1',
+    visible_generation_sha256: digest('visible-generation'),
+    first_visible_event_id: 'visible-event-001',
+    last_visible_event_id: 'visible-event-004',
+    visible_event_count: 4,
+    created_at: '2030-01-01T00:01:00Z',
+    ...overrides,
+  }
+}
+
+test('terminal context request carries the exact V37 public context without issuing it', () => {
+  const projection = projectExternalHarnessEvent(
+    fixture('rebuild_and_restart_outcome'),
+    'trace-terminal-context',
+    'session-terminal-context',
+  )
+  const request = prepareTerminalTaskContextRequest(projection, terminalContext())
+  assert.equal(request.target_context_schema, 'mykrobial.trace.terminal_task_context_receipt.v1')
+  assert.equal(request.target_binding_schema, 'mykrobial.trace.terminal_task_binding.v1')
+  assert.equal(request.namespace, 'mykrobial.trace.terminal-task-context.v37')
+  assert.equal(request.operation, 'bind_terminal_row_to_visible_task_range')
+  assert.equal(request.task_label_sha256, digest('task-label'))
+  assert.equal(request.session_id_sha256, digest('session-label'))
+  assert.equal(request.tenant_scope_sha256, digest('tenant-scope'))
+  assert.equal(request.visible_event_count, 4)
+  assert.equal(request.distinct_context_signer_and_verifier_required, true)
+  assert.equal(request.context_signature_authorized, false)
+  assert.equal(request.terminal_binding_emission_authorized, false)
+  assert.equal(request.trace_append_authorized, false)
+  assert.equal(request.historical_relabel_authorized, false)
+  assert.equal(request.task_inferred_from_message_or_event_order, false)
+  assert.equal(request.terminal_content_persisted, false)
+  assert.equal(
+    request.request_sha256,
+    externalEventCanonicalSha256(
+      Object.fromEntries(Object.entries(request).filter(([key]) => key !== 'request_sha256')),
+    ),
+  )
+})
+
+test('terminal context request never infers a terminal task from a message projection', () => {
+  const message = projectExternalHarnessEvent(
+    fixture('message'),
+    'trace-terminal-message',
+    'session-terminal-message',
+  )
+  assert.throws(
+    () => prepareTerminalTaskContextRequest(message, terminalContext()),
+    /typed_blocker:terminal_task_context_request_invalid/,
+  )
+})
+
+test('terminal context range count and closed request reject aliases and extras', () => {
+  const projection = projectExternalHarnessEvent(
+    fixture('tool_result'),
+    'trace-terminal-range',
+    'session-terminal-range',
+  )
+  for (const count of [0, -1, 1.5, true, null]) {
+    assert.throws(
+      () => prepareTerminalTaskContextRequest(
+        projection,
+        terminalContext({ visible_event_count: count as unknown as number }),
+      ),
+      /typed_blocker:terminal_task_context_request_invalid/,
+    )
+  }
+  const open = {
+    ...terminalContext(),
+    signature: 'forbidden-at-request-stage',
+  } as unknown as PrepareTerminalTaskContextRequestInput
+  assert.throws(
+    () => prepareTerminalTaskContextRequest(projection, open),
+    /typed_blocker:terminal_task_context_request_invalid/,
+  )
+  assert.throws(
+    () => prepareTerminalTaskContextRequest(
+      projection,
+      null as unknown as PrepareTerminalTaskContextRequestInput,
+    ),
+    /typed_blocker:terminal_task_context_request_invalid/,
+  )
+  assert.throws(
+    () => prepareTerminalTaskContextRequest(
+      null as unknown as ReturnType<typeof projectExternalHarnessEvent>,
+      terminalContext(),
+    ),
+    /typed_blocker:external_event_projection_invalid/,
+  )
+})
+
+test('all V37 digest and identifier fields are exact and projection-bound', () => {
+  const projection = projectExternalHarnessEvent(
+    fixture('thread_forked'),
+    'trace-terminal-bind',
+    'session-terminal-bind',
+  )
+  const digestFields = [
+    'canonical_terminal_row_sha256', 'task_label_sha256', 'session_id_sha256',
+    'tenant_scope_sha256', 'requested_receipt_ref', 'served_receipt_ref',
+    'visible_generation_sha256',
+  ] as const
+  for (const field of digestFields) {
+    assert.throws(
+      () => prepareTerminalTaskContextRequest(
+        projection,
+        terminalContext({ [field]: true } as unknown as Partial<PrepareTerminalTaskContextRequestInput>),
+      ),
+      /typed_blocker:external_event_digest_invalid/,
+    )
+  }
+  const identifierFields = [
+    'request_id', 'domain', 'source_generation', 'first_visible_event_id',
+    'last_visible_event_id',
+  ] as const
+  for (const field of identifierFields) {
+    assert.throws(
+      () => prepareTerminalTaskContextRequest(
+        projection,
+        terminalContext({ [field]: 7 } as unknown as Partial<PrepareTerminalTaskContextRequestInput>),
+      ),
+      /typed_blocker:terminal_task_context_identity_invalid/,
+    )
+  }
+  const forged = structuredClone(projection)
+  forged.trace_append_authorized = true as false
+  assert.throws(
+    () => prepareTerminalTaskContextRequest(forged, terminalContext()),
+    /typed_blocker:external_event_projection_invalid/,
+  )
+})
+
+test('both canonical terminal families are explicit request inputs, never derived outputs', () => {
+  const projection = projectExternalHarnessEvent(
+    fixture('rebuild_and_restart_outcome'),
+    'trace-terminal-family',
+    'session-terminal-family',
+  )
+  for (const family of ['answer_commit', 'execution_timed_out'] as const) {
+    const request = prepareTerminalTaskContextRequest(
+      projection,
+      terminalContext({ terminal_family: family }),
+    )
+    assert.equal(request.terminal_family, family)
+    assert.equal(request.state, 'context_request_only_unissued')
+  }
 })
