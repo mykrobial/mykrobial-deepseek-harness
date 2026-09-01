@@ -19,7 +19,10 @@ content-addressed operation result showing the exact target generation active
 and its replaced parent inactive; rollback requires the inverse, while replay
 is explicitly non-activating. Results contain exhaustive before/after component
 snapshots and classed, subject-bound, expiring, replay-consumed receipt
-envelopes; the complete receipt-distinct basis determines the result ID. It
+envelopes. Verification stays live through the before snapshot, operation
+evidence stays live through projection generation, and receipt IDs, digests,
+nonces, reservation receipts, and consumption receipts cannot alias across
+classes. The complete receipt-distinct basis determines the result ID. It
 projects backend facts only;
 it cannot run an optimizer, apply a component, append Trace, train, promote, or
 deploy.

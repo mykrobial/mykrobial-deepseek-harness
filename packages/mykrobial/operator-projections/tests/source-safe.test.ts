@@ -27,6 +27,10 @@ function receiptInput(
   receiptId: string,
   issuedAt: string,
 ): any {
+  const identity = {
+    verification: ['a', 'b', 'c'], application: ['d', 'e', 'f'],
+    rollback: ['1', '2', '3'], replay: ['4', '5', '6'],
+  }[receiptClass]
   return {
     receipt_id: receiptId,
     receipt_class: receiptClass,
@@ -34,9 +38,10 @@ function receiptInput(
     issuer_id: 'backend-evidence-issuer',
     issued_at: issuedAt,
     expires_at: '2026-09-02T00:00:00Z',
-    nonce_sha256: digest({
-      verification: 'a', application: 'b', rollback: 'c', replay: 'd',
-    }[receiptClass]),
+    nonce_sha256: digest(identity[0]),
+    replay_authority_id: 'component-receipt-replay-ledger',
+    nonce_reservation_receipt_sha256: digest(identity[1]),
+    nonce_consumption_receipt_sha256: digest(identity[2]),
   }
 }
 
@@ -1465,6 +1470,9 @@ test('operation-result basis is receipt-distinct exhaustive causal and lineage-c
       receipt_sha256: digest('6'), subject_sha256: experiment.plan.artifact!.plan_sha256,
       issuer_id: 'backend-evidence-issuer', issued_at: '2026-09-02T00:00:00Z',
       expires_at: '2026-09-01T00:00:00Z', nonce_sha256: digest('a'),
+      replay_authority_id: 'component-receipt-replay-ledger',
+      nonce_reservation_receipt_sha256: digest('b'),
+      nonce_consumption_receipt_sha256: digest('c'),
     }),
     /typed_blocker:component_receipt_envelope_invalid/,
   )
@@ -1534,6 +1542,83 @@ test('operation-result basis is receipt-distinct exhaustive causal and lineage-c
   })
   assert.throws(
     () => buildOmniGentComponentEvolutionView(rootSuperset),
+    /typed_blocker:component_view_post_operation_readback_invalid/,
+  )
+})
+
+test('receipt envelopes are live at use time and unique across evidence classes', () => {
+  const runtime = withComponentRuntimeEvidence(componentEvolutionView())
+  const experiment = runtime.experiments[0]!
+  const result = experiment.plan.operation_result!
+  const expiredVerification = receiptInput(
+    'verification', digest('6'), 'receipt-expired-verification', '2026-09-01T00:01:00Z',
+  )
+  expiredVerification.expires_at = '2026-09-01T00:01:10Z'
+  assert.throws(
+    () => buildComponentOperationResult({
+      capsule: experiment.capsule_artifact,
+      decision: experiment.decision.artifact!,
+      plan: experiment.plan.artifact!,
+      post_loadout_manifest_sha256: result.post_loadout_manifest_sha256,
+      before_components: result.before_components,
+      after_components: result.after_components,
+      verification_receipt: expiredVerification,
+      operation_receipt: receiptInput(
+        'application', digest('2'), 'receipt-expired-application', result.observed_at,
+      ),
+      before_observed_at: result.before_observed_at,
+      observed_at: result.observed_at,
+    }),
+    /typed_blocker:component_receipt_envelope_invalid/,
+  )
+
+  const aliasedVerification = receiptInput(
+    'verification', digest('6'), 'receipt-aliased', '2026-09-01T00:01:30Z',
+  )
+  const aliasedOperation = receiptInput(
+    'application', digest('6'), 'receipt-aliased', result.observed_at,
+  )
+  aliasedOperation.nonce_sha256 = aliasedVerification.nonce_sha256
+  aliasedOperation.nonce_reservation_receipt_sha256
+    = aliasedVerification.nonce_reservation_receipt_sha256
+  aliasedOperation.nonce_consumption_receipt_sha256
+    = aliasedVerification.nonce_consumption_receipt_sha256
+  assert.throws(
+    () => buildComponentOperationResult({
+      capsule: experiment.capsule_artifact,
+      decision: experiment.decision.artifact!,
+      plan: experiment.plan.artifact!,
+      post_loadout_manifest_sha256: result.post_loadout_manifest_sha256,
+      before_components: result.before_components,
+      after_components: result.after_components,
+      verification_receipt: aliasedVerification,
+      operation_receipt: aliasedOperation,
+      before_observed_at: result.before_observed_at,
+      observed_at: result.observed_at,
+    }),
+    /typed_blocker:component_operation_result_receipt_identity_alias/,
+  )
+
+  const futureReceiptResult = buildComponentOperationResult({
+    capsule: experiment.capsule_artifact,
+    decision: experiment.decision.artifact!,
+    plan: experiment.plan.artifact!,
+    post_loadout_manifest_sha256: result.post_loadout_manifest_sha256,
+    before_components: result.before_components,
+    after_components: result.after_components,
+    verification_receipt: receiptInput(
+      'verification', digest('6'), 'receipt-future-verification', '2026-09-01T00:01:30Z',
+    ),
+    operation_receipt: {
+      ...receiptInput('application', digest('2'), 'receipt-future-application', '9999-01-01T00:00:00Z'),
+      expires_at: '9999-01-02T00:00:00Z',
+    },
+    before_observed_at: result.before_observed_at,
+    observed_at: result.observed_at,
+  })
+  runtime.experiments[0]!.plan.operation_result = futureReceiptResult
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(runtime),
     /typed_blocker:component_view_post_operation_readback_invalid/,
   )
 })
@@ -1755,6 +1840,33 @@ test('public component projection revalidation rejects semantic reseals', () => 
   inactiveTargetReseal.view_sha256 = 'a946f7968530aeff0421353c55cc148b7d39e3ef8fff520d0208311f230ddfa7'
   assert.throws(
     () => validateOmniGentComponentEvolutionView(inactiveTargetReseal),
+    /typed_blocker:component_view_post_operation_readback_invalid/,
+  )
+  const futureReceiptReseal: any = buildOmniGentComponentEvolutionView(
+    withComponentRuntimeEvidence(componentEvolutionView()),
+  )
+  const futureReceiptExperiment = futureReceiptReseal.experiments[0]
+  const priorResult = futureReceiptExperiment.plan.operation_result
+  futureReceiptExperiment.plan.operation_result = buildComponentOperationResult({
+    capsule: futureReceiptExperiment.capsule_artifact,
+    decision: futureReceiptExperiment.decision.artifact,
+    plan: futureReceiptExperiment.plan.artifact,
+    post_loadout_manifest_sha256: priorResult.post_loadout_manifest_sha256,
+    before_components: priorResult.before_components,
+    after_components: priorResult.after_components,
+    verification_receipt: receiptInput(
+      'verification', digest('6'), 'receipt-public-future-verification', '2026-09-01T00:01:30Z',
+    ),
+    operation_receipt: {
+      ...receiptInput('application', digest('2'), 'receipt-public-future-operation', '9999-01-01T00:00:00Z'),
+      expires_at: '9999-01-02T00:00:00Z',
+    },
+    before_observed_at: priorResult.before_observed_at,
+    observed_at: priorResult.observed_at,
+  })
+  futureReceiptReseal.view_sha256 = '5b75ff790ee9d8dc33c865346e86c125875978b71a8662a187c0c84422594a5c'
+  assert.throws(
+    () => validateOmniGentComponentEvolutionView(futureReceiptReseal),
     /typed_blocker:component_view_post_operation_readback_invalid/,
   )
   const wrongViewHash: any = structuredClone(source)

@@ -224,6 +224,9 @@ export interface ComponentReceiptEnvelope {
   issued_at: string
   expires_at: string
   nonce_sha256: string
+  replay_authority_id: string
+  nonce_reservation_receipt_sha256: string
+  nonce_consumption_receipt_sha256: string
   replay_state: 'consumed'
   issuer_authenticity_verified: false
   non_claims: string[]
@@ -239,6 +242,9 @@ export interface BuildComponentReceiptEnvelopeInput {
   issued_at: string
   expires_at: string
   nonce_sha256: string
+  replay_authority_id: string
+  nonce_reservation_receipt_sha256: string
+  nonce_consumption_receipt_sha256: string
 }
 
 export interface BuildComponentOperationResultInput {
@@ -402,10 +408,13 @@ export function validateComponentReceiptEnvelope(
   value: ComponentReceiptEnvelope,
   expectedClass?: ComponentReceiptEnvelope['receipt_class'],
   expectedSubjectSha256?: string,
+  evidenceUseTime?: string,
 ): ComponentReceiptEnvelope {
   exact(value, [
     'schema', 'receipt_id', 'receipt_class', 'receipt_sha256', 'subject_sha256',
     'issuer_id', 'issued_at', 'expires_at', 'nonce_sha256', 'replay_state',
+    'replay_authority_id', 'nonce_reservation_receipt_sha256',
+    'nonce_consumption_receipt_sha256',
     'issuer_authenticity_verified', 'non_claims', 'envelope_sha256',
   ], 'component_receipt_envelope_closure_invalid')
   const row = structuredClone(value)
@@ -420,12 +429,28 @@ export function validateComponentReceiptEnvelope(
   row.issued_at = timestamp(row.issued_at, 'component_receipt_envelope_timestamp_invalid')
   row.expires_at = timestamp(row.expires_at, 'component_receipt_envelope_timestamp_invalid')
   row.nonce_sha256 = digest(row.nonce_sha256, 'component_receipt_envelope_nonce_invalid')
+  row.replay_authority_id = identifier(
+    row.replay_authority_id, 'component_receipt_envelope_replay_authority_invalid',
+  )
+  row.nonce_reservation_receipt_sha256 = digest(
+    row.nonce_reservation_receipt_sha256,
+    'component_receipt_envelope_replay_receipt_invalid',
+  )
+  row.nonce_consumption_receipt_sha256 = digest(
+    row.nonce_consumption_receipt_sha256,
+    'component_receipt_envelope_replay_receipt_invalid',
+  )
   row.non_claims = nonClaims(row.non_claims)
   const { envelope_sha256: _envelopeSha256, ...body } = row
   if (row.schema !== 'mykrobial.harness.component-receipt-envelope.v1'
     || (expectedClass !== undefined && row.receipt_class !== expectedClass)
     || (expectedSubjectSha256 !== undefined && row.subject_sha256 !== expectedSubjectSha256)
     || timestampOrdinal(row.expires_at) <= timestampOrdinal(row.issued_at)
+    || (evidenceUseTime !== undefined && (
+      timestampOrdinal(row.issued_at) > timestampOrdinal(evidenceUseTime)
+      || timestampOrdinal(row.expires_at) < timestampOrdinal(evidenceUseTime)
+    ))
+    || row.nonce_reservation_receipt_sha256 === row.nonce_consumption_receipt_sha256
     || row.replay_state !== 'consumed' || row.issuer_authenticity_verified !== false
     || row.non_claims.join('\u0000') !== RECEIPT_ENVELOPE_NON_CLAIMS.join('\u0000')
     || row.envelope_sha256 !== sha(body)) {
@@ -451,6 +476,17 @@ export function buildComponentReceiptEnvelope(
     issued_at: timestamp(input.issued_at, 'component_receipt_envelope_timestamp_invalid'),
     expires_at: timestamp(input.expires_at, 'component_receipt_envelope_timestamp_invalid'),
     nonce_sha256: digest(input.nonce_sha256, 'component_receipt_envelope_nonce_invalid'),
+    replay_authority_id: identifier(
+      input.replay_authority_id, 'component_receipt_envelope_replay_authority_invalid',
+    ),
+    nonce_reservation_receipt_sha256: digest(
+      input.nonce_reservation_receipt_sha256,
+      'component_receipt_envelope_replay_receipt_invalid',
+    ),
+    nonce_consumption_receipt_sha256: digest(
+      input.nonce_consumption_receipt_sha256,
+      'component_receipt_envelope_replay_receipt_invalid',
+    ),
     replay_state: 'consumed' as const,
     issuer_authenticity_verified: false as const,
     non_claims: [...RECEIPT_ENVELOPE_NON_CLAIMS],
@@ -605,11 +641,20 @@ export function validateComponentOperationResult(
     row.operation === 'swap' ? 'application' : row.operation
   ) as ComponentReceiptEnvelope['receipt_class']
   row.verification_receipt = validateComponentReceiptEnvelope(
-    row.verification_receipt, 'verification', plan.plan_sha256,
+    row.verification_receipt, 'verification', plan.plan_sha256, row.before_observed_at,
   )
   row.operation_receipt = validateComponentReceiptEnvelope(
     row.operation_receipt, expectedOperationClass, expectedObservation,
   )
+  if (row.verification_receipt.receipt_id === row.operation_receipt.receipt_id
+    || row.verification_receipt.receipt_sha256 === row.operation_receipt.receipt_sha256
+    || row.verification_receipt.nonce_sha256 === row.operation_receipt.nonce_sha256
+    || row.verification_receipt.nonce_reservation_receipt_sha256
+      === row.operation_receipt.nonce_reservation_receipt_sha256
+    || row.verification_receipt.nonce_consumption_receipt_sha256
+      === row.operation_receipt.nonce_consumption_receipt_sha256) {
+    throw new Error('typed_blocker:component_operation_result_receipt_identity_alias')
+  }
   const beforeById = new Map(row.before_components.map(component => [component.component_id, component]))
   const afterById = new Map(row.after_components.map(component => [component.component_id, component]))
   const targets = capsule.target_component_ids.map(id => ({
@@ -1190,6 +1235,10 @@ export function buildOmniGentComponentEvolutionView(
       }
       const result = experiment.plan.operation_result
       if (result === null || timestampOrdinal(result.observed_at) > timestampOrdinal(input.generated_at)
+        || timestampOrdinal(result.verification_receipt.issued_at) > timestampOrdinal(input.generated_at)
+        || timestampOrdinal(result.verification_receipt.expires_at) < timestampOrdinal(input.generated_at)
+        || timestampOrdinal(result.operation_receipt.issued_at) > timestampOrdinal(input.generated_at)
+        || timestampOrdinal(result.operation_receipt.expires_at) < timestampOrdinal(input.generated_at)
         || JSON.stringify(canonical(result.after_components))
           !== JSON.stringify(canonical(input.components))) {
         throw new Error('typed_blocker:component_view_post_operation_readback_invalid')

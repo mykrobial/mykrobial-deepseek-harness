@@ -6,7 +6,7 @@
   },
   "content_manifest": {
     "ref": "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
-    "sha256": "1fa5124e0509ca8ce571fe9cbb8e1fc359198eb91c8b0630808937d7821d6323",
+    "sha256": "4887cf468f921c698fbc0bfb4d0ff093f1cfef2516b5b4c502c2ddcb340b41e6",
     "content_file_count": 12,
     "manifest_excludes": [
       "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
@@ -17,7 +17,8 @@
       "goalrun/component-rsi-operator-view-v1/ROUND-4-FRESH-CRITIC-BLOCKER.v1.json",
       "goalrun/component-rsi-operator-view-v1/ROUND-5-FRESH-CRITIC-BLOCKER.v1.json",
       "goalrun/component-rsi-operator-view-v1/ROUND-6-FRESH-CRITIC-BLOCKER.v1.json",
-      "goalrun/component-rsi-operator-view-v1/ROUND-7-FRESH-CRITIC-BLOCKER.v1.json"
+      "goalrun/component-rsi-operator-view-v1/ROUND-7-FRESH-CRITIC-BLOCKER.v1.json",
+      "goalrun/component-rsi-operator-view-v1/ROUND-8-FRESH-CRITIC-BLOCKER.v1.json"
     ]
   },
   "verification": {
@@ -25,9 +26,9 @@
     "node_version": "v25.9.0",
     "test_command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/operator-projections/tests/source-safe.test.ts",
     "component_seam_test_command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts",
-    "tests_passed": 57,
+    "tests_passed": 58,
     "tests_failed": 0,
-    "operator_projection_tests_passed": 32,
+    "operator_projection_tests_passed": 33,
     "component_seam_tests_passed": 25,
     "typescript_syntax_checks": 6,
     "strict_authored_json_checks": 3,
@@ -50,6 +51,8 @@
     "before_after_component_snapshot_exhaustive": true,
     "receipt_distinct_result_identity_exact": true,
     "classed_subject_expiry_replay_receipt_envelopes_exact": true,
+    "receipt_live_at_evidence_and_projection_time": true,
+    "cross_class_receipt_and_nonce_identity_unique": true,
     "transaction_and_valid_time": true,
     "optimizer_ports_proposal_only": true,
     "trace_replay_rollback_readback": true,
@@ -156,6 +159,21 @@
       "add classed subject-bound expiring replay-consumed receipt envelopes",
       "include both receipt envelopes in the operation-result basis and result ID",
       "reject receipt collisions parentless replacement future-dated rows replay drift and root supersets"
+    ]
+  },
+  "round_8_repair_basis": {
+    "critic_ref": "goalrun/component-rsi-operator-view-v1/ROUND-8-FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "6a326c2298c2ca1182839030edbb4a07eb8691077829ae0ae9d5698b51e0024a",
+    "finding": "typed_blocker:component_evolution_receipt_lifecycle_causality_incomplete",
+    "repairs": [
+      "validate every receipt against an explicit evidence-use time",
+      "keep verification live through the before snapshot and operation evidence live through projection generation",
+      "project replay authority plus separate nonce reservation and consumption receipts",
+      "reject reservation and consumption receipt alias inside one envelope",
+      "reject receipt ID raw digest nonce reservation and consumption aliases across evidence classes",
+      "bound all receipt issuance at or before the generated OmniGent projection",
+      "preserve issuer authenticity and action authority as explicit false nonclaims",
+      "reject the exact runtime deployed result basis observation and public-revalidation receipt-lifecycle counterexamples"
     ]
   },
   "authority": {

@@ -150,7 +150,8 @@
       "required": [
         "schema", "receipt_id", "receipt_class", "receipt_sha256",
         "subject_sha256", "issuer_id", "issued_at", "expires_at",
-        "nonce_sha256", "replay_state", "issuer_authenticity_verified",
+        "nonce_sha256", "replay_authority_id", "nonce_reservation_receipt_sha256",
+        "nonce_consumption_receipt_sha256", "replay_state", "issuer_authenticity_verified",
         "non_claims", "envelope_sha256"
       ],
       "properties": {
@@ -163,6 +164,9 @@
         "issued_at": { "$ref": "harness-parity.v1.schema.json#/$defs/timestamp" },
         "expires_at": { "$ref": "harness-parity.v1.schema.json#/$defs/timestamp" },
         "nonce_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        "replay_authority_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+        "nonce_reservation_receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        "nonce_consumption_receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
         "replay_state": { "const": "consumed" },
         "issuer_authenticity_verified": { "const": false },
         "non_claims": {
