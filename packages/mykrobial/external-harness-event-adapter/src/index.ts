@@ -227,7 +227,9 @@ function exactKeys(value: object, expected: readonly string[]): boolean {
 }
 
 function timestamp(value: string): string {
-  if (!UTC.test(value)) throw new Error('typed_blocker:external_event_timestamp_invalid')
+  if (typeof value !== 'string' || !UTC.test(value)) {
+    throw new Error('typed_blocker:external_event_timestamp_invalid')
+  }
   const parsed = Date.parse(value)
   if (!Number.isFinite(parsed) || new Date(parsed).toISOString().replace('.000Z', 'Z') !== value) {
     throw new Error('typed_blocker:external_event_timestamp_invalid')
@@ -236,12 +238,16 @@ function timestamp(value: string): string {
 }
 
 function identifier(value: string): string {
-  if (!ID.test(value)) throw new Error('typed_blocker:external_event_identity_invalid')
+  if (typeof value !== 'string' || !ID.test(value)) {
+    throw new Error('typed_blocker:external_event_identity_invalid')
+  }
   return value
 }
 
 function digest(value: string): string {
-  if (!SHA.test(value)) throw new Error('typed_blocker:external_event_digest_invalid')
+  if (typeof value !== 'string' || !SHA.test(value)) {
+    throw new Error('typed_blocker:external_event_digest_invalid')
+  }
   return value
 }
 
@@ -249,7 +255,7 @@ function artifactRef(source: ExternalArtifactRef): ExternalArtifactRef {
   const value = structuredClone(source)
   if (!exactKeys(value, ARTIFACT_KEYS)
     || typeof value.ref !== 'string' || value.ref.length < 1 || value.ref.length > 2048
-    || !SHA.test(value.sha256)
+    || typeof value.sha256 !== 'string' || !SHA.test(value.sha256)
     || !Number.isSafeInteger(value.bytes) || value.bytes < 1
     || typeof value.media_type !== 'string' || value.media_type.length < 1 || value.media_type.length > 128
     || !['public', 'restricted', 'provider_opaque', 'external'].includes(value.storage_class)) {
@@ -324,6 +330,7 @@ export function projectExternalHarnessEvent(
     throw new Error('typed_blocker:external_event_execution_outcome_invalid')
   }
   const sourceArtifact = artifactRef(value.source_artifact)
+  identifier(value.source_event_id)
   if (digest(value.source_event_sha256) !== sourceArtifact.sha256) {
     throw new Error('typed_blocker:external_event_artifact_binding_invalid')
   }

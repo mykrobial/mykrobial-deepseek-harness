@@ -190,6 +190,80 @@ test('raw event hash and closed source object fail closed before projection', ()
   )
 })
 
+test('every identity surface rejects non-string runtime aliases', () => {
+  const aliases = [true, 7, null, { value: 'id' }, ['id']]
+  const inputFields = [
+    'source_event_id', 'run_id', 'task_capsule_id', 'loadout_id',
+    'primary_component_id', 'branch_id',
+  ] as const
+  for (const field of inputFields) {
+    for (const alias of aliases) {
+      const input = fixture('tool_result') as unknown as Record<string, unknown>
+      input[field] = alias
+      assert.throws(
+        () => projectExternalHarnessEvent(
+          input as unknown as ExternalHarnessEventInput,
+          'trace-identity',
+          'session-identity',
+        ),
+        /typed_blocker:external_event_identity_invalid|typed_blocker:external_event_primary_component_invalid/,
+      )
+    }
+  }
+  for (const alias of aliases) {
+    const input = fixture('tool_result') as unknown as Record<string, unknown>
+    input.component_ids = [alias]
+    input.primary_component_id = alias
+    assert.throws(
+      () => projectExternalHarnessEvent(
+        input as unknown as ExternalHarnessEventInput,
+        'trace-identity',
+        'session-identity',
+      ),
+      /typed_blocker:external_event_identity_invalid/,
+    )
+    assert.throws(
+      () => projectExternalHarnessEvent(
+        fixture('tool_result'),
+        alias as unknown as string,
+        'session-identity',
+      ),
+      /typed_blocker:external_event_identity_invalid/,
+    )
+    assert.throws(
+      () => projectExternalHarnessEvent(
+        fixture('tool_result'),
+        'trace-identity',
+        alias as unknown as string,
+      ),
+      /typed_blocker:external_event_identity_invalid/,
+    )
+  }
+})
+
+test('digest and timestamp surfaces reject coercible non-string aliases', () => {
+  const badDigest = fixture('tool_result') as unknown as Record<string, unknown>
+  badDigest.previous_trajectory_event_sha256 = true
+  assert.throws(
+    () => projectExternalHarnessEvent(
+      badDigest as unknown as ExternalHarnessEventInput,
+      'trace-type',
+      'session-type',
+    ),
+    /typed_blocker:external_event_digest_invalid/,
+  )
+  const badTime = fixture('tool_result') as unknown as Record<string, unknown>
+  badTime.occurred_at = 20300101
+  assert.throws(
+    () => projectExternalHarnessEvent(
+      badTime as unknown as ExternalHarnessEventInput,
+      'trace-type',
+      'session-type',
+    ),
+    /typed_blocker:external_event_timestamp_invalid/,
+  )
+})
+
 test('loss accounting is explicit self-bound and never claims external rollback', () => {
   const projection = projectExternalHarnessEvent(
     fixture('sandbox_snapshotted'),
