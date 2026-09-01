@@ -14,6 +14,9 @@ artifacts are revalidated before their immutable identities are paired with
 mutable execution and receipt state. Runtime proof also requires a causally
 ordered proposal/capsule/decision/plan chain, exact blocker resolutions,
 operation-specific replay or rollback evidence, compatible disposition, and
-post-operation active-loadout readback. It projects backend facts only;
+post-operation active-loadout readback. Applied swaps additionally require a
+content-addressed operation result showing the exact target generation active
+and its replaced parent inactive; rollback requires the inverse, while replay
+is explicitly non-activating. It projects backend facts only;
 it cannot run an optimizer, apply a component, append Trace, train, promote, or
 deploy.

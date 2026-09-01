@@ -18,6 +18,7 @@
     "mutable execution-state separation from immutable no-apply plan artifacts",
     "operation-specific execution-admission and blocker-resolution projection",
     "proposal lineage causal time and active-loadout generation binding",
+    "content-addressed swap rollback and replay component-generation readback",
     "four-plane proposal-only optimizer port projection",
     "transaction-time and valid-time timeline projection",
     "Trace replay rollback and proof-level readback",

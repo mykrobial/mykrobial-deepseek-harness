@@ -9,6 +9,7 @@ import {
 } from '../../component-rsi-seam/src/index.ts'
 import {
   buildFactoryHandoff,
+  buildComponentOperationResult,
   buildOmniGentComponentEvolutionView,
   buildOmniGentHarnessView,
   validateOmniGentComponentEvolutionView,
@@ -781,6 +782,7 @@ function componentEvolutionView(): OmniGentComponentEvolutionViewInput {
           applied_receipt_sha256: null,
           replay_receipt_sha256: null, rollback_receipt_sha256: null,
           blocker_resolutions: [],
+          operation_result: null,
           artifact: artifacts.plan,
         },
         proof_level: 'source_verified',
@@ -875,6 +877,26 @@ function withComponentRuntimeEvidence(
     authority_receipt_sha256: digest('1'),
     training_gate_receipt_sha256: null,
   }
+  const observedAt = '2026-09-01T00:02:00Z'
+  const parent = input.components.find(component => component.component_id === 'prompt-v1')!
+  parent.active = false
+  parent.lifecycle_state = 'inactive'
+  parent.valid_until = observedAt
+  const candidate = input.components.find(component => component.component_id === 'prompt-v2')!
+  candidate.active = true
+  candidate.lifecycle_state = 'active'
+  candidate.valid_from = observedAt
+  candidate.valid_until = null
+  const operationResult = buildComponentOperationResult({
+    capsule: experiment.capsule_artifact,
+    decision: experiment.decision.artifact!,
+    plan: experiment.plan.artifact!,
+    post_loadout_manifest_sha256: digest('b'),
+    observed_components: [parent, candidate],
+    verification_receipt_sha256: digest('6'),
+    operation_receipt_sha256: digest('2'),
+    observed_at: observedAt,
+  })
   experiment.plan = {
     ...experiment.plan,
     state: 'applied',
@@ -886,8 +908,10 @@ function withComponentRuntimeEvidence(
       blocker: 'typed_blocker:external_decision_authority_unverified',
       receipt_sha256: digest('1'),
     }],
+    operation_result: operationResult,
   }
   input.active_loadout.manifest_sha256 = digest('b')
+  input.generated_at = '2026-09-01T00:03:00Z'
   input.proof_level = 'runtime_verified'
   return input
 }
@@ -941,6 +965,17 @@ test('component evolution view closes root and every nested object', () => {
     mutate(output)
     assert.notDeepEqual(schemaErrors(output, schema, schema), [])
   }
+  const runtimeInput: any = withComponentRuntimeEvidence(componentEvolutionView())
+  runtimeInput.experiments[0].plan.operation_result.extra = true
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(runtimeInput),
+    /component_operation_result_closure_invalid/,
+  )
+  const runtimeOutput: any = buildOmniGentComponentEvolutionView(
+    withComponentRuntimeEvidence(componentEvolutionView()),
+  )
+  runtimeOutput.experiments[0].plan.operation_result.extra = true
+  assert.notDeepEqual(schemaErrors(runtimeOutput, schema, schema), [])
 })
 
 test('component identity, active generation, and timeline references fail closed', () => {
@@ -1164,7 +1199,7 @@ test('runtime proof requires structurally admitted operation artifacts and exact
     = replayExperiment.capsule_artifact.task_binding.loadout_manifest_sha256
   assert.throws(
     () => buildOmniGentComponentEvolutionView(replayCandidate),
-    /typed_blocker:component_view_plan_execution_admission_invalid/,
+    /typed_blocker:(component_view_plan_execution_admission_invalid|component_operation_result_invalid)/,
   )
 
   const dispositionCandidate = withComponentRuntimeEvidence(componentEvolutionView())
@@ -1209,7 +1244,7 @@ test('runtime proof requires structurally admitted operation artifacts and exact
   }
   assert.throws(
     () => buildOmniGentComponentEvolutionView(dispositionCandidate),
-    /typed_blocker:component_view_plan_execution_admission_invalid/,
+    /typed_blocker:(component_view_plan_execution_admission_invalid|component_operation_result_invalid)/,
   )
 
   const wrongLoadout = withComponentRuntimeEvidence(componentEvolutionView())
@@ -1218,6 +1253,101 @@ test('runtime proof requires structurally admitted operation artifacts and exact
     () => buildOmniGentComponentEvolutionView(wrongLoadout),
     /typed_blocker:component_view_active_loadout_binding_invalid/,
   )
+})
+
+test('runtime and deployed proof require exact component-generation post-operation readback', () => {
+  const inactiveTarget = withComponentRuntimeEvidence(componentEvolutionView())
+  const parent = inactiveTarget.components.find(component => component.component_id === 'prompt-v1')!
+  parent.active = true
+  parent.lifecycle_state = 'active'
+  parent.valid_until = null
+  const candidate = inactiveTarget.components.find(component => component.component_id === 'prompt-v2')!
+  candidate.active = false
+  candidate.lifecycle_state = 'inactive'
+  candidate.valid_from = null
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(inactiveTarget),
+    /typed_blocker:component_view_post_operation_readback_invalid/,
+  )
+
+  const deployedInactiveTarget = withComponentRuntimeEvidence(componentEvolutionView())
+  deployedInactiveTarget.proof_level = 'deployed_verified'
+  deployedInactiveTarget.deployment_receipt_sha256 = digest('3')
+  deployedInactiveTarget.experiments[0]!.proof_level = 'deployed_verified'
+  const deployedParent = deployedInactiveTarget.components.find(
+    component => component.component_id === 'prompt-v1',
+  )!
+  deployedParent.active = true
+  deployedParent.lifecycle_state = 'active'
+  deployedParent.valid_until = null
+  const deployedCandidate = deployedInactiveTarget.components.find(
+    component => component.component_id === 'prompt-v2',
+  )!
+  deployedCandidate.active = false
+  deployedCandidate.lifecycle_state = 'inactive'
+  deployedCandidate.valid_from = null
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(deployedInactiveTarget),
+    /typed_blocker:component_view_post_operation_readback_invalid/,
+  )
+})
+
+test('operation results preserve non-activating replay and parent-restoring rollback semantics', () => {
+  const source = componentEvolutionView()
+  const experiment = source.experiments[0]!
+  const replayFields = structuredClone(componentSeamFixture.plan_fields)
+  replayFields.operation = 'replay'
+  replayFields.current_loadout_manifest_sha256
+    = experiment.capsule_artifact.task_binding.loadout_manifest_sha256
+  replayFields.replay_receipt_sha256 = digest('e')
+  const replayPlan = prepareComponentReconfigurationPlan({
+    ...replayFields, capsule: experiment.capsule_artifact,
+    decision: experiment.decision.artifact!,
+  })
+  const replayResult = buildComponentOperationResult({
+    capsule: experiment.capsule_artifact,
+    decision: experiment.decision.artifact!,
+    plan: replayPlan,
+    post_loadout_manifest_sha256: replayPlan.current_loadout_manifest_sha256,
+    observed_components: source.components,
+    verification_receipt_sha256: digest('6'),
+    operation_receipt_sha256: digest('e'),
+    observed_at: '2026-09-01T00:02:00Z',
+  })
+  assert.equal(replayResult.receipt_class, 'replay')
+  assert.equal(replayResult.activation_changed, false)
+  assert.equal(replayResult.pre_loadout_manifest_sha256, replayResult.post_loadout_manifest_sha256)
+
+  const rollbackInput = structuredClone(componentSeamFixture.decision_input)
+  rollbackInput.decision_id = 'decision-rollback-result'
+  rollbackInput.capsule_id = experiment.capsule_artifact.capsule_id
+  rollbackInput.capsule_sha256 = experiment.capsule_artifact.capsule_sha256
+  rollbackInput.decision_kind = 'rollback_recommendation'
+  rollbackInput.disposition = 'rollback'
+  const rollbackDecision = acceptExternalComponentDecision(
+    rollbackInput, experiment.capsule_artifact,
+  )
+  const rollbackFields = structuredClone(componentSeamFixture.plan_fields)
+  rollbackFields.operation = 'rollback'
+  rollbackFields.current_loadout_manifest_sha256
+    = experiment.capsule_artifact.task_binding.loadout_manifest_sha256
+  rollbackFields.rollback_receipt_sha256 = digest('f')
+  const rollbackPlan = prepareComponentReconfigurationPlan({
+    ...rollbackFields, capsule: experiment.capsule_artifact, decision: rollbackDecision,
+  })
+  const rollbackResult = buildComponentOperationResult({
+    capsule: experiment.capsule_artifact,
+    decision: rollbackDecision,
+    plan: rollbackPlan,
+    post_loadout_manifest_sha256: rollbackPlan.current_loadout_manifest_sha256,
+    observed_components: source.components,
+    verification_receipt_sha256: digest('6'),
+    operation_receipt_sha256: digest('f'),
+    observed_at: '2026-09-01T00:02:00Z',
+  })
+  assert.equal(rollbackResult.receipt_class, 'rollback')
+  assert.equal(rollbackResult.activation_changed, true)
+  assert.equal(rollbackResult.pre_loadout_manifest_sha256, rollbackResult.post_loadout_manifest_sha256)
 })
 
 test('component runtime and deployment proof levels require the complete floor', () => {
@@ -1417,7 +1547,27 @@ test('public component projection revalidation rejects semantic reseals', () => 
   blockedReplayReseal.view_sha256 = '7356f3edd788a5aec3b0d3cd1e4150f498753742d1f727c0999c29d2e4fe59ff'
   assert.throws(
     () => validateOmniGentComponentEvolutionView(blockedReplayReseal),
-    /typed_blocker:component_view_plan_execution_admission_invalid/,
+    /typed_blocker:(component_view_plan_execution_admission_invalid|component_operation_result_invalid)/,
+  )
+  const inactiveTargetReseal: any = buildOmniGentComponentEvolutionView(
+    withComponentRuntimeEvidence(componentEvolutionView()),
+  )
+  const inactiveParent = inactiveTargetReseal.components.find(
+    (component: any) => component.component_id === 'prompt-v1',
+  )
+  inactiveParent.active = true
+  inactiveParent.lifecycle_state = 'active'
+  inactiveParent.valid_until = null
+  const inactiveCandidate = inactiveTargetReseal.components.find(
+    (component: any) => component.component_id === 'prompt-v2',
+  )
+  inactiveCandidate.active = false
+  inactiveCandidate.lifecycle_state = 'inactive'
+  inactiveCandidate.valid_from = null
+  inactiveTargetReseal.view_sha256 = 'a946f7968530aeff0421353c55cc148b7d39e3ef8fff520d0208311f230ddfa7'
+  assert.throws(
+    () => validateOmniGentComponentEvolutionView(inactiveTargetReseal),
+    /typed_blocker:component_view_post_operation_readback_invalid/,
   )
   const wrongViewHash: any = structuredClone(source)
   wrongViewHash.view_sha256 = digest('f')

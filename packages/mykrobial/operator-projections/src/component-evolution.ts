@@ -188,6 +188,41 @@ export interface ExperimentArmViewInput {
   result_receipt_sha256: string | null
 }
 
+export interface ComponentOperationResult {
+  schema: 'mykrobial.harness.component-operation-result.v1'
+  result_id: string
+  operation: 'swap' | 'rollback' | 'replay'
+  plan_id: string
+  plan_sha256: string
+  capsule_id: string
+  capsule_sha256: string
+  decision_id: string
+  decision_external_input_sha256: string
+  pre_loadout_manifest_sha256: string
+  post_loadout_manifest_sha256: string
+  observed_components: ComponentGenerationViewInput[]
+  activation_changed: boolean
+  receipt_class: 'application' | 'rollback' | 'replay'
+  verification_receipt_sha256: string
+  operation_receipt_sha256: string
+  observed_at: string
+  basis_sha256: string
+  issuer_authenticity_verified: false
+  non_claims: string[]
+  result_sha256: string
+}
+
+export interface BuildComponentOperationResultInput {
+  capsule: ComponentExperimentCapsule
+  decision: ExternalComponentDecision
+  plan: ComponentReconfigurationPlan
+  post_loadout_manifest_sha256: string
+  observed_components: ComponentGenerationViewInput[]
+  verification_receipt_sha256: string
+  operation_receipt_sha256: string
+  observed_at: string
+}
+
 export interface ComponentExperimentViewInput {
   experiment_id: string
   capsule_id: string
@@ -224,6 +259,7 @@ export interface ComponentExperimentViewInput {
     replay_receipt_sha256: string | null
     rollback_receipt_sha256: string | null
     blocker_resolutions: Array<{ blocker: string; receipt_sha256: string }>
+    operation_result: ComponentOperationResult | null
     artifact: ComponentReconfigurationPlan | null
   }
   proof_level: EvolutionProofLevel
@@ -315,6 +351,206 @@ function componentRow(value: unknown): ComponentGenerationViewInput {
     throw new Error('typed_blocker:component_view_component_state_invalid')
   }
   return row
+}
+
+const OPERATION_RESULT_NON_CLAIMS = [
+  'not_receipt_issuer_authentication',
+  'not_component_application_authority',
+  'not_trace_append',
+  'not_deployment_authority',
+].sort()
+
+function operationResultBasis(value: ComponentOperationResult): unknown {
+  return {
+    operation: value.operation,
+    plan_id: value.plan_id,
+    plan_sha256: value.plan_sha256,
+    capsule_id: value.capsule_id,
+    capsule_sha256: value.capsule_sha256,
+    decision_id: value.decision_id,
+    decision_external_input_sha256: value.decision_external_input_sha256,
+    pre_loadout_manifest_sha256: value.pre_loadout_manifest_sha256,
+    post_loadout_manifest_sha256: value.post_loadout_manifest_sha256,
+    observed_components: value.observed_components,
+    activation_changed: value.activation_changed,
+    receipt_class: value.receipt_class,
+    observed_at: value.observed_at,
+  }
+}
+
+/** Revalidate an immutable operation-result readback against its accepted artifact chain. */
+export function validateComponentOperationResult(
+  value: ComponentOperationResult,
+  capsuleInput: ComponentExperimentCapsule,
+  decisionInput: ExternalComponentDecision,
+  planInput: ComponentReconfigurationPlan,
+): ComponentOperationResult {
+  exact(value, [
+    'schema', 'result_id', 'operation', 'plan_id', 'plan_sha256', 'capsule_id',
+    'capsule_sha256', 'decision_id', 'decision_external_input_sha256',
+    'pre_loadout_manifest_sha256', 'post_loadout_manifest_sha256',
+    'observed_components', 'activation_changed', 'receipt_class',
+    'verification_receipt_sha256', 'operation_receipt_sha256', 'observed_at',
+    'basis_sha256', 'issuer_authenticity_verified', 'non_claims', 'result_sha256',
+  ], 'component_operation_result_closure_invalid')
+  const capsule = validateComponentExperimentCapsule(capsuleInput)
+  const decision = validateExternalComponentDecision(decisionInput, capsule)
+  const plan = validateComponentReconfigurationPlan(planInput, capsule, decision)
+  const row = structuredClone(value)
+  row.result_id = identifier(row.result_id, 'component_operation_result_identity_invalid')
+  row.operation = oneOf(row.operation, ['swap', 'rollback', 'replay'] as const, 'component_operation_result_operation_invalid')
+  row.plan_id = identifier(row.plan_id, 'component_operation_result_plan_invalid')
+  row.plan_sha256 = digest(row.plan_sha256, 'component_operation_result_plan_invalid')
+  row.capsule_id = identifier(row.capsule_id, 'component_operation_result_capsule_invalid')
+  row.capsule_sha256 = digest(row.capsule_sha256, 'component_operation_result_capsule_invalid')
+  row.decision_id = identifier(row.decision_id, 'component_operation_result_decision_invalid')
+  row.decision_external_input_sha256 = digest(
+    row.decision_external_input_sha256, 'component_operation_result_decision_invalid',
+  )
+  row.pre_loadout_manifest_sha256 = digest(
+    row.pre_loadout_manifest_sha256, 'component_operation_result_loadout_invalid',
+  )
+  row.post_loadout_manifest_sha256 = digest(
+    row.post_loadout_manifest_sha256, 'component_operation_result_loadout_invalid',
+  )
+  if (!Array.isArray(row.observed_components) || row.observed_components.length === 0
+    || row.observed_components.length > 32 || typeof row.activation_changed !== 'boolean') {
+    throw new Error('typed_blocker:component_operation_result_components_invalid')
+  }
+  row.observed_components = row.observed_components.map(componentRow).sort(
+    (left, right) => left.component_id.localeCompare(right.component_id),
+  )
+  if (new Set(row.observed_components.map(component => component.component_id)).size
+    !== row.observed_components.length) {
+    throw new Error('typed_blocker:component_operation_result_components_invalid')
+  }
+  row.receipt_class = oneOf(
+    row.receipt_class, ['application', 'rollback', 'replay'] as const,
+    'component_operation_result_receipt_class_invalid',
+  )
+  row.verification_receipt_sha256 = digest(
+    row.verification_receipt_sha256, 'component_operation_result_receipt_invalid',
+  )
+  row.operation_receipt_sha256 = digest(
+    row.operation_receipt_sha256, 'component_operation_result_receipt_invalid',
+  )
+  row.observed_at = timestamp(row.observed_at, 'component_operation_result_timestamp_invalid')
+  row.basis_sha256 = digest(row.basis_sha256, 'component_operation_result_basis_invalid')
+  row.result_sha256 = digest(row.result_sha256, 'component_operation_result_digest_invalid')
+  row.non_claims = nonClaims(row.non_claims)
+  const targetRows = capsule.target_component_ids.map(id =>
+    row.observed_components.find(component => component.component_id === id))
+  if (targetRows.some(component => component === undefined)) {
+    throw new Error('typed_blocker:component_operation_result_target_readback_missing')
+  }
+  if (row.operation === 'swap') {
+    for (const target of targetRows as ComponentGenerationViewInput[]) {
+      if (!target.active || target.lifecycle_state !== 'active' || target.valid_until !== null) {
+        throw new Error('typed_blocker:component_operation_result_swap_postcondition_invalid')
+      }
+      if (target.parent_component_id !== null) {
+        const parent = row.observed_components.find(
+          component => component.component_id === target.parent_component_id,
+        )
+        if (parent === undefined || parent.active
+          || !['inactive', 'disposed'].includes(parent.lifecycle_state)
+          || parent.logical_identity !== target.logical_identity
+          || parent.surface_id !== target.surface_id || parent.generation >= target.generation
+          || parent.valid_until === null
+          || timestampOrdinal(parent.valid_until) > timestampOrdinal(row.observed_at)) {
+          throw new Error('typed_blocker:component_operation_result_swap_postcondition_invalid')
+        }
+      }
+    }
+  }
+  if (row.operation === 'rollback') {
+    for (const candidate of targetRows as ComponentGenerationViewInput[]) {
+      const parent = candidate.parent_component_id === null ? undefined
+        : row.observed_components.find(component => component.component_id === candidate.parent_component_id)
+      if (candidate.active || !['inactive', 'disposed'].includes(candidate.lifecycle_state)
+        || parent === undefined || !parent.active || parent.lifecycle_state !== 'active'
+        || parent.valid_until !== null || parent.logical_identity !== candidate.logical_identity
+        || parent.surface_id !== candidate.surface_id || parent.generation >= candidate.generation) {
+        throw new Error('typed_blocker:component_operation_result_rollback_postcondition_invalid')
+      }
+    }
+  }
+  const expectedReceiptClass = row.operation === 'swap' ? 'application' : row.operation
+  const expectedBasis = sha(operationResultBasis(row))
+  const { result_sha256: _resultSha256, ...resultBody } = row
+  const expectedResultSha256 = sha(resultBody)
+  if (row.schema !== 'mykrobial.harness.component-operation-result.v1'
+    || row.operation !== plan.operation || row.plan_id !== plan.plan_id
+    || row.plan_sha256 !== plan.plan_sha256 || row.capsule_id !== capsule.capsule_id
+    || row.capsule_sha256 !== capsule.capsule_sha256
+    || row.decision_id !== decision.decision_id
+    || row.decision_external_input_sha256 !== decision.external_input_sha256
+    || row.pre_loadout_manifest_sha256 !== plan.current_loadout_manifest_sha256
+    || row.receipt_class !== expectedReceiptClass
+    || row.activation_changed !== (row.operation !== 'replay')
+    || (row.operation === 'swap'
+      ? row.post_loadout_manifest_sha256 === row.pre_loadout_manifest_sha256
+      : row.post_loadout_manifest_sha256 !== row.pre_loadout_manifest_sha256)
+    || timestampOrdinal(row.observed_at) < timestampOrdinal(plan.requested_at)
+    || row.basis_sha256 !== expectedBasis
+    || row.result_id !== `component-result-${expectedBasis.slice(0, 24)}`
+    || row.issuer_authenticity_verified !== false
+    || row.non_claims.join('\u0000') !== OPERATION_RESULT_NON_CLAIMS.join('\u0000')
+    || row.result_sha256 !== expectedResultSha256) {
+    throw new Error('typed_blocker:component_operation_result_invalid')
+  }
+  return row
+}
+
+/** Build a content-addressed, issuer-unverified component operation readback. */
+export function buildComponentOperationResult(
+  input: BuildComponentOperationResultInput,
+): ComponentOperationResult {
+  const capsule = validateComponentExperimentCapsule(input.capsule)
+  const decision = validateExternalComponentDecision(input.decision, capsule)
+  const plan = validateComponentReconfigurationPlan(input.plan, capsule, decision)
+  const core = {
+    schema: 'mykrobial.harness.component-operation-result.v1' as const,
+    result_id: '',
+    operation: plan.operation,
+    plan_id: plan.plan_id,
+    plan_sha256: plan.plan_sha256,
+    capsule_id: capsule.capsule_id,
+    capsule_sha256: capsule.capsule_sha256,
+    decision_id: decision.decision_id,
+    decision_external_input_sha256: decision.external_input_sha256,
+    pre_loadout_manifest_sha256: plan.current_loadout_manifest_sha256,
+    post_loadout_manifest_sha256: digest(
+      input.post_loadout_manifest_sha256, 'component_operation_result_loadout_invalid',
+    ),
+    observed_components: structuredClone(input.observed_components),
+    activation_changed: plan.operation !== 'replay',
+    receipt_class: (plan.operation === 'swap' ? 'application' : plan.operation) as ComponentOperationResult['receipt_class'],
+    verification_receipt_sha256: digest(
+      input.verification_receipt_sha256, 'component_operation_result_receipt_invalid',
+    ),
+    operation_receipt_sha256: digest(
+      input.operation_receipt_sha256, 'component_operation_result_receipt_invalid',
+    ),
+    observed_at: timestamp(input.observed_at, 'component_operation_result_timestamp_invalid'),
+    basis_sha256: '',
+    issuer_authenticity_verified: false as const,
+    non_claims: [...OPERATION_RESULT_NON_CLAIMS],
+  }
+  const normalizedComponents = core.observed_components.map(componentRow).sort(
+    (left, right) => left.component_id.localeCompare(right.component_id),
+  )
+  const basisInput = { ...core, observed_components: normalizedComponents } as ComponentOperationResult
+  const basisSha256 = sha(operationResultBasis(basisInput))
+  const body = {
+    ...core,
+    result_id: `component-result-${basisSha256.slice(0, 24)}`,
+    observed_components: normalizedComponents,
+    basis_sha256: basisSha256,
+  }
+  return validateComponentOperationResult(
+    { ...body, result_sha256: sha(body) }, capsule, decision, plan,
+  )
 }
 
 function experimentArm(value: unknown): ExperimentArmViewInput {
@@ -481,7 +717,8 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
     'state', 'operation', 'plan_id', 'capsule_id', 'decision_id', 'plan_sha256',
     'post_loadout_manifest_sha256', 'capsule_sha256', 'decision_external_input_sha256',
     'verification_receipt_sha256', 'applied_receipt_sha256',
-    'replay_receipt_sha256', 'rollback_receipt_sha256', 'blocker_resolutions', 'artifact',
+    'replay_receipt_sha256', 'rollback_receipt_sha256', 'blocker_resolutions',
+    'operation_result', 'artifact',
   ], 'component_view_plan_closure_invalid')
   row.plan.state = oneOf(row.plan.state, [
     'none', 'prepared_unexecuted', 'verified_unapplied', 'applied', 'rolled_back', 'blocked',
@@ -513,7 +750,7 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
   if ((row.plan.state === 'none' && [
     ...planCore, row.plan.verification_receipt_sha256, row.plan.applied_receipt_sha256, row.plan.replay_receipt_sha256,
     row.plan.rollback_receipt_sha256, row.plan.post_loadout_manifest_sha256,
-    ...row.plan.blocker_resolutions,
+    row.plan.operation_result, ...row.plan.blocker_resolutions,
   ].some(item => item !== null))
     || (row.plan.state !== 'none' && planCore.some(item => item === null))
     || (row.plan.state !== 'none' && (row.decision.state === 'none'
@@ -528,6 +765,8 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
       && (row.plan.applied_receipt_sha256 === null || row.plan.rollback_receipt_sha256 === null))
     || (['applied', 'rolled_back'].includes(row.plan.state)
       !== (row.plan.post_loadout_manifest_sha256 !== null))
+    || (['applied', 'rolled_back'].includes(row.plan.state)
+      !== (row.plan.operation_result !== null))
     || (!['applied', 'rolled_back'].includes(row.plan.state) && row.plan.applied_receipt_sha256 !== null)
     || (row.plan.state !== 'rolled_back' && row.plan.rollback_receipt_sha256 !== null)
     || (!['verified_unapplied', 'applied', 'rolled_back'].includes(row.plan.state)
@@ -558,6 +797,23 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
       || row.plan.artifact.target_component_ids.join('\u0000') !== row.target_component_ids.join('\u0000')
       || row.plan.artifact.target_surface_ids.join('\u0000') !== row.target_surface_ids.join('\u0000')) {
       throw new Error('typed_blocker:component_view_plan_artifact_mismatch')
+    }
+    if (row.plan.operation_result !== null) {
+      row.plan.operation_result = validateComponentOperationResult(
+        row.plan.operation_result, capsule, row.decision.artifact, row.plan.artifact,
+      )
+      const operationReceipt = row.plan.operation === 'swap'
+        ? row.plan.applied_receipt_sha256
+        : row.plan.operation === 'rollback'
+          ? row.plan.rollback_receipt_sha256
+          : row.plan.replay_receipt_sha256
+      if (row.plan.post_loadout_manifest_sha256
+          !== row.plan.operation_result.post_loadout_manifest_sha256
+        || row.plan.verification_receipt_sha256
+          !== row.plan.operation_result.verification_receipt_sha256
+        || operationReceipt !== row.plan.operation_result.operation_receipt_sha256) {
+        throw new Error('typed_blocker:component_view_operation_result_receipt_mismatch')
+      }
     }
     if (['verified_unapplied', 'applied', 'rolled_back'].includes(row.plan.state)) {
       const structurallyUnresolved = row.plan.artifact.blockers.filter(blocker => ![
@@ -734,6 +990,15 @@ export function buildOmniGentComponentEvolutionView(
         || (experiment.plan.operation !== 'swap'
           && experiment.plan.post_loadout_manifest_sha256 !== taskLoadout.loadout_manifest_sha256)) {
         throw new Error('typed_blocker:component_view_active_loadout_binding_invalid')
+      }
+      const result = experiment.plan.operation_result
+      if (result === null || timestampOrdinal(result.observed_at) > timestampOrdinal(input.generated_at)
+        || result.observed_components.some(observed => {
+          const projected = componentById.get(observed.component_id)
+          return projected === undefined
+            || JSON.stringify(canonical(projected)) !== JSON.stringify(canonical(observed))
+        })) {
+        throw new Error('typed_blocker:component_view_post_operation_readback_invalid')
       }
     } else if (taskLoadout.loadout_manifest_sha256 !== input.active_loadout.manifest_sha256) {
       throw new Error('typed_blocker:component_view_active_loadout_binding_invalid')
