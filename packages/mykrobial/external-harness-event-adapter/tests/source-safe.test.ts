@@ -627,6 +627,15 @@ test('V38 host request binds the unsigned subject, exact scope and callback voca
     'named_agents/adapters/authority_delegate.py::prepare_authority_delegate_request',
   )
   assert.equal(request.authority_delegate_contract.automation_owner_agent_id, 'agent:mykrobial-security')
+  assert.equal(request.authority_delegate_contract.profile_id, 'profile:terminal-task-context:v1')
+  assert.equal(request.authority_delegate_contract.operation_class, 'operation:terminal-task-context')
+  assert.equal(request.subject.operation, 'bind_terminal_row_to_visible_task_range')
+  assert.equal(request.authority_delegate_contract.profile_candidate.status, 'candidate_not_promoted')
+  assert.equal(request.authority_delegate_contract.profile_candidate.reviewed, false)
+  assert.equal(request.authority_delegate_contract.profile_candidate.root_authority_receipt_sha256, null)
+  assert.equal(request.authority_delegate_contract.profile_candidate.profile_authority_receipt_sha256, null)
+  assert.equal(request.authority_delegate_contract.profile_candidate.network_access, false)
+  assert.equal(request.authority_delegate_contract.profile_candidate.deployment_allowed, false)
   assert.equal(request.authority_delegate_contract.ready_nonclaims.length, 8)
   assert.equal(request.authority_delegate_contract.blocked_nonclaims.length, 7)
   assert.equal(request.authority_delegate_contract.canonical_blockers.length, 13)
@@ -769,4 +778,42 @@ test('V38 standalone validation binds every derived subject field to the embedde
     () => validateTerminalTaskAuthorityHostRequestV38(resealed),
     /typed_blocker:terminal_task_authority_host_request_invalid/,
   )
+})
+
+test('V39 profile candidate and authority operation class stay distinct from subject operation', () => {
+  const baseline = prepareTerminalTaskAuthorityHostRequestV38(validTerminalContextRequest(), {
+    operation_profile_receipt_sha256: digest('operation-profile-receipt'),
+    requested_ttl_seconds: 300,
+  })
+  const mutations: Array<(value: TerminalTaskAuthorityHostRequestV38) => void> = [
+    value => {
+      value.authority_delegate_contract.profile_id =
+        'profile:forged' as 'profile:terminal-task-context:v1'
+    },
+    value => {
+      value.authority_delegate_contract.operation_class =
+        'bind_terminal_row_to_visible_task_range' as 'operation:terminal-task-context'
+    },
+    value => {
+      value.authority_delegate_contract.profile_candidate.status =
+        'promoted' as 'candidate_not_promoted'
+    },
+    value => {
+      value.authority_delegate_contract.profile_candidate.profile_authority_receipt_sha256 =
+        digest('forged-profile-authority') as unknown as null
+    },
+    value => {
+      value.authority_delegate_contract.profile_candidate.network_access = true as false
+    },
+  ]
+  for (const mutate of mutations) {
+    const value = structuredClone(baseline)
+    mutate(value)
+    assert.throws(
+      () => validateTerminalTaskAuthorityHostRequestV38(resealV38HostRequest(value)),
+      /typed_blocker:terminal_task_authority_host_request_invalid/,
+    )
+  }
+  assert.equal(baseline.subject.operation, 'bind_terminal_row_to_visible_task_range')
+  assert.equal(baseline.authority_delegate_contract.operation_class, 'operation:terminal-task-context')
 })

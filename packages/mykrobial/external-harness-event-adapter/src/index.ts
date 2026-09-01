@@ -277,7 +277,30 @@ export interface TerminalTaskAuthorityHostRequestV38 {
     schema: 'mykrobial.authority-delegate.callback-contract.v1'
     adapter: 'named_agents/adapters/authority_delegate.py::prepare_authority_delegate_request'
     automation_owner_agent_id: 'agent:mykrobial-security'
-    operation_class: 'bind_terminal_row_to_visible_task_range'
+    profile_id: 'profile:terminal-task-context:v1'
+    operation_class: 'operation:terminal-task-context'
+    profile_candidate: {
+      source_pull_request: 'https://github.com/mykrobial/mykrobial-harness/pull/673'
+      source_merge_commit: '4550387005997852ad52946956880a119acd658c'
+      candidate_registry_sha256: '7834b8260b9111468a1c82f28a787ba9e53211088554e3f5e0180637efd1ed68'
+      source_verdict_sha256: '3a2c72f4d0e4646b3513c506ed6c78ddf74370a03d005118fd50c3dc8784eed8'
+      status: 'candidate_not_promoted'
+      reviewed: false
+      root_authority_receipt_sha256: null
+      profile_authority_receipt_sha256: null
+      subject_schema: 'mykrobial.trace.terminal_task_context_subject.v38'
+      device_class: 'macos-secure-enclave'
+      maximum_ttl_seconds: 900
+      signer_namespace: 'mykrobial.trace.terminal-task-context.v37'
+      custody_mode: 'external_nonexportable'
+      transport_kind: 'mutually_authenticated_external'
+      verifier_capability_id: 'verify:terminal-task-context:v37'
+      execution_adapter_id: 'execute:authority-delegate:terminal-task-context:v37'
+      rollback_required: true
+      network_access: false
+      deployment_allowed: false
+      runtime_supported: true
+    }
     callback_inputs: [
       'requester_agent_id',
       'requester_enrollment',
@@ -399,10 +422,20 @@ const V38_SCOPE_KEYS = [
 ] as const
 
 const V38_CALLBACK_CONTRACT_KEYS = [
-  'schema', 'adapter', 'automation_owner_agent_id', 'operation_class',
+  'schema', 'adapter', 'automation_owner_agent_id', 'profile_id', 'operation_class',
+  'profile_candidate',
   'callback_inputs', 'callback_inputs_canonical_snapshot_required',
   'callback_result_exact_validation_required', 'ready_nonclaims',
   'blocked_nonclaims', 'canonical_blockers',
+] as const
+
+const V39_PROFILE_CANDIDATE_KEYS = [
+  'source_pull_request', 'source_merge_commit', 'candidate_registry_sha256',
+  'source_verdict_sha256', 'status', 'reviewed', 'root_authority_receipt_sha256',
+  'profile_authority_receipt_sha256', 'subject_schema', 'device_class',
+  'maximum_ttl_seconds', 'signer_namespace', 'custody_mode', 'transport_kind',
+  'verifier_capability_id', 'execution_adapter_id', 'rollback_required',
+  'network_access', 'deployment_allowed', 'runtime_supported',
 ] as const
 
 const V38_AUTHORITY_KEYS = [
@@ -1107,7 +1140,30 @@ export function prepareTerminalTaskAuthorityHostRequestV38(
       schema: 'mykrobial.authority-delegate.callback-contract.v1' as const,
       adapter: 'named_agents/adapters/authority_delegate.py::prepare_authority_delegate_request' as const,
       automation_owner_agent_id: 'agent:mykrobial-security' as const,
-      operation_class: 'bind_terminal_row_to_visible_task_range' as const,
+      profile_id: 'profile:terminal-task-context:v1' as const,
+      operation_class: 'operation:terminal-task-context' as const,
+      profile_candidate: {
+        source_pull_request: 'https://github.com/mykrobial/mykrobial-harness/pull/673' as const,
+        source_merge_commit: '4550387005997852ad52946956880a119acd658c' as const,
+        candidate_registry_sha256: '7834b8260b9111468a1c82f28a787ba9e53211088554e3f5e0180637efd1ed68' as const,
+        source_verdict_sha256: '3a2c72f4d0e4646b3513c506ed6c78ddf74370a03d005118fd50c3dc8784eed8' as const,
+        status: 'candidate_not_promoted' as const,
+        reviewed: false as const,
+        root_authority_receipt_sha256: null,
+        profile_authority_receipt_sha256: null,
+        subject_schema: 'mykrobial.trace.terminal_task_context_subject.v38' as const,
+        device_class: 'macos-secure-enclave' as const,
+        maximum_ttl_seconds: 900 as const,
+        signer_namespace: 'mykrobial.trace.terminal-task-context.v37' as const,
+        custody_mode: 'external_nonexportable' as const,
+        transport_kind: 'mutually_authenticated_external' as const,
+        verifier_capability_id: 'verify:terminal-task-context:v37' as const,
+        execution_adapter_id: 'execute:authority-delegate:terminal-task-context:v37' as const,
+        rollback_required: true as const,
+        network_access: false as const,
+        deployment_allowed: false as const,
+        runtime_supported: true as const,
+      },
       callback_inputs: [...AUTHORITY_CALLBACK_INPUTS] as TerminalTaskAuthorityHostRequestV38['authority_delegate_contract']['callback_inputs'],
       callback_inputs_canonical_snapshot_required: true as const,
       callback_result_exact_validation_required: true as const,
@@ -1153,6 +1209,7 @@ export function validateTerminalTaskAuthorityHostRequestV38(
     || !exactKeys(subject.v37_source, V37_SOURCE_KEYS)
     || !exactKeys(scope, V38_SCOPE_KEYS)
     || !exactKeys(contract, V38_CALLBACK_CONTRACT_KEYS)
+    || !exactKeys(contract.profile_candidate, V39_PROFILE_CANDIDATE_KEYS)
     || !exactKeys(authority, V38_AUTHORITY_KEYS)) {
     throw new Error('typed_blocker:terminal_task_authority_host_request_invalid')
   }
@@ -1198,7 +1255,28 @@ export function validateTerminalTaskAuthorityHostRequestV38(
     || contract.schema !== 'mykrobial.authority-delegate.callback-contract.v1'
     || contract.adapter !== 'named_agents/adapters/authority_delegate.py::prepare_authority_delegate_request'
     || contract.automation_owner_agent_id !== 'agent:mykrobial-security'
-    || contract.operation_class !== 'bind_terminal_row_to_visible_task_range'
+    || contract.profile_id !== 'profile:terminal-task-context:v1'
+    || contract.operation_class !== 'operation:terminal-task-context'
+    || contract.profile_candidate.source_pull_request !== 'https://github.com/mykrobial/mykrobial-harness/pull/673'
+    || contract.profile_candidate.source_merge_commit !== '4550387005997852ad52946956880a119acd658c'
+    || contract.profile_candidate.candidate_registry_sha256 !== '7834b8260b9111468a1c82f28a787ba9e53211088554e3f5e0180637efd1ed68'
+    || contract.profile_candidate.source_verdict_sha256 !== '3a2c72f4d0e4646b3513c506ed6c78ddf74370a03d005118fd50c3dc8784eed8'
+    || contract.profile_candidate.status !== 'candidate_not_promoted'
+    || contract.profile_candidate.reviewed !== false
+    || contract.profile_candidate.root_authority_receipt_sha256 !== null
+    || contract.profile_candidate.profile_authority_receipt_sha256 !== null
+    || contract.profile_candidate.subject_schema !== 'mykrobial.trace.terminal_task_context_subject.v38'
+    || contract.profile_candidate.device_class !== 'macos-secure-enclave'
+    || contract.profile_candidate.maximum_ttl_seconds !== 900
+    || contract.profile_candidate.signer_namespace !== 'mykrobial.trace.terminal-task-context.v37'
+    || contract.profile_candidate.custody_mode !== 'external_nonexportable'
+    || contract.profile_candidate.transport_kind !== 'mutually_authenticated_external'
+    || contract.profile_candidate.verifier_capability_id !== 'verify:terminal-task-context:v37'
+    || contract.profile_candidate.execution_adapter_id !== 'execute:authority-delegate:terminal-task-context:v37'
+    || contract.profile_candidate.rollback_required !== true
+    || contract.profile_candidate.network_access !== false
+    || contract.profile_candidate.deployment_allowed !== false
+    || contract.profile_candidate.runtime_supported !== true
     || !exactArray(contract.callback_inputs, AUTHORITY_CALLBACK_INPUTS)
     || contract.callback_inputs_canonical_snapshot_required !== true
     || contract.callback_result_exact_validation_required !== true
