@@ -34,3 +34,10 @@ visible event range. It accepts an explicit canonical terminal-row hash and
 terminal family; it never classifies a terminal row, signs or verifies the
 context, emits a binding, infers a task from a message or event order, or
 retroactively relabels historical events.
+
+`prepareTerminalTaskAuthorityHostRequestV38` lifts that request into the exact
+unsigned V38 subject and `authority__delegate` scope. It binds the operation-
+profile receipt and accepted V37 source/review identities, publishes the exact
+callback input, owner, nonclaim, and blocker vocabularies, and leaves enrollment
+authentication, nonce reservation, signing, verification, admission, execution,
+Trace, promotion, deployment, and fleet convergence outside this package.

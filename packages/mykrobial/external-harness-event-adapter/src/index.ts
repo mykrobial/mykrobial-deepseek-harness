@@ -223,6 +223,141 @@ export interface TerminalTaskContextRequest {
   request_sha256: string
 }
 
+export interface PrepareTerminalTaskAuthorityHostRequestInput {
+  operation_profile_receipt_sha256: string
+  requested_ttl_seconds: number
+}
+
+export interface TerminalTaskAuthorityHostRequestV38 {
+  schema: 'mykrobial.external-harness.terminal-task-authority-host-request.v38'
+  state: 'source_only_unsigned_unsubmitted'
+  context_request: TerminalTaskContextRequest
+  context_request_sha256: string
+  subject: {
+    schema: 'mykrobial.trace.terminal_task_context_subject.v38'
+    state: 'unsigned_unapproved'
+    terminal_row_sha256: string
+    task_label_sha256: string
+    session_id_sha256: string
+    tenant_scope_sha256: string
+    domain: string
+    requested_receipt_ref: string
+    served_receipt_ref: string
+    source_generation: string
+    visible_generation_sha256: string
+    first_visible_event_id: string
+    last_visible_event_id: string
+    visible_event_count: number
+    operation_profile_receipt_sha256: string
+    namespace: 'mykrobial.trace.terminal-task-context.v37'
+    operation: 'bind_terminal_row_to_visible_task_range'
+    requested_ttl_seconds: number
+    v37_source: {
+      pull_request: 'https://github.com/mykrobial/mykrobial-harness/pull/670'
+      merge_commit: '661f1cd7680a97413eb0d47a0cd19c14bc62ea36'
+      source_review_sha256: '0fbc0f742d195786d3c84b023978cc4627921e1a4d9af85b644142dff98f8906'
+      source_sha256: '41b69284cf397beb787471bd8951cdd99b532b1f9c7ff5317a19c458147c9bc9'
+      contract_sha256: 'b97a77d986717181d59f2fcbd566ebca65e26fe2e3ef93551c601b56ac73a376'
+    }
+    signature_present: false
+    authority_effect: 'none_until_delegate_commit'
+    subject_sha256: string
+  }
+  scope: {
+    context_subject_sha256: string
+    terminal_row_sha256: string
+    task_label_sha256: string
+    visible_generation_sha256: string
+    operation_profile_receipt_sha256: string
+    v37_source_review_sha256: string
+    namespace: 'mykrobial.trace.terminal-task-context.v37'
+    operation: 'bind_terminal_row_to_visible_task_range'
+  }
+  authority_delegate_contract: {
+    schema: 'mykrobial.authority-delegate.callback-contract.v1'
+    adapter: 'named_agents/adapters/authority_delegate.py::prepare_authority_delegate_request'
+    automation_owner_agent_id: 'agent:mykrobial-security'
+    profile_id: 'profile:terminal-task-context:v1'
+    operation_class: 'operation:terminal-task-context'
+    profile_candidate: {
+      source_pull_request: 'https://github.com/mykrobial/mykrobial-harness/pull/673'
+      source_merge_commit: '4550387005997852ad52946956880a119acd658c'
+      candidate_registry_sha256: '7834b8260b9111468a1c82f28a787ba9e53211088554e3f5e0180637efd1ed68'
+      source_verdict_sha256: '3a2c72f4d0e4646b3513c506ed6c78ddf74370a03d005118fd50c3dc8784eed8'
+      status: 'candidate_not_promoted'
+      reviewed: false
+      root_authority_receipt_sha256: null
+      profile_authority_receipt_sha256: null
+      subject_schema: 'mykrobial.trace.terminal_task_context_subject.v38'
+      device_class: 'macos-secure-enclave'
+      maximum_ttl_seconds: 900
+      signer_namespace: 'mykrobial.trace.terminal-task-context.v37'
+      custody_mode: 'external_nonexportable'
+      transport_kind: 'mutually_authenticated_external'
+      verifier_capability_id: 'verify:terminal-task-context:v37'
+      execution_adapter_id: 'execute:authority-delegate:terminal-task-context:v37'
+      rollback_required: true
+      network_access: false
+      deployment_allowed: false
+      runtime_supported: true
+    }
+    callback_inputs: [
+      'requester_agent_id',
+      'requester_enrollment',
+      'device_id',
+      'profile_id',
+      'operation_class',
+      'request_nonce',
+      'ttl_seconds',
+    ]
+    callback_inputs_canonical_snapshot_required: true
+    callback_result_exact_validation_required: true
+    ready_nonclaims: string[]
+    blocked_nonclaims: string[]
+    canonical_blockers: [
+      'typed_blocker:authority_delegate_agent_enrollment_authority_missing',
+      'typed_blocker:authority_delegate_agent_enrollment_binding_invalid',
+      'typed_blocker:authority_delegate_agent_enrollment_epoch_invalid',
+      'typed_blocker:authority_delegate_agent_enrollment_invalid',
+      'typed_blocker:authority_delegate_agent_enrollment_missing',
+      'typed_blocker:authority_delegate_agent_enrollment_scope_invalid',
+      'typed_blocker:authority_delegate_agent_enrollment_self_hash_invalid',
+      'typed_blocker:authority_delegate_agent_enrollment_stale',
+      'typed_blocker:authority_delegate_agent_unregistered',
+      'typed_blocker:authority_delegate_enrollment_time_invalid',
+      'typed_blocker:authority_delegate_registry_invalid',
+      'typed_blocker:authority_delegate_request_invalid',
+      'typed_blocker:authority_delegate_scope_invalid',
+    ]
+  }
+  authority: {
+    host_request_built: true
+    authority_delegate_request_built: false
+    signature_present: false
+    nonce_reserved: false
+    operation_admitted: false
+    trace_append_authorized: false
+    source_read_authorized: false
+    hmac_key_authorized: false
+    projection_execution_authorized: false
+    promotion_authorized: false
+    deployment_authorized: false
+  }
+  reviewed: false
+  nonclaims: [
+    'not_enrollment_authentication',
+    'not_policy_admission',
+    'not_signer_invocation',
+    'not_verifier_execution',
+    'not_operation_execution',
+    'not_runtime_activation',
+    'not_trace_append',
+    'not_deployment',
+    'not_fleet_convergence',
+  ]
+  request_sha256: string
+}
+
 const INPUT_KEYS = [
   'schema', 'source_system', 'source_event_id', 'source_event_kind', 'source_sequence',
   'occurred_at', 'source_artifact', 'source_event_sha256', 'run_id', 'task_capsule_id',
@@ -244,6 +379,142 @@ const TERMINAL_CONTEXT_INPUT_KEYS = [
   'visible_generation_sha256', 'first_visible_event_id', 'last_visible_event_id',
   'visible_event_count', 'created_at',
 ] as const
+
+const TERMINAL_CONTEXT_REQUEST_KEYS = [
+  'schema', 'request_id', 'source_system', 'source_event_kind',
+  'source_event_projection_sha256', 'canonical_terminal_row_sha256',
+  'terminal_family', 'target_context_schema', 'target_binding_schema', 'namespace',
+  'operation', 'task_label_sha256', 'session_id_sha256', 'tenant_scope_sha256',
+  'domain', 'requested_receipt_ref', 'served_receipt_ref', 'source_generation',
+  'visible_generation_sha256', 'first_visible_event_id', 'last_visible_event_id',
+  'visible_event_count', 'created_at', 'state',
+  'distinct_context_signer_and_verifier_required', 'context_signature_authorized',
+  'terminal_binding_emission_authorized', 'trace_append_authorized',
+  'historical_relabel_authorized', 'task_inferred_from_message_or_event_order',
+  'terminal_content_persisted', 'non_claims', 'request_sha256',
+] as const
+
+const V38_HOST_REQUEST_KEYS = [
+  'schema', 'state', 'context_request', 'context_request_sha256', 'subject', 'scope',
+  'authority_delegate_contract', 'authority', 'reviewed', 'nonclaims',
+  'request_sha256',
+] as const
+
+const V38_SUBJECT_KEYS = [
+  'schema', 'state', 'terminal_row_sha256', 'task_label_sha256',
+  'session_id_sha256', 'tenant_scope_sha256', 'domain', 'requested_receipt_ref',
+  'served_receipt_ref', 'source_generation', 'visible_generation_sha256',
+  'first_visible_event_id', 'last_visible_event_id', 'visible_event_count',
+  'operation_profile_receipt_sha256', 'namespace', 'operation',
+  'requested_ttl_seconds', 'v37_source', 'signature_present', 'authority_effect',
+  'subject_sha256',
+] as const
+
+const V37_SOURCE_KEYS = [
+  'pull_request', 'merge_commit', 'source_review_sha256', 'source_sha256',
+  'contract_sha256',
+] as const
+
+const V38_SCOPE_KEYS = [
+  'context_subject_sha256', 'terminal_row_sha256', 'task_label_sha256',
+  'visible_generation_sha256', 'operation_profile_receipt_sha256',
+  'v37_source_review_sha256', 'namespace', 'operation',
+] as const
+
+const V38_CALLBACK_CONTRACT_KEYS = [
+  'schema', 'adapter', 'automation_owner_agent_id', 'profile_id', 'operation_class',
+  'profile_candidate',
+  'callback_inputs', 'callback_inputs_canonical_snapshot_required',
+  'callback_result_exact_validation_required', 'ready_nonclaims',
+  'blocked_nonclaims', 'canonical_blockers',
+] as const
+
+const V39_PROFILE_CANDIDATE_KEYS = [
+  'source_pull_request', 'source_merge_commit', 'candidate_registry_sha256',
+  'source_verdict_sha256', 'status', 'reviewed', 'root_authority_receipt_sha256',
+  'profile_authority_receipt_sha256', 'subject_schema', 'device_class',
+  'maximum_ttl_seconds', 'signer_namespace', 'custody_mode', 'transport_kind',
+  'verifier_capability_id', 'execution_adapter_id', 'rollback_required',
+  'network_access', 'deployment_allowed', 'runtime_supported',
+] as const
+
+const V38_AUTHORITY_KEYS = [
+  'host_request_built', 'authority_delegate_request_built', 'signature_present',
+  'nonce_reserved', 'operation_admitted', 'trace_append_authorized',
+  'source_read_authorized', 'hmac_key_authorized',
+  'projection_execution_authorized', 'promotion_authorized',
+  'deployment_authorized',
+] as const
+
+const TERMINAL_CONTEXT_NONCLAIMS: TerminalTaskContextRequest['non_claims'] = [
+  'not_terminal_row_validation',
+  'not_task_inference_from_message_or_event_order',
+  'not_context_signature_or_verification',
+  'not_terminal_binding_emission',
+  'not_historical_relabel',
+  'not_trace_append',
+  'not_projection_execution',
+  'not_evaluation_promotion_or_deployment',
+]
+
+const AUTHORITY_READY_NONCLAIMS = [
+  'not_enrollment_authentication',
+  'not_policy_admission',
+  'not_signer_invocation',
+  'not_verifier_execution',
+  'not_operation_execution',
+  'not_runtime_activation',
+  'not_deployment',
+  'not_fleet_convergence',
+]
+
+const AUTHORITY_BLOCKED_NONCLAIMS = AUTHORITY_READY_NONCLAIMS.slice(0, -1)
+
+const AUTHORITY_CANONICAL_BLOCKERS = [
+  'typed_blocker:authority_delegate_agent_enrollment_authority_missing',
+  'typed_blocker:authority_delegate_agent_enrollment_binding_invalid',
+  'typed_blocker:authority_delegate_agent_enrollment_epoch_invalid',
+  'typed_blocker:authority_delegate_agent_enrollment_invalid',
+  'typed_blocker:authority_delegate_agent_enrollment_missing',
+  'typed_blocker:authority_delegate_agent_enrollment_scope_invalid',
+  'typed_blocker:authority_delegate_agent_enrollment_self_hash_invalid',
+  'typed_blocker:authority_delegate_agent_enrollment_stale',
+  'typed_blocker:authority_delegate_agent_unregistered',
+  'typed_blocker:authority_delegate_enrollment_time_invalid',
+  'typed_blocker:authority_delegate_registry_invalid',
+  'typed_blocker:authority_delegate_request_invalid',
+  'typed_blocker:authority_delegate_scope_invalid',
+] as const
+
+const AUTHORITY_CALLBACK_INPUTS = [
+  'requester_agent_id',
+  'requester_enrollment',
+  'device_id',
+  'profile_id',
+  'operation_class',
+  'request_nonce',
+  'ttl_seconds',
+] as const
+
+const V37_SOURCE = {
+  pull_request: 'https://github.com/mykrobial/mykrobial-harness/pull/670' as const,
+  merge_commit: '661f1cd7680a97413eb0d47a0cd19c14bc62ea36' as const,
+  source_review_sha256: '0fbc0f742d195786d3c84b023978cc4627921e1a4d9af85b644142dff98f8906' as const,
+  source_sha256: '41b69284cf397beb787471bd8951cdd99b532b1f9c7ff5317a19c458147c9bc9' as const,
+  contract_sha256: 'b97a77d986717181d59f2fcbd566ebca65e26fe2e3ef93551c601b56ac73a376' as const,
+}
+
+const V38_HOST_NONCLAIMS: TerminalTaskAuthorityHostRequestV38['nonclaims'] = [
+  'not_enrollment_authentication',
+  'not_policy_admission',
+  'not_signer_invocation',
+  'not_verifier_execution',
+  'not_operation_execution',
+  'not_runtime_activation',
+  'not_trace_append',
+  'not_deployment',
+  'not_fleet_convergence',
+]
 
 const PROJECTION_KEYS = [
   'schema', 'source_system', 'source_event_kind', 'trajectory_event',
@@ -754,19 +1025,279 @@ export function prepareTerminalTaskContextRequest(
     historical_relabel_authorized: false as const,
     task_inferred_from_message_or_event_order: false as const,
     terminal_content_persisted: false as const,
-    non_claims: [
-      'not_terminal_row_validation',
-      'not_task_inference_from_message_or_event_order',
-      'not_context_signature_or_verification',
-      'not_terminal_binding_emission',
-      'not_historical_relabel',
-      'not_trace_append',
-      'not_projection_execution',
-      'not_evaluation_promotion_or_deployment',
-    ] as TerminalTaskContextRequest['non_claims'],
+    non_claims: [...TERMINAL_CONTEXT_NONCLAIMS] as TerminalTaskContextRequest['non_claims'],
   }
   return {
     ...body,
     request_sha256: externalEventCanonicalSha256(body),
   }
+}
+
+function validateTerminalTaskContextRequest(
+  source: TerminalTaskContextRequest,
+): TerminalTaskContextRequest {
+  if (!exactKeys(source, TERMINAL_CONTEXT_REQUEST_KEYS)) {
+    throw new Error('typed_blocker:terminal_task_context_request_invalid')
+  }
+  const value = structuredClone(source)
+  const { request_sha256: _requestSha256, ...body } = value
+  if (value.schema !== 'mykrobial.external-harness.terminal-task-context-request.v1'
+    || contextIdentifier(value.request_id) !== value.request_id
+    || value.source_system !== 'exo'
+    || value.source_event_kind === 'message'
+    || !SOURCE_KINDS.includes(value.source_event_kind)
+    || digest(value.source_event_projection_sha256) !== value.source_event_projection_sha256
+    || digest(value.canonical_terminal_row_sha256) !== value.canonical_terminal_row_sha256
+    || !['answer_commit', 'execution_timed_out'].includes(value.terminal_family)
+    || value.target_context_schema !== 'mykrobial.trace.terminal_task_context_receipt.v1'
+    || value.target_binding_schema !== 'mykrobial.trace.terminal_task_binding.v1'
+    || value.namespace !== 'mykrobial.trace.terminal-task-context.v37'
+    || value.operation !== 'bind_terminal_row_to_visible_task_range'
+    || digest(value.task_label_sha256) !== value.task_label_sha256
+    || digest(value.session_id_sha256) !== value.session_id_sha256
+    || digest(value.tenant_scope_sha256) !== value.tenant_scope_sha256
+    || contextIdentifier(value.domain) !== value.domain
+    || digest(value.requested_receipt_ref) !== value.requested_receipt_ref
+    || digest(value.served_receipt_ref) !== value.served_receipt_ref
+    || contextIdentifier(value.source_generation) !== value.source_generation
+    || digest(value.visible_generation_sha256) !== value.visible_generation_sha256
+    || contextIdentifier(value.first_visible_event_id) !== value.first_visible_event_id
+    || contextIdentifier(value.last_visible_event_id) !== value.last_visible_event_id
+    || !Number.isSafeInteger(value.visible_event_count) || value.visible_event_count <= 0
+    || timestamp(value.created_at) !== value.created_at
+    || value.state !== 'context_request_only_unissued'
+    || value.distinct_context_signer_and_verifier_required !== true
+    || value.context_signature_authorized !== false
+    || value.terminal_binding_emission_authorized !== false
+    || value.trace_append_authorized !== false
+    || value.historical_relabel_authorized !== false
+    || value.task_inferred_from_message_or_event_order !== false
+    || value.terminal_content_persisted !== false
+    || !exactArray(value.non_claims, TERMINAL_CONTEXT_NONCLAIMS)
+    || value.request_sha256 !== externalEventCanonicalSha256(body)) {
+    throw new Error('typed_blocker:terminal_task_context_request_invalid')
+  }
+  return value
+}
+
+export function prepareTerminalTaskAuthorityHostRequestV38(
+  contextRequest: TerminalTaskContextRequest,
+  input: PrepareTerminalTaskAuthorityHostRequestInput,
+): TerminalTaskAuthorityHostRequestV38 {
+  const context = validateTerminalTaskContextRequest(contextRequest)
+  const value = structuredClone(input)
+  if (!exactKeys(value, ['operation_profile_receipt_sha256', 'requested_ttl_seconds'])
+    || !Number.isSafeInteger(value.requested_ttl_seconds)
+    || value.requested_ttl_seconds < 1
+    || value.requested_ttl_seconds > 900) {
+    throw new Error('typed_blocker:terminal_task_authority_host_request_invalid')
+  }
+  const subjectBody = {
+    schema: 'mykrobial.trace.terminal_task_context_subject.v38' as const,
+    state: 'unsigned_unapproved' as const,
+    terminal_row_sha256: context.canonical_terminal_row_sha256,
+    task_label_sha256: context.task_label_sha256,
+    session_id_sha256: context.session_id_sha256,
+    tenant_scope_sha256: context.tenant_scope_sha256,
+    domain: context.domain,
+    requested_receipt_ref: context.requested_receipt_ref,
+    served_receipt_ref: context.served_receipt_ref,
+    source_generation: context.source_generation,
+    visible_generation_sha256: context.visible_generation_sha256,
+    first_visible_event_id: context.first_visible_event_id,
+    last_visible_event_id: context.last_visible_event_id,
+    visible_event_count: context.visible_event_count,
+    operation_profile_receipt_sha256: digest(value.operation_profile_receipt_sha256),
+    namespace: 'mykrobial.trace.terminal-task-context.v37' as const,
+    operation: 'bind_terminal_row_to_visible_task_range' as const,
+    requested_ttl_seconds: value.requested_ttl_seconds,
+    v37_source: { ...V37_SOURCE },
+    signature_present: false as const,
+    authority_effect: 'none_until_delegate_commit' as const,
+  }
+  const subject = {
+    ...subjectBody,
+    subject_sha256: externalEventCanonicalSha256(subjectBody),
+  }
+  const scope = {
+    context_subject_sha256: subject.subject_sha256,
+    terminal_row_sha256: subject.terminal_row_sha256,
+    task_label_sha256: subject.task_label_sha256,
+    visible_generation_sha256: subject.visible_generation_sha256,
+    operation_profile_receipt_sha256: subject.operation_profile_receipt_sha256,
+    v37_source_review_sha256: V37_SOURCE.source_review_sha256,
+    namespace: 'mykrobial.trace.terminal-task-context.v37' as const,
+    operation: 'bind_terminal_row_to_visible_task_range' as const,
+  }
+  const body = {
+    schema: 'mykrobial.external-harness.terminal-task-authority-host-request.v38' as const,
+    state: 'source_only_unsigned_unsubmitted' as const,
+    context_request: context,
+    context_request_sha256: context.request_sha256,
+    subject,
+    scope,
+    authority_delegate_contract: {
+      schema: 'mykrobial.authority-delegate.callback-contract.v1' as const,
+      adapter: 'named_agents/adapters/authority_delegate.py::prepare_authority_delegate_request' as const,
+      automation_owner_agent_id: 'agent:mykrobial-security' as const,
+      profile_id: 'profile:terminal-task-context:v1' as const,
+      operation_class: 'operation:terminal-task-context' as const,
+      profile_candidate: {
+        source_pull_request: 'https://github.com/mykrobial/mykrobial-harness/pull/673' as const,
+        source_merge_commit: '4550387005997852ad52946956880a119acd658c' as const,
+        candidate_registry_sha256: '7834b8260b9111468a1c82f28a787ba9e53211088554e3f5e0180637efd1ed68' as const,
+        source_verdict_sha256: '3a2c72f4d0e4646b3513c506ed6c78ddf74370a03d005118fd50c3dc8784eed8' as const,
+        status: 'candidate_not_promoted' as const,
+        reviewed: false as const,
+        root_authority_receipt_sha256: null,
+        profile_authority_receipt_sha256: null,
+        subject_schema: 'mykrobial.trace.terminal_task_context_subject.v38' as const,
+        device_class: 'macos-secure-enclave' as const,
+        maximum_ttl_seconds: 900 as const,
+        signer_namespace: 'mykrobial.trace.terminal-task-context.v37' as const,
+        custody_mode: 'external_nonexportable' as const,
+        transport_kind: 'mutually_authenticated_external' as const,
+        verifier_capability_id: 'verify:terminal-task-context:v37' as const,
+        execution_adapter_id: 'execute:authority-delegate:terminal-task-context:v37' as const,
+        rollback_required: true as const,
+        network_access: false as const,
+        deployment_allowed: false as const,
+        runtime_supported: true as const,
+      },
+      callback_inputs: [...AUTHORITY_CALLBACK_INPUTS] as TerminalTaskAuthorityHostRequestV38['authority_delegate_contract']['callback_inputs'],
+      callback_inputs_canonical_snapshot_required: true as const,
+      callback_result_exact_validation_required: true as const,
+      ready_nonclaims: [...AUTHORITY_READY_NONCLAIMS],
+      blocked_nonclaims: [...AUTHORITY_BLOCKED_NONCLAIMS],
+      canonical_blockers: [...AUTHORITY_CANONICAL_BLOCKERS] as TerminalTaskAuthorityHostRequestV38['authority_delegate_contract']['canonical_blockers'],
+    },
+    authority: {
+      host_request_built: true as const,
+      authority_delegate_request_built: false as const,
+      signature_present: false as const,
+      nonce_reserved: false as const,
+      operation_admitted: false as const,
+      trace_append_authorized: false as const,
+      source_read_authorized: false as const,
+      hmac_key_authorized: false as const,
+      projection_execution_authorized: false as const,
+      promotion_authorized: false as const,
+      deployment_authorized: false as const,
+    },
+    reviewed: false as const,
+    nonclaims: [...V38_HOST_NONCLAIMS] as TerminalTaskAuthorityHostRequestV38['nonclaims'],
+  }
+  return validateTerminalTaskAuthorityHostRequestV38({
+    ...body,
+    request_sha256: externalEventCanonicalSha256(body),
+  })
+}
+
+export function validateTerminalTaskAuthorityHostRequestV38(
+  source: TerminalTaskAuthorityHostRequestV38,
+): TerminalTaskAuthorityHostRequestV38 {
+  if (!exactKeys(source, V38_HOST_REQUEST_KEYS)) {
+    throw new Error('typed_blocker:terminal_task_authority_host_request_invalid')
+  }
+  const value = structuredClone(source)
+  const context = validateTerminalTaskContextRequest(value.context_request)
+  const subject = value.subject
+  const scope = value.scope
+  const contract = value.authority_delegate_contract
+  const authority = value.authority
+  if (!exactKeys(subject, V38_SUBJECT_KEYS)
+    || !exactKeys(subject.v37_source, V37_SOURCE_KEYS)
+    || !exactKeys(scope, V38_SCOPE_KEYS)
+    || !exactKeys(contract, V38_CALLBACK_CONTRACT_KEYS)
+    || !exactKeys(contract.profile_candidate, V39_PROFILE_CANDIDATE_KEYS)
+    || !exactKeys(authority, V38_AUTHORITY_KEYS)) {
+    throw new Error('typed_blocker:terminal_task_authority_host_request_invalid')
+  }
+  const { subject_sha256: _subjectSha256, ...subjectBody } = subject
+  const { request_sha256: _requestSha256, ...requestBody } = value
+  const expectedScope = {
+    context_subject_sha256: subject.subject_sha256,
+    terminal_row_sha256: subject.terminal_row_sha256,
+    task_label_sha256: subject.task_label_sha256,
+    visible_generation_sha256: subject.visible_generation_sha256,
+    operation_profile_receipt_sha256: subject.operation_profile_receipt_sha256,
+    v37_source_review_sha256: V37_SOURCE.source_review_sha256,
+    namespace: 'mykrobial.trace.terminal-task-context.v37',
+    operation: 'bind_terminal_row_to_visible_task_range',
+  }
+  if (value.schema !== 'mykrobial.external-harness.terminal-task-authority-host-request.v38'
+    || value.state !== 'source_only_unsigned_unsubmitted'
+    || value.context_request_sha256 !== context.request_sha256
+    || subject.schema !== 'mykrobial.trace.terminal_task_context_subject.v38'
+    || subject.state !== 'unsigned_unapproved'
+    || subject.terminal_row_sha256 !== context.canonical_terminal_row_sha256
+    || subject.task_label_sha256 !== context.task_label_sha256
+    || subject.session_id_sha256 !== context.session_id_sha256
+    || subject.tenant_scope_sha256 !== context.tenant_scope_sha256
+    || subject.domain !== context.domain
+    || subject.requested_receipt_ref !== context.requested_receipt_ref
+    || subject.served_receipt_ref !== context.served_receipt_ref
+    || subject.source_generation !== context.source_generation
+    || subject.visible_generation_sha256 !== context.visible_generation_sha256
+    || subject.first_visible_event_id !== context.first_visible_event_id
+    || subject.last_visible_event_id !== context.last_visible_event_id
+    || subject.visible_event_count !== context.visible_event_count
+    || digest(subject.operation_profile_receipt_sha256) !== subject.operation_profile_receipt_sha256
+    || subject.namespace !== 'mykrobial.trace.terminal-task-context.v37'
+    || subject.operation !== 'bind_terminal_row_to_visible_task_range'
+    || !Number.isSafeInteger(subject.requested_ttl_seconds)
+    || subject.requested_ttl_seconds < 1 || subject.requested_ttl_seconds > 900
+    || canonical(subject.v37_source) !== canonical(V37_SOURCE)
+    || subject.signature_present !== false
+    || subject.authority_effect !== 'none_until_delegate_commit'
+    || subject.subject_sha256 !== externalEventCanonicalSha256(subjectBody)
+    || canonical(scope) !== canonical(expectedScope)
+    || contract.schema !== 'mykrobial.authority-delegate.callback-contract.v1'
+    || contract.adapter !== 'named_agents/adapters/authority_delegate.py::prepare_authority_delegate_request'
+    || contract.automation_owner_agent_id !== 'agent:mykrobial-security'
+    || contract.profile_id !== 'profile:terminal-task-context:v1'
+    || contract.operation_class !== 'operation:terminal-task-context'
+    || contract.profile_candidate.source_pull_request !== 'https://github.com/mykrobial/mykrobial-harness/pull/673'
+    || contract.profile_candidate.source_merge_commit !== '4550387005997852ad52946956880a119acd658c'
+    || contract.profile_candidate.candidate_registry_sha256 !== '7834b8260b9111468a1c82f28a787ba9e53211088554e3f5e0180637efd1ed68'
+    || contract.profile_candidate.source_verdict_sha256 !== '3a2c72f4d0e4646b3513c506ed6c78ddf74370a03d005118fd50c3dc8784eed8'
+    || contract.profile_candidate.status !== 'candidate_not_promoted'
+    || contract.profile_candidate.reviewed !== false
+    || contract.profile_candidate.root_authority_receipt_sha256 !== null
+    || contract.profile_candidate.profile_authority_receipt_sha256 !== null
+    || contract.profile_candidate.subject_schema !== 'mykrobial.trace.terminal_task_context_subject.v38'
+    || contract.profile_candidate.device_class !== 'macos-secure-enclave'
+    || contract.profile_candidate.maximum_ttl_seconds !== 900
+    || contract.profile_candidate.signer_namespace !== 'mykrobial.trace.terminal-task-context.v37'
+    || contract.profile_candidate.custody_mode !== 'external_nonexportable'
+    || contract.profile_candidate.transport_kind !== 'mutually_authenticated_external'
+    || contract.profile_candidate.verifier_capability_id !== 'verify:terminal-task-context:v37'
+    || contract.profile_candidate.execution_adapter_id !== 'execute:authority-delegate:terminal-task-context:v37'
+    || contract.profile_candidate.rollback_required !== true
+    || contract.profile_candidate.network_access !== false
+    || contract.profile_candidate.deployment_allowed !== false
+    || contract.profile_candidate.runtime_supported !== true
+    || !exactArray(contract.callback_inputs, AUTHORITY_CALLBACK_INPUTS)
+    || contract.callback_inputs_canonical_snapshot_required !== true
+    || contract.callback_result_exact_validation_required !== true
+    || !exactArray(contract.ready_nonclaims, AUTHORITY_READY_NONCLAIMS)
+    || !exactArray(contract.blocked_nonclaims, AUTHORITY_BLOCKED_NONCLAIMS)
+    || !exactArray(contract.canonical_blockers, AUTHORITY_CANONICAL_BLOCKERS)
+    || authority.host_request_built !== true
+    || authority.authority_delegate_request_built !== false
+    || authority.signature_present !== false
+    || authority.nonce_reserved !== false
+    || authority.operation_admitted !== false
+    || authority.trace_append_authorized !== false
+    || authority.source_read_authorized !== false
+    || authority.hmac_key_authorized !== false
+    || authority.projection_execution_authorized !== false
+    || authority.promotion_authorized !== false
+    || authority.deployment_authorized !== false
+    || value.reviewed !== false
+    || !exactArray(value.nonclaims, V38_HOST_NONCLAIMS)
+    || value.request_sha256 !== externalEventCanonicalSha256(requestBody)) {
+    throw new Error('typed_blocker:terminal_task_authority_host_request_invalid')
+  }
+  return value
 }

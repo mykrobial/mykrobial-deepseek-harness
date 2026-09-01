@@ -3,11 +3,15 @@ import { createHash } from 'node:crypto'
 import test from 'node:test'
 import {
   externalEventCanonicalSha256,
+  prepareTerminalTaskAuthorityHostRequestV38,
   prepareTerminalTaskContextRequest,
   projectExternalHarnessEvent,
   type ExternalHarnessEventInput,
   type ExternalHarnessEventKind,
   type PrepareTerminalTaskContextRequestInput,
+  type TerminalTaskContextRequest,
+  type TerminalTaskAuthorityHostRequestV38,
+  validateTerminalTaskAuthorityHostRequestV38,
 } from '../src/index.ts'
 
 const digest = (label: string): string => createHash('sha256').update(label).digest('hex')
@@ -560,4 +564,256 @@ test('both canonical terminal families are explicit request inputs, never derive
     assert.equal(request.terminal_family, family)
     assert.equal(request.state, 'context_request_only_unissued')
   }
+})
+
+function validTerminalContextRequest(): TerminalTaskContextRequest {
+  const projection = projectExternalHarnessEvent(
+    fixture('rebuild_and_restart_outcome'),
+    'trace-v38-host',
+    'session-v38-host',
+  )
+  return prepareTerminalTaskContextRequest(projection, terminalContext())
+}
+
+function resealContextRequest(source: TerminalTaskContextRequest): TerminalTaskContextRequest {
+  const value = structuredClone(source)
+  value.request_sha256 = externalEventCanonicalSha256(
+    Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'request_sha256')),
+  )
+  return value
+}
+
+function resealV38HostRequest(
+  source: TerminalTaskAuthorityHostRequestV38,
+): TerminalTaskAuthorityHostRequestV38 {
+  const value = structuredClone(source)
+  value.request_sha256 = externalEventCanonicalSha256(
+    Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'request_sha256')),
+  )
+  return value
+}
+
+test('V38 host request binds the unsigned subject, exact scope and callback vocabulary', () => {
+  const context = validTerminalContextRequest()
+  const request = prepareTerminalTaskAuthorityHostRequestV38(context, {
+    operation_profile_receipt_sha256: digest('operation-profile-receipt'),
+    requested_ttl_seconds: 600,
+  })
+  assert.equal(request.subject.schema, 'mykrobial.trace.terminal_task_context_subject.v38')
+  assert.equal(request.context_request_sha256, request.context_request.request_sha256)
+  assert.deepEqual(request.context_request, context)
+  assert.equal(request.subject.state, 'unsigned_unapproved')
+  assert.equal(request.subject.terminal_row_sha256, context.canonical_terminal_row_sha256)
+  assert.equal(request.subject.task_label_sha256, context.task_label_sha256)
+  assert.equal(request.subject.session_id_sha256, context.session_id_sha256)
+  assert.equal(request.subject.tenant_scope_sha256, context.tenant_scope_sha256)
+  assert.equal(request.subject.visible_event_count, context.visible_event_count)
+  assert.equal(request.subject.operation_profile_receipt_sha256, digest('operation-profile-receipt'))
+  assert.equal(request.subject.requested_ttl_seconds, 600)
+  assert.equal(request.subject.signature_present, false)
+  assert.equal(request.subject.authority_effect, 'none_until_delegate_commit')
+  assert.equal(
+    request.subject.subject_sha256,
+    externalEventCanonicalSha256(
+      Object.fromEntries(
+        Object.entries(request.subject).filter(([key]) => key !== 'subject_sha256'),
+      ),
+    ),
+  )
+  assert.equal(request.scope.context_subject_sha256, request.subject.subject_sha256)
+  assert.equal(request.scope.operation_profile_receipt_sha256, request.subject.operation_profile_receipt_sha256)
+  assert.equal(
+    request.authority_delegate_contract.adapter,
+    'named_agents/adapters/authority_delegate.py::prepare_authority_delegate_request',
+  )
+  assert.equal(request.authority_delegate_contract.automation_owner_agent_id, 'agent:mykrobial-security')
+  assert.equal(request.authority_delegate_contract.profile_id, 'profile:terminal-task-context:v1')
+  assert.equal(request.authority_delegate_contract.operation_class, 'operation:terminal-task-context')
+  assert.equal(request.subject.operation, 'bind_terminal_row_to_visible_task_range')
+  assert.equal(request.authority_delegate_contract.profile_candidate.status, 'candidate_not_promoted')
+  assert.equal(request.authority_delegate_contract.profile_candidate.reviewed, false)
+  assert.equal(request.authority_delegate_contract.profile_candidate.root_authority_receipt_sha256, null)
+  assert.equal(request.authority_delegate_contract.profile_candidate.profile_authority_receipt_sha256, null)
+  assert.equal(request.authority_delegate_contract.profile_candidate.network_access, false)
+  assert.equal(request.authority_delegate_contract.profile_candidate.deployment_allowed, false)
+  assert.equal(request.authority_delegate_contract.ready_nonclaims.length, 8)
+  assert.equal(request.authority_delegate_contract.blocked_nonclaims.length, 7)
+  assert.equal(request.authority_delegate_contract.canonical_blockers.length, 13)
+  assert.equal(request.authority.authority_delegate_request_built, false)
+  assert.equal(request.authority.nonce_reserved, false)
+  assert.equal(request.authority.operation_admitted, false)
+  assert.equal(
+    request.request_sha256,
+    externalEventCanonicalSha256(
+      Object.fromEntries(Object.entries(request).filter(([key]) => key !== 'request_sha256')),
+    ),
+  )
+})
+
+test('V38 host request contains no content, enrollment, nonce or signature payload', () => {
+  const request = prepareTerminalTaskAuthorityHostRequestV38(validTerminalContextRequest(), {
+    operation_profile_receipt_sha256: digest('operation-profile-receipt'),
+    requested_ttl_seconds: 300,
+  })
+  const raw = JSON.stringify(request)
+  for (const forbidden of [
+    'answer_text', 'message_content', 'raw_task_label', 'signature_value',
+    'requester_enrollment":', 'request_nonce":', 'private_key',
+  ]) {
+    assert.equal(raw.includes(forbidden), false)
+  }
+})
+
+test('V38 host request rejects profile and TTL aliases before building a subject', () => {
+  const context = validTerminalContextRequest()
+  for (const ttl of [0, -1, 901, 1.5, true, null]) {
+    assert.throws(
+      () => prepareTerminalTaskAuthorityHostRequestV38(context, {
+        operation_profile_receipt_sha256: digest('operation-profile-receipt'),
+        requested_ttl_seconds: ttl as unknown as number,
+      }),
+      /typed_blocker:terminal_task_authority_host_request_invalid/,
+    )
+  }
+  assert.throws(
+    () => prepareTerminalTaskAuthorityHostRequestV38(context, {
+      operation_profile_receipt_sha256: true as unknown as string,
+      requested_ttl_seconds: 300,
+    }),
+    /typed_blocker:external_event_digest_invalid/,
+  )
+})
+
+test('V38 host request rejects resealed context extras, altered nonclaims and authority flags', () => {
+  const base = validTerminalContextRequest()
+  const mutations: Array<(value: Record<string, unknown>) => void> = [
+    value => { value.unexpected = true },
+    value => { value.non_claims = ['forged_acceptance'] },
+    value => { value.context_signature_authorized = true },
+    value => { value.historical_relabel_authorized = true },
+  ]
+  for (const mutate of mutations) {
+    const value = structuredClone(base) as unknown as Record<string, unknown>
+    mutate(value)
+    const resealed = resealContextRequest(value as unknown as TerminalTaskContextRequest)
+    assert.throws(
+      () => prepareTerminalTaskAuthorityHostRequestV38(resealed, {
+        operation_profile_receipt_sha256: digest('operation-profile-receipt'),
+        requested_ttl_seconds: 300,
+      }),
+      /typed_blocker:terminal_task_context_request_invalid/,
+    )
+  }
+})
+
+test('V38 host request pins the accepted V37 source and review identities', () => {
+  const request = prepareTerminalTaskAuthorityHostRequestV38(validTerminalContextRequest(), {
+    operation_profile_receipt_sha256: digest('operation-profile-receipt'),
+    requested_ttl_seconds: 300,
+  })
+  assert.deepEqual(request.subject.v37_source, {
+    pull_request: 'https://github.com/mykrobial/mykrobial-harness/pull/670',
+    merge_commit: '661f1cd7680a97413eb0d47a0cd19c14bc62ea36',
+    source_review_sha256: '0fbc0f742d195786d3c84b023978cc4627921e1a4d9af85b644142dff98f8906',
+    source_sha256: '41b69284cf397beb787471bd8951cdd99b532b1f9c7ff5317a19c458147c9bc9',
+    contract_sha256: 'b97a77d986717181d59f2fcbd566ebca65e26fe2e3ef93551c601b56ac73a376',
+  })
+})
+
+test('V38 canonical blocker vocabulary is exact ordered and reseal-resistant', () => {
+  const baseline = prepareTerminalTaskAuthorityHostRequestV38(validTerminalContextRequest(), {
+    operation_profile_receipt_sha256: digest('operation-profile-receipt'),
+    requested_ttl_seconds: 300,
+  })
+  const mutations: Array<(value: TerminalTaskAuthorityHostRequestV38) => void> = [
+    value => {
+      value.authority_delegate_contract.canonical_blockers = Array.from(
+        { length: 13 },
+        (_, index) => `typed_blocker:authority_delegate_forged_${String(index).padStart(2, '0')}`,
+      ) as TerminalTaskAuthorityHostRequestV38['authority_delegate_contract']['canonical_blockers']
+    },
+    value => {
+      value.authority_delegate_contract.canonical_blockers = value.authority_delegate_contract
+        .canonical_blockers.slice(0, -1) as TerminalTaskAuthorityHostRequestV38['authority_delegate_contract']['canonical_blockers']
+    },
+    value => {
+      const blockers = value.authority_delegate_contract.canonical_blockers as unknown as string[]
+      blockers[3] = 'typed_blocker:authority_delegate_forged_substitution'
+    },
+    value => {
+      const blockers = value.authority_delegate_contract.canonical_blockers as unknown as string[]
+      const first = blockers[0]!
+      blockers[0] = blockers[1]!
+      blockers[1] = first
+    },
+  ]
+  for (const mutate of mutations) {
+    const value = structuredClone(baseline)
+    mutate(value)
+    assert.throws(
+      () => validateTerminalTaskAuthorityHostRequestV38(resealV38HostRequest(value)),
+      /typed_blocker:terminal_task_authority_host_request_invalid/,
+    )
+  }
+  assert.deepEqual(validateTerminalTaskAuthorityHostRequestV38(baseline), baseline)
+})
+
+test('V38 standalone validation binds every derived subject field to the embedded context', () => {
+  const baseline = prepareTerminalTaskAuthorityHostRequestV38(validTerminalContextRequest(), {
+    operation_profile_receipt_sha256: digest('operation-profile-receipt'),
+    requested_ttl_seconds: 300,
+  })
+  const forged = structuredClone(baseline)
+  forged.subject.session_id_sha256 = digest('forged-session')
+  forged.subject.tenant_scope_sha256 = digest('forged-tenant')
+  forged.subject.subject_sha256 = externalEventCanonicalSha256(
+    Object.fromEntries(
+      Object.entries(forged.subject).filter(([key]) => key !== 'subject_sha256'),
+    ),
+  )
+  forged.scope.context_subject_sha256 = forged.subject.subject_sha256
+  const resealed = resealV38HostRequest(forged)
+  assert.equal(resealed.context_request_sha256, baseline.context_request_sha256)
+  assert.throws(
+    () => validateTerminalTaskAuthorityHostRequestV38(resealed),
+    /typed_blocker:terminal_task_authority_host_request_invalid/,
+  )
+})
+
+test('V39 profile candidate and authority operation class stay distinct from subject operation', () => {
+  const baseline = prepareTerminalTaskAuthorityHostRequestV38(validTerminalContextRequest(), {
+    operation_profile_receipt_sha256: digest('operation-profile-receipt'),
+    requested_ttl_seconds: 300,
+  })
+  const mutations: Array<(value: TerminalTaskAuthorityHostRequestV38) => void> = [
+    value => {
+      value.authority_delegate_contract.profile_id =
+        'profile:forged' as 'profile:terminal-task-context:v1'
+    },
+    value => {
+      value.authority_delegate_contract.operation_class =
+        'bind_terminal_row_to_visible_task_range' as 'operation:terminal-task-context'
+    },
+    value => {
+      value.authority_delegate_contract.profile_candidate.status =
+        'promoted' as 'candidate_not_promoted'
+    },
+    value => {
+      value.authority_delegate_contract.profile_candidate.profile_authority_receipt_sha256 =
+        digest('forged-profile-authority') as unknown as null
+    },
+    value => {
+      value.authority_delegate_contract.profile_candidate.network_access = true as false
+    },
+  ]
+  for (const mutate of mutations) {
+    const value = structuredClone(baseline)
+    mutate(value)
+    assert.throws(
+      () => validateTerminalTaskAuthorityHostRequestV38(resealV38HostRequest(value)),
+      /typed_blocker:terminal_task_authority_host_request_invalid/,
+    )
+  }
+  assert.equal(baseline.subject.operation, 'bind_terminal_row_to_visible_task_range')
+  assert.equal(baseline.authority_delegate_contract.operation_class, 'operation:terminal-task-context')
 })
