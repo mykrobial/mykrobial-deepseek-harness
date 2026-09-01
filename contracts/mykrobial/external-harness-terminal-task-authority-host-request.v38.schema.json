@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mykrobial.org/schemas/external-harness-terminal-task-authority-host-request.v38.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "state",
+    "context_request_sha256",
+    "subject",
+    "scope",
+    "authority_delegate_contract",
+    "authority",
+    "reviewed",
+    "nonclaims",
+    "request_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mykrobial.external-harness.terminal-task-authority-host-request.v38"
+    },
+    "state": {
+      "const": "source_only_unsigned_unsubmitted"
+    },
+    "context_request_sha256": {
+      "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256"
+    },
+    "subject": {
+      "$ref": "#/$defs/subject"
+    },
+    "scope": {
+      "$ref": "#/$defs/scope"
+    },
+    "authority_delegate_contract": {
+      "$ref": "#/$defs/authorityDelegateContract"
+    },
+    "authority": {
+      "$ref": "#/$defs/authority"
+    },
+    "reviewed": {
+      "const": false
+    },
+    "nonclaims": {
+      "type": "array",
+      "prefixItems": [
+        { "const": "not_enrollment_authentication" },
+        { "const": "not_policy_admission" },
+        { "const": "not_signer_invocation" },
+        { "const": "not_verifier_execution" },
+        { "const": "not_operation_execution" },
+        { "const": "not_runtime_activation" },
+        { "const": "not_trace_append" },
+        { "const": "not_deployment" },
+        { "const": "not_fleet_convergence" }
+      ],
+      "items": false,
+      "minItems": 9,
+      "maxItems": 9
+    },
+    "request_sha256": {
+      "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256"
+    }
+  },
+  "$defs": {
+    "contextIdentifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+=-]{0,255}$"
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "state",
+        "terminal_row_sha256",
+        "task_label_sha256",
+        "session_id_sha256",
+        "tenant_scope_sha256",
+        "domain",
+        "requested_receipt_ref",
+        "served_receipt_ref",
+        "source_generation",
+        "visible_generation_sha256",
+        "first_visible_event_id",
+        "last_visible_event_id",
+        "visible_event_count",
+        "operation_profile_receipt_sha256",
+        "namespace",
+        "operation",
+        "requested_ttl_seconds",
+        "v37_source",
+        "signature_present",
+        "authority_effect",
+        "subject_sha256"
+      ],
+      "properties": {
+        "schema": { "const": "mykrobial.trace.terminal_task_context_subject.v38" },
+        "state": { "const": "unsigned_unapproved" },
+        "terminal_row_sha256": { "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256" },
+        "task_label_sha256": { "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256" },
+        "session_id_sha256": { "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256" },
+        "tenant_scope_sha256": { "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256" },
+        "domain": { "$ref": "#/$defs/contextIdentifier" },
+        "requested_receipt_ref": { "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256" },
+        "served_receipt_ref": { "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256" },
+        "source_generation": { "$ref": "#/$defs/contextIdentifier" },
+        "visible_generation_sha256": { "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256" },
+        "first_visible_event_id": { "$ref": "#/$defs/contextIdentifier" },
+        "last_visible_event_id": { "$ref": "#/$defs/contextIdentifier" },
+        "visible_event_count": { "type": "integer", "minimum": 1 },
+        "operation_profile_receipt_sha256": { "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256" },
+        "namespace": { "const": "mykrobial.trace.terminal-task-context.v37" },
+        "operation": { "const": "bind_terminal_row_to_visible_task_range" },
+        "requested_ttl_seconds": { "type": "integer", "minimum": 1, "maximum": 900 },
+        "v37_source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pull_request",
+            "merge_commit",
+            "source_review_sha256",
+            "source_sha256",
+            "contract_sha256"
+          ],
+          "properties": {
+            "pull_request": { "const": "https://github.com/mykrobial/mykrobial-harness/pull/670" },
+            "merge_commit": { "const": "661f1cd7680a97413eb0d47a0cd19c14bc62ea36" },
+            "source_review_sha256": { "const": "0fbc0f742d195786d3c84b023978cc4627921e1a4d9af85b644142dff98f8906" },
+            "source_sha256": { "const": "41b69284cf397beb787471bd8951cdd99b532b1f9c7ff5317a19c458147c9bc9" },
+            "contract_sha256": { "const": "b97a77d986717181d59f2fcbd566ebca65e26fe2e3ef93551c601b56ac73a376" }
+          }
+        },
+        "signature_present": { "const": false },
+        "authority_effect": { "const": "none_until_delegate_commit" },
+        "subject_sha256": { "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256" }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_subject_sha256",
+        "terminal_row_sha256",
+        "task_label_sha256",
+        "visible_generation_sha256",
+        "operation_profile_receipt_sha256",
+        "v37_source_review_sha256",
+        "namespace",
+        "operation"
+      ],
+      "properties": {
+        "context_subject_sha256": { "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256" },
+        "terminal_row_sha256": { "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256" },
+        "task_label_sha256": { "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256" },
+        "visible_generation_sha256": { "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256" },
+        "operation_profile_receipt_sha256": { "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256" },
+        "v37_source_review_sha256": { "const": "0fbc0f742d195786d3c84b023978cc4627921e1a4d9af85b644142dff98f8906" },
+        "namespace": { "const": "mykrobial.trace.terminal-task-context.v37" },
+        "operation": { "const": "bind_terminal_row_to_visible_task_range" }
+      }
+    },
+    "authorityDelegateContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "adapter",
+        "automation_owner_agent_id",
+        "operation_class",
+        "callback_inputs",
+        "callback_inputs_canonical_snapshot_required",
+        "callback_result_exact_validation_required",
+        "ready_nonclaims",
+        "blocked_nonclaims",
+        "canonical_blockers"
+      ],
+      "properties": {
+        "schema": { "const": "mykrobial.authority-delegate.callback-contract.v1" },
+        "adapter": { "const": "named_agents/adapters/authority_delegate.py::prepare_authority_delegate_request" },
+        "automation_owner_agent_id": { "const": "agent:mykrobial-security" },
+        "operation_class": { "const": "bind_terminal_row_to_visible_task_range" },
+        "callback_inputs": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "requester_agent_id" },
+            { "const": "requester_enrollment" },
+            { "const": "device_id" },
+            { "const": "profile_id" },
+            { "const": "operation_class" },
+            { "const": "request_nonce" },
+            { "const": "ttl_seconds" }
+          ],
+          "items": false,
+          "minItems": 7,
+          "maxItems": 7
+        },
+        "callback_inputs_canonical_snapshot_required": { "const": true },
+        "callback_result_exact_validation_required": { "const": true },
+        "ready_nonclaims": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "not_enrollment_authentication" },
+            { "const": "not_policy_admission" },
+            { "const": "not_signer_invocation" },
+            { "const": "not_verifier_execution" },
+            { "const": "not_operation_execution" },
+            { "const": "not_runtime_activation" },
+            { "const": "not_deployment" },
+            { "const": "not_fleet_convergence" }
+          ],
+          "items": false,
+          "minItems": 8,
+          "maxItems": 8
+        },
+        "blocked_nonclaims": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "not_enrollment_authentication" },
+            { "const": "not_policy_admission" },
+            { "const": "not_signer_invocation" },
+            { "const": "not_verifier_execution" },
+            { "const": "not_operation_execution" },
+            { "const": "not_runtime_activation" },
+            { "const": "not_deployment" }
+          ],
+          "items": false,
+          "minItems": 7,
+          "maxItems": 7
+        },
+        "canonical_blockers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^typed_blocker:authority_delegate_"
+          },
+          "minItems": 13,
+          "maxItems": 13,
+          "uniqueItems": true
+        }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "host_request_built",
+        "authority_delegate_request_built",
+        "signature_present",
+        "nonce_reserved",
+        "operation_admitted",
+        "trace_append_authorized",
+        "source_read_authorized",
+        "hmac_key_authorized",
+        "projection_execution_authorized",
+        "promotion_authorized",
+        "deployment_authorized"
+      ],
+      "properties": {
+        "host_request_built": { "const": true },
+        "authority_delegate_request_built": { "const": false },
+        "signature_present": { "const": false },
+        "nonce_reserved": { "const": false },
+        "operation_admitted": { "const": false },
+        "trace_append_authorized": { "const": false },
+        "source_read_authorized": { "const": false },
+        "hmac_key_authorized": { "const": false },
+        "projection_execution_authorized": { "const": false },
+        "promotion_authorized": { "const": false },
+        "deployment_authorized": { "const": false }
+      }
+    }
+  }
+}
