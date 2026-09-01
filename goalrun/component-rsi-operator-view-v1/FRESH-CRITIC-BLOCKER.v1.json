@@ -1,0 +1,185 @@
+{
+  "schema": "mykrobial.goalrun.component-rsi-operator-view-fresh-critic-blocker.v1",
+  "review_id": "component-rsi-operator-view-v1-fresh-critic",
+  "review_kind": "fresh_context_deterministic_source_only_review",
+  "generated_at": "2026-09-01T05:06:03Z",
+  "verdict": "source_blocked",
+  "accepted": false,
+  "typed_blocker": "typed_blocker:component_evolution_semantic_cross_bindings_missing",
+  "largest_evidenced_gap": "The constructor and public schema validate local field shapes but do not close the relationships that give component lineage, bitemporal order, experiment completion, and proof levels their meaning. Internally contradictory views therefore receive a deterministic content hash and can report runtime_verified or deployed_verified.",
+  "candidate": {
+    "worktree": "/Users/kalcypher/Projects/_worktrees/mykrobial-deepseek-component-rsi-operator-view-v1",
+    "commit": "91158689e72a61dd8a35bc5865ac26447d7c225d",
+    "tree": "e839f31cad9d1dbec5edadac34e2bdc8daab54b9",
+    "parent": "8fc0fa910383bb3bdd087f1804cb2924b90beff6",
+    "clean_before_review": true,
+    "clean_after_checks_before_review_artifact": true,
+    "candidate_source_changed_by_critic": false
+  },
+  "supplied_bindings": {
+    "manifest_sha256": "3ad4ac6a848bc61bdd14479696dba445bd86dd4232bc38eced57df0a73152611",
+    "source_receipt_sha256": "7161f0455f56f1b7d253a4bb2b44fdbc12b154c99ccc817e54c1d3b37093bf6a",
+    "schema_sha256": "b6f0598272a334265cb80a7255d3014bcb44184cb89647881f5f71a5213dbac8",
+    "state": "matched"
+  },
+  "declared_verification": {
+    "node_executable": "/opt/homebrew/bin/node",
+    "node_version": "v25.9.0",
+    "direct_tests": {
+      "command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/operator-projections/tests/source-safe.test.ts",
+      "passed": 25,
+      "failed": 0
+    },
+    "typescript_syntax_checks": {
+      "passed": 3,
+      "failed": 0
+    },
+    "strict_authored_json_parses": {
+      "passed": 2,
+      "failed": 0
+    },
+    "content_hash_checks": {
+      "passed": 6,
+      "failed": 0
+    }
+  },
+  "independently_confirmed_invariants": {
+    "root_and_nested_object_closure": true,
+    "runtime_and_schema_local_field_parity": true,
+    "surface_vocabulary_count": 14,
+    "surface_vocabulary_exact": true,
+    "evolution_plane_count": 4,
+    "evolution_planes_exact": true,
+    "base_true_sham_order_and_roles": true,
+    "frozen_loadout_hash_across_all_arms": true,
+    "distinct_arm_component_and_delta_hashes": true,
+    "component_parent_and_experiment_references_exist": true,
+    "strict_utc_calendar_shape": true,
+    "plain_safe_integer_enforcement": true,
+    "decision_and_plan_local_receipt_states": true,
+    "optimizer_ports_proposal_only": true,
+    "optimizer_training_and_application_authority_false": true,
+    "external_optimizer_is_strategy_not_plane": true,
+    "view_hash_deterministic": true,
+    "same_id_reseal_changes_view_hash": true,
+    "no_execution_trace_apply_or_deployment_calls": true
+  },
+  "hostile_mutation_matrix": {
+    "fractional_valid_from_after_valid_until": {
+      "mutation": "valid_from=2026-09-01T00:00:00.1Z; valid_until=2026-09-01T00:00:00Z",
+      "expected": "rejected_as_reversed_valid_time",
+      "observed": "accepted_source_verified",
+      "cause": "timestamps are compared lexicographically even though optional fractional seconds do not sort chronologically against the no-fraction Z form"
+    },
+    "reversed_timeline_transaction_time": {
+      "mutation": "sequence 0 transaction_time is later than sequence 1 transaction_time",
+      "expected": "rejected_as_nonmonotonic_transaction_timeline",
+      "observed": "accepted_source_verified",
+      "cause": "timeline sequence is checked but transaction_time ordering is not"
+    },
+    "cross_lineage_parent": {
+      "mutation": "child parent exists but logical_identity differs from parent",
+      "expected": "rejected_as_invalid_component_lineage",
+      "observed": "accepted_source_verified",
+      "cause": "parent existence is checked without logical identity, surface, generation, or transaction-time lineage joins"
+    },
+    "target_surface_component_mismatch": {
+      "mutation": "experiment targets prompt component while target_surface_ids contains router",
+      "expected": "rejected_as_experiment_target_mismatch",
+      "observed": "accepted_source_verified",
+      "cause": "target component identities and target surfaces are validated independently"
+    },
+    "verified_unapplied_without_verification_receipt": {
+      "expected": "receipt_bound_or_honestly_unverified_state",
+      "observed": "accepted_source_verified",
+      "cause": "verified_unapplied has no required verification receipt class"
+    },
+    "not_asserted_causality_with_receipt": {
+      "expected": "receipt_null_or_explicit_noncausal_receipt_class",
+      "observed": "accepted_source_verified",
+      "cause": "only verified causality requires a receipt; lower causality states may carry the same undifferentiated receipt field"
+    },
+    "runtime_applied_while_all_arms_planned": {
+      "expected": "rejected_until_exact arm results and verified decision exist",
+      "observed": "accepted_runtime_verified",
+      "cause": "experiment plan/proof state is not joined to arm execution and result receipts"
+    },
+    "global_deployed_with_runtime_only_experiment": {
+      "expected": "rejected_until deployed experiment proof exists",
+      "observed": "accepted_deployed_verified",
+      "cause": "global deployed proof accepts an experiment whose proof level is only runtime_verified"
+    },
+    "rolled_back_without_applied_receipt": {
+      "expected": "rollback history binds both application and rollback receipts",
+      "observed": "accepted_runtime_verified",
+      "cause": "rolled_back requires a rollback receipt but the schema and constructor require applied_receipt_sha256 to be null"
+    },
+    "same_id_source_reseal": {
+      "expected": "view hash changes",
+      "observed": "passed"
+    }
+  },
+  "schema_oracle_audit": {
+    "state": "shares_runtime_blind_spots",
+    "details": [
+      "The schema validates individual timestamps but cannot enforce chronological interval or timeline ordering.",
+      "Parent, target-component, and target-surface arrays are locally valid but not cross-bound.",
+      "Runtime/deployed allOf uses contains with runtime_verified or deployed_verified, so a runtime-only experiment can satisfy global deployed_verified.",
+      "Experiment proof and plan states are not conditioned on all three arm execution/result states.",
+      "rolled_back explicitly forces applied_receipt_sha256 null."
+    ]
+  },
+  "required_repair": [
+    "Parse valid and transaction timestamps into a single chronological representation before comparing; add fractional/no-fraction reversal regressions and require transaction_time monotonicity with timeline sequence.",
+    "Cross-bind every component parent to the same logical identity and surface with an earlier generation and nonlater transaction time; reject cycles and cross-lineage parents.",
+    "Require each experiment target_surface_ids set to equal the surfaces of target_component_ids.",
+    "Cross-bind plan and proof progress to exact BASE/TRUE/SHAM completion and result receipts plus the appropriate verified decision receipt; define an explicit receipt for verified_unapplied.",
+    "For rolled_back, preserve and require the applied receipt as well as the rollback receipt, or represent the complete transition history in a separately bound receipt.",
+    "Require global deployed_verified to contain deployed_verified experiment evidence rather than runtime_verified alone, and mirror every runtime relationship in deterministic schema-oracle tests.",
+    "Clarify the timeline receipt class so not_asserted and asserted_unverified cannot inherit a receipt that can be misread as causal verification.",
+    "Freeze these counterexamples as permanent regressions, rebuild the six-file closure, and request a distinct fresh critic."
+  ],
+  "authority_boundary": {
+    "reviewed": false,
+    "execution_authorized": false,
+    "optimizer_execution_authorized": false,
+    "component_application_authorized": false,
+    "trace_append_authorized": false,
+    "training_authorized": false,
+    "promotion_authorized": false,
+    "deployment_authorized": false
+  },
+  "actual_actions": {
+    "candidate_source_edits": 0,
+    "package_install_or_build": 0,
+    "runtime_or_model_execution": 0,
+    "optimizer_or_component_application": 0,
+    "trace_appends": 0,
+    "deployment_actions": 0
+  },
+  "trace": {
+    "emitted": false,
+    "typed_blocker": "typed_blocker:trace_execution_out_of_scope_for_source_only_critic"
+  },
+  "route": {
+    "agent_id": "agent:mykrobial-engineering",
+    "task_class": "engineering",
+    "registry_sha256": "6da1ae96093f6e9310878d0e3f961461a68ebcfb2b869cbb9fcfc7934d54cb29",
+    "provider_execution_verified": false,
+    "route_outcome": "typed_blocker"
+  },
+  "manifest_excluded": true,
+  "reviewed": false,
+  "execution_authorized": false,
+  "non_claims": [
+    "not_human_or_founder_review",
+    "not_reviewed_true",
+    "not_package_install_or_build",
+    "not_runtime_or_model_execution",
+    "not_optimizer_execution",
+    "not_component_application",
+    "not_trace_append",
+    "not_training_or_promotion",
+    "not_deployment_or_fleet_convergence"
+  ]
+}
