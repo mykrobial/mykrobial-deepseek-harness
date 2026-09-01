@@ -1,0 +1,203 @@
+{
+  "schema": "mykrobial.goalrun.component-rsi-operator-view-source-receipt.v1",
+  "basis": {
+    "commit": "8fc0fa910383bb3bdd087f1804cb2924b90beff6",
+    "tree": "c404f288d764389bd0ea2fb318b3b2ac9c7ce995"
+  },
+  "content_manifest": {
+    "ref": "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+    "sha256": "08c6c43ec3cc184565ade399dd35ef38074b8a79e715ddea123f67b6ba2cd5c0",
+    "content_file_count": 12,
+    "manifest_excludes": [
+      "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+      "goalrun/component-rsi-operator-view-v1/SOURCE-RECEIPT.v1.json",
+      "goalrun/component-rsi-operator-view-v1/FRESH-CRITIC-BLOCKER.v1.json",
+      "goalrun/component-rsi-operator-view-v1/ROUND-2-FRESH-CRITIC-BLOCKER.v1.json",
+      "goalrun/component-rsi-operator-view-v1/ROUND-3-FRESH-CRITIC-BLOCKER.v1.json",
+      "goalrun/component-rsi-operator-view-v1/ROUND-4-FRESH-CRITIC-BLOCKER.v1.json",
+      "goalrun/component-rsi-operator-view-v1/ROUND-5-FRESH-CRITIC-BLOCKER.v1.json",
+      "goalrun/component-rsi-operator-view-v1/ROUND-6-FRESH-CRITIC-BLOCKER.v1.json",
+      "goalrun/component-rsi-operator-view-v1/ROUND-7-FRESH-CRITIC-BLOCKER.v1.json",
+      "goalrun/component-rsi-operator-view-v1/ROUND-8-FRESH-CRITIC-BLOCKER.v1.json",
+      "goalrun/component-rsi-operator-view-v1/ROUND-9-FRESH-CRITIC-BLOCKER.v1.json"
+    ]
+  },
+  "verification": {
+    "node_executable": "/opt/homebrew/bin/node",
+    "node_version": "v25.9.0",
+    "test_command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/operator-projections/tests/source-safe.test.ts",
+    "component_seam_test_command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts",
+    "tests_passed": 58,
+    "tests_failed": 0,
+    "operator_projection_tests_passed": 33,
+    "component_seam_tests_passed": 25,
+    "typescript_syntax_checks": 6,
+    "strict_authored_json_checks": 3,
+    "content_hash_checks": 12,
+    "git_diff_check": "passed"
+  },
+  "view_contract": {
+    "component_surface_count": 14,
+    "evolution_plane_count": 4,
+    "base_true_sham_exact": true,
+    "target_set_binding_exact": true,
+    "capsule_decision_plan_binding_exact": true,
+    "accepted_artifact_content_identity_revalidated": true,
+    "immutable_plan_artifact_separate_from_execution_state": true,
+    "proposal_capsule_decision_plan_causal_chain_exact": true,
+    "operation_specific_admission_exact": true,
+    "active_loadout_postcondition_exact": true,
+    "component_generation_operation_result_exact": true,
+    "swap_rollback_replay_lifecycle_readback_exact": true,
+    "before_after_component_snapshot_exhaustive": true,
+    "receipt_distinct_result_identity_exact": true,
+    "classed_subject_expiry_replay_receipt_envelopes_exact": true,
+    "receipt_live_at_evidence_and_projection_time": true,
+    "cross_class_receipt_and_nonce_identity_unique": true,
+    "cross_role_reservation_consumption_identity_unique": true,
+    "transaction_and_valid_time": true,
+    "optimizer_ports_proposal_only": true,
+    "trace_replay_rollback_readback": true,
+    "source_runtime_deployment_proof_lattice": true,
+    "view_hash_deterministic": true
+  },
+  "repair_basis": {
+    "critic_ref": "goalrun/component-rsi-operator-view-v1/FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "1d3702f803c9133e55c0397aac71c99a4fe668eb66f04d59c06600b108abdc9",
+    "finding": "typed_blocker:component_evolution_semantic_cross_bindings_missing",
+    "repairs": [
+      "microsecond chronological valid-time comparison",
+      "monotone timeline transaction time",
+      "same-logical-identity same-surface earlier-generation parent lineage",
+      "target component to target surface equality",
+      "verified-unapplied verification receipt",
+      "runtime proof requires all three completed arms and verified decision",
+      "rollback preserves application plus rollback receipts",
+      "deployed proof requires deployed experiment evidence",
+      "nonverified causality forbids receipt",
+      "public projection revalidation at every consumer"
+    ]
+  },
+  "round_2_repair_basis": {
+    "critic_ref": "goalrun/component-rsi-operator-view-v1/ROUND-2-FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "45daa0e5193e3d9a5703c1d625b7a0c77974fcbc84d2f64d68f37f00537a3388",
+    "finding": "typed_blocker:component_evolution_year_00_99_chronology_alias",
+    "repairs": [
+      "replace Date.UTC with fixed-width UTC civil-time ordering",
+      "reject reversed valid intervals across years 0099 and 0100",
+      "reject parent-after-child chronology across years 0099 and 0100",
+      "reject reversed timeline transaction time across years 0099 and 0100",
+      "reject the exact prior content-hashed public projection counterexample"
+    ]
+  },
+  "round_3_repair_basis": {
+    "critic_ref": "goalrun/component-rsi-operator-view-v1/ROUND-3-FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "bc89ca36bd4da554356bfb6e320411132107411c4bcdb4294c6fea2c53685a85",
+    "finding": "typed_blocker:component_evolution_exact_capsule_bindings_not_projected",
+    "repairs": [
+      "project exact BASE TRUE SHAM control strategies",
+      "bind TRUE applied delta to the capsule target-set digest",
+      "project decision capsule identity and external-input digest",
+      "project plan capsule and decision identities",
+      "enforce capsule to decision to plan equality before any proof claim",
+      "reject both exact prior content-hashed public projection counterexamples"
+    ]
+  },
+  "round_4_repair_basis": {
+    "critic_ref": "goalrun/component-rsi-operator-view-v1/ROUND-4-FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "3e7b9ff3307901105102f2e715fae9bad5c6f651dc2297914b2a238f5940d205",
+    "finding": "typed_blocker:component_evolution_stale_artifact_digest_aliases_accepted",
+    "repairs": [
+      "add public validators for complete accepted capsule decision and plan artifacts",
+      "project each complete immutable artifact alongside its operator summary",
+      "recompute capsule decision and plan content identities before proof projection",
+      "separate immutable plan content from mutable verification application and rollback state",
+      "reject synchronized identity semantic loadout target and digest substitutions",
+      "revalidate the same artifacts at every public consumer boundary"
+    ]
+  },
+  "round_5_repair_basis": {
+    "critic_ref": "goalrun/component-rsi-operator-view-v1/ROUND-5-FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "9abdc43b64a6ad104d0d5f23b316b164e941aec6931ec91e9d16a61298a449de",
+    "finding": "typed_blocker:component_evolution_accepted_artifact_execution_admission_missing",
+    "repairs": [
+      "embed and revalidate the complete proposal artifact in every capsule",
+      "rederive proposal capsule decision and plan policy and nonclaim sets",
+      "derive plan identity from every immutable plan semantic",
+      "enforce proposal capsule decision and plan causal time order",
+      "separate resolvable verification blockers from structural operation blockers",
+      "require exact per-blocker verification receipts before runtime proof",
+      "require operation-specific replay rollback and disposition compatibility",
+      "bind applied or rolled-back state to exact post-operation active-loadout readback",
+      "reject both exact Round 5 runtime and public-revalidator counterexamples"
+    ]
+  },
+  "round_6_repair_basis": {
+    "critic_ref": "goalrun/component-rsi-operator-view-v1/ROUND-6-FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "e4688684d7e464812c558bffc3d181325ff782373996c5fe90d8ec8a11a3c756",
+    "finding": "typed_blocker:component_evolution_post_operation_component_readback_missing",
+    "repairs": [
+      "add a content-addressed operation-result artifact with exact plan capsule and decision identities",
+      "bind before and after loadout manifests and verification and operation receipts",
+      "bind complete observed component-generation rows at a causal observation time",
+      "require swap target activation and replaced parent deactivation",
+      "require rollback parent restoration and candidate deactivation",
+      "keep replay explicitly non-activating",
+      "derive mutable post-loadout and receipt summaries from the validated result",
+      "require operation-result component rows to equal the root OmniGent projection",
+      "reject the exact runtime deployed and public-revalidator inactive-target counterexamples"
+    ]
+  },
+  "round_7_repair_basis": {
+    "critic_ref": "goalrun/component-rsi-operator-view-v1/ROUND-7-FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "bf31ba788b4c773662263a026b8921f18854c8b7bb0ef19f0eec78f35e944837",
+    "finding": "typed_blocker:component_evolution_operation_result_observation_basis_incomplete",
+    "repairs": [
+      "replace caller-selected post rows with exhaustive before and after snapshots",
+      "require the complete after snapshot to equal the root OmniGent component projection",
+      "reject parentless swap and rollback while leaving replay non-activating",
+      "derive replay nonactivation from byte-identical before and after component rows",
+      "validate every component transaction and valid-time bound against its observation time",
+      "add classed subject-bound expiring replay-consumed receipt envelopes",
+      "include both receipt envelopes in the operation-result basis and result ID",
+      "reject receipt collisions parentless replacement future-dated rows replay drift and root supersets"
+    ]
+  },
+  "round_8_repair_basis": {
+    "critic_ref": "goalrun/component-rsi-operator-view-v1/ROUND-8-FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "6a326c2298c2ca1182839030edbb4a07eb8691077829ae0ae9d5698b51e0024a",
+    "finding": "typed_blocker:component_evolution_receipt_lifecycle_causality_incomplete",
+    "repairs": [
+      "validate every receipt against an explicit evidence-use time",
+      "keep verification live through the before snapshot and operation evidence live through projection generation",
+      "project replay authority plus separate nonce reservation and consumption receipts",
+      "reject reservation and consumption receipt alias inside one envelope",
+      "reject receipt ID raw digest nonce reservation and consumption aliases across evidence classes",
+      "bound all receipt issuance at or before the generated OmniGent projection",
+      "preserve issuer authenticity and action authority as explicit false nonclaims",
+      "reject the exact runtime deployed result basis observation and public-revalidation receipt-lifecycle counterexamples"
+    ]
+  },
+  "round_9_repair_basis": {
+    "critic_ref": "goalrun/component-rsi-operator-view-v1/ROUND-9-FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "95140607178fd00736a3967c7aec3cb4c3724c653e2cb05913796ba231b881a6",
+    "finding": "typed_blocker:component_evolution_cross_class_nonce_receipt_role_alias",
+    "repairs": [
+      "collapse both raw receipts both nonces both reservations and both consumptions into one uniqueness set",
+      "reject every cross-class and cross-role digest intersection",
+      "preserve replay authority issuer authenticity and action authority as separate nonclaims",
+      "reject the exact result runtime deployed basis observation envelope and public-revalidation counterexamples"
+    ]
+  },
+  "authority": {
+    "reviewed": false,
+    "fresh_critic_receipt_sha256": null,
+    "optimizer_execution_authorized": false,
+    "component_application_authorized": false,
+    "trace_append_authorized": false,
+    "training_authorized": false,
+    "promotion_authorized": false,
+    "deployment_authorized": false
+  },
+  "status": "source_candidate_unreviewed"
+}

@@ -137,6 +137,14 @@ function timestamp(value: unknown, blocker: string): string {
   return value
 }
 
+function timestampOrdinal(value: string): bigint {
+  const match = TIMESTAMP.exec(value)
+  if (match === null) throw new Error('typed_blocker:component_artifact_timestamp_invalid')
+  return BigInt(
+    `${match[1]}${match[2]}${match[3]}${match[4]}${match[5]}${match[6]}${(match[7] ?? '').padEnd(6, '0')}`,
+  )
+}
+
 function safeInteger(value: unknown, blocker: string): number {
   if (!Number.isSafeInteger(value) || (value as number) < 0) throw new Error(`typed_blocker:${blocker}`)
   return value as number
@@ -226,6 +234,16 @@ export function buildMutationSurfaceRegistry(): MutationSurfaceRegistry {
   return { ...body, registry_sha256: canonicalSha256(body) }
 }
 
+const PROPOSAL_NON_CLAIMS = [
+  'not_optimizer_execution',
+  'not_evaluation',
+  'not_training',
+  'not_component_application',
+  'not_promotion',
+  'not_trace_append',
+  'not_deployment',
+] as const
+
 function validateProposal(value: ComponentMutationProposal): ComponentMutationProposal {
   record(value, [
     'schema', 'proposal_id', 'plane', 'task_capsule_id', 'loadout_id', 'source',
@@ -272,7 +290,9 @@ function validateProposal(value: ComponentMutationProposal): ComponentMutationPr
     || value.harness_generation !== 'next_deepseek_cordis'
     || value.status !== 'proposal_only_untrusted'
     || value.apply_authorized !== false || value.training_authorized !== false
-    || value.promotion_authorized !== false || value.proposal_sha256 !== expected) {
+    || value.promotion_authorized !== false
+    || value.non_claims.join('\u0000') !== PROPOSAL_NON_CLAIMS.join('\u0000')
+    || value.proposal_sha256 !== expected) {
     throw new Error('typed_blocker:component_mutation_proposal_invalid')
   }
   return value
@@ -324,15 +344,7 @@ export function prepareComponentMutationProposal(input: PrepareMutationProposalI
     apply_authorized: false as const,
     training_authorized: false as const,
     promotion_authorized: false as const,
-    non_claims: [
-      'not_optimizer_execution',
-      'not_evaluation',
-      'not_training',
-      'not_component_application',
-      'not_promotion',
-      'not_trace_append',
-      'not_deployment',
-    ],
+    non_claims: [...PROPOSAL_NON_CLAIMS],
   }
   return validateProposal({ ...body, proposal_sha256: canonicalSha256(body) })
 }
@@ -424,9 +436,20 @@ function experimentArm(value: unknown): ComponentExperimentArm {
   }
 }
 
+const CAPSULE_NON_CLAIMS = [
+  'not_evaluator_execution',
+  'not_optimizer_execution',
+  'not_training',
+  'not_component_application',
+  'not_promotion',
+  'not_trace_append',
+  'not_deployment',
+] as const
+
 function validateCapsule(value: ComponentExperimentCapsule): ComponentExperimentCapsule {
   record(value, [
-    'schema', 'capsule_id', 'experiment_id', 'proposal_id', 'proposal_sha256', 'plane',
+    'schema', 'capsule_id', 'experiment_id', 'proposal_id', 'proposal_sha256',
+    'proposal_artifact', 'plane',
     'delta_mode', 'target_component_ids', 'target_surface_ids', 'target_set_sha256',
     'task_binding', 'evaluator_binding', 'budget_binding', 'source_binding', 'arms', 'created_at',
     'status', 'evaluation_authorized', 'training_authorized', 'promotion_authorized',
@@ -436,6 +459,7 @@ function validateCapsule(value: ComponentExperimentCapsule): ComponentExperiment
   identifier(value.experiment_id, 'component_experiment_identity_invalid')
   identifier(value.proposal_id, 'component_experiment_proposal_identity_invalid')
   digest(value.proposal_sha256, 'component_experiment_proposal_digest_invalid')
+  const proposal = validateProposal(value.proposal_artifact)
   plane(value.plane)
   if (!['single_component', 'declared_joint'].includes(value.delta_mode)) {
     throw new Error('typed_blocker:component_experiment_delta_mode_invalid')
@@ -474,14 +498,33 @@ function validateCapsule(value: ComponentExperimentCapsule): ComponentExperiment
   }
   timestamp(value.created_at, 'component_experiment_timestamp_invalid')
   stringList(value.non_claims, 'component_experiment_non_claims_invalid')
+  const proposalComponentIds = [...new Set(proposal.targets.map(entry => entry.component_id))].sort()
+  const proposalSurfaceIds = [...new Set(proposal.targets.map(entry => entry.surface_id))].sort()
   const expected = canonicalSha256(Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'capsule_sha256')))
   if (value.schema !== 'mykrobial.harness.component-experiment-capsule.v1'
+    || value.proposal_id !== proposal.proposal_id || value.proposal_sha256 !== proposal.proposal_sha256
+    || value.plane !== proposal.plane || value.delta_mode !== proposal.delta_mode
+    || value.target_component_ids.join('\u0000') !== proposalComponentIds.join('\u0000')
+    || value.target_surface_ids.join('\u0000') !== proposalSurfaceIds.join('\u0000')
+    || value.target_set_sha256 !== proposal.target_set_sha256
+    || value.task_binding.task_capsule_id !== proposal.task_capsule_id
+    || value.task_binding.loadout_id !== proposal.loadout_id
+    || canonicalSha256(value.source_binding.harness_source) !== canonicalSha256(proposal.source)
+    || timestampOrdinal(value.created_at) < timestampOrdinal(proposal.created_at)
+    || value.non_claims.join('\u0000') !== CAPSULE_NON_CLAIMS.join('\u0000')
     || value.status !== 'prepared_unexecuted' || value.evaluation_authorized !== false
     || value.training_authorized !== false || value.promotion_authorized !== false
     || value.capsule_sha256 !== expected) {
     throw new Error('typed_blocker:component_experiment_capsule_invalid')
   }
   return value
+}
+
+/** Revalidate an untrusted serialized component experiment capsule. */
+export function validateComponentExperimentCapsule(
+  value: ComponentExperimentCapsule,
+): ComponentExperimentCapsule {
+  return structuredClone(validateCapsule(value))
 }
 
 /**
@@ -521,6 +564,7 @@ export function prepareComponentExperimentCapsule(input: PrepareExperimentCapsul
     experiment_id: identifier(item.experiment_id, 'component_experiment_identity_invalid'),
     proposal_id: proposal.proposal_id,
     proposal_sha256: proposal.proposal_sha256,
+    proposal_artifact: proposal,
     plane: proposal.plane,
     delta_mode: proposal.delta_mode,
     target_component_ids: [...new Set(proposal.targets.map(entry => entry.component_id))].sort(),
@@ -536,17 +580,27 @@ export function prepareComponentExperimentCapsule(input: PrepareExperimentCapsul
     evaluation_authorized: false as const,
     training_authorized: false as const,
     promotion_authorized: false as const,
-    non_claims: [
-      'not_evaluator_execution',
-      'not_optimizer_execution',
-      'not_training',
-      'not_component_application',
-      'not_promotion',
-      'not_trace_append',
-      'not_deployment',
-    ],
+    non_claims: [...CAPSULE_NON_CLAIMS],
   }
   return validateCapsule({ ...body, capsule_sha256: canonicalSha256(body) })
+}
+
+const DECISION_NON_CLAIMS = [
+  'not_optimizer_execution',
+  'not_independent_evaluation',
+  'not_authority_verification',
+  'not_training_gate_verification',
+  'not_component_application',
+  'not_promotion',
+  'not_deployment',
+] as const
+
+function requiredDecisionBlockers(capsule: ComponentExperimentCapsule): string[] {
+  const blockers = ['typed_blocker:external_decision_authority_unverified']
+  if (capsule.target_surface_ids.includes('model_weights')) {
+    blockers.push('typed_blocker:model_weights_training_gate_unverified')
+  }
+  return blockers.sort()
 }
 
 /**
@@ -573,10 +627,11 @@ export function acceptExternalComponentDecision(
     || !['accept_candidate', 'reject_candidate', 'revise_candidate', 'no_change', 'rollback'].includes(String(item.disposition))) {
     throw new Error('typed_blocker:external_component_decision_invalid')
   }
-  const blockers = ['typed_blocker:external_decision_authority_unverified']
-  if (frozenCapsule.target_surface_ids.includes('model_weights')) {
-    blockers.push('typed_blocker:model_weights_training_gate_unverified')
+  const issuedAt = timestamp(item.issued_at, 'external_component_decision_timestamp_invalid')
+  if (timestampOrdinal(issuedAt) < timestampOrdinal(frozenCapsule.created_at)) {
+    throw new Error('typed_blocker:external_component_decision_causal_time_invalid')
   }
+  const blockers = requiredDecisionBlockers(frozenCapsule)
   const body = {
     schema: 'mykrobial.harness.external-component-decision.v1' as const,
     decision_id: identifier(item.decision_id, 'external_component_decision_identity_invalid'),
@@ -589,27 +644,23 @@ export function acceptExternalComponentDecision(
     decision_payload_sha256: digest(item.decision_payload_sha256, 'external_component_decision_payload_invalid'),
     authority_receipt_sha256: optionalDigest(item.authority_receipt_sha256, 'external_component_decision_authority_receipt_invalid'),
     training_gate_receipt_sha256: optionalDigest(item.training_gate_receipt_sha256, 'external_component_decision_training_receipt_invalid'),
-    issued_at: timestamp(item.issued_at, 'external_component_decision_timestamp_invalid'),
+    issued_at: issuedAt,
     trust_state: 'untrusted_external_input' as const,
     authority_verified: false as const,
     training_gate_verified: false as const,
     apply_authorized: false as const,
     promotion_authorized: false as const,
     blockers,
-    non_claims: [
-      'not_optimizer_execution',
-      'not_independent_evaluation',
-      'not_authority_verification',
-      'not_training_gate_verification',
-      'not_component_application',
-      'not_promotion',
-      'not_deployment',
-    ],
+    non_claims: [...DECISION_NON_CLAIMS],
   }
   return { ...body, external_input_sha256: canonicalSha256(body) }
 }
 
-function validateExternalDecision(value: ExternalComponentDecision): ExternalComponentDecision {
+function validateExternalDecision(
+  value: ExternalComponentDecision,
+  capsule: ComponentExperimentCapsule,
+): ExternalComponentDecision {
+  const frozenCapsule = validateCapsule(capsule)
   record(value, [
     'schema', 'decision_id', 'capsule_id', 'capsule_sha256', 'decision_kind', 'disposition', 'issuer_id',
     'issuer_artifact_sha256', 'decision_payload_sha256', 'authority_receipt_sha256',
@@ -634,6 +685,11 @@ function validateExternalDecision(value: ExternalComponentDecision): ExternalCom
   stringList(value.non_claims, 'external_component_decision_non_claims_invalid')
   const expected = canonicalSha256(Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'external_input_sha256')))
   if (value.schema !== 'mykrobial.harness.external-component-decision.v1'
+    || value.capsule_id !== frozenCapsule.capsule_id
+    || value.capsule_sha256 !== frozenCapsule.capsule_sha256
+    || timestampOrdinal(value.issued_at) < timestampOrdinal(frozenCapsule.created_at)
+    || blockers.join('\u0000') !== requiredDecisionBlockers(frozenCapsule).join('\u0000')
+    || value.non_claims.join('\u0000') !== DECISION_NON_CLAIMS.join('\u0000')
     || !['optimizer_recommendation', 'promotion_recommendation', 'rollback_recommendation'].includes(value.decision_kind)
     || !['accept_candidate', 'reject_candidate', 'revise_candidate', 'no_change', 'rollback'].includes(value.disposition)
     || value.trust_state !== 'untrusted_external_input' || value.authority_verified !== false
@@ -642,6 +698,14 @@ function validateExternalDecision(value: ExternalComponentDecision): ExternalCom
     throw new Error('typed_blocker:external_component_decision_invalid')
   }
   return value
+}
+
+/** Revalidate an untrusted serialized external component decision. */
+export function validateExternalComponentDecision(
+  value: ExternalComponentDecision,
+  capsule: ComponentExperimentCapsule,
+): ExternalComponentDecision {
+  return structuredClone(validateExternalDecision(value, capsule))
 }
 
 function operationSteps(operation: ComponentPlanOperation): string[] {
@@ -672,6 +736,44 @@ function operationSteps(operation: ComponentPlanOperation): string[] {
   ]
 }
 
+const PLAN_NON_CLAIMS = [
+  'not_component_activation',
+  'not_component_deactivation',
+  'not_replay_execution',
+  'not_rollback_execution',
+  'not_authority_verification',
+  'not_trace_append',
+  'not_deployment',
+] as const
+
+function requiredPlanBlockers(
+  operation: ComponentPlanOperation,
+  decision: ExternalComponentDecision,
+  replayReceipt: string | null,
+  rollbackReceipt: string | null,
+): string[] {
+  const blockers = [...decision.blockers]
+  if (operation === 'rollback' && rollbackReceipt === null) {
+    blockers.push('typed_blocker:rollback_receipt_missing')
+  }
+  if (operation === 'replay' && replayReceipt === null) {
+    blockers.push('typed_blocker:replay_receipt_missing')
+  }
+  if (operation === 'swap' && decision.disposition !== 'accept_candidate') {
+    blockers.push('typed_blocker:decision_disposition_incompatible_with_swap')
+  }
+  if (operation === 'rollback' && decision.disposition !== 'rollback') {
+    blockers.push('typed_blocker:decision_disposition_incompatible_with_rollback')
+  }
+  return [...new Set(blockers)].sort()
+}
+
+function planIdentity(value: Omit<ComponentReconfigurationPlan, 'plan_sha256'>): unknown {
+  return Object.fromEntries(
+    Object.entries(value).filter(([key]) => !['schema', 'plan_id'].includes(key)),
+  )
+}
+
 /**
  * Prepare a no-apply CORDIS lifecycle/loadout swap, rollback, or replay plan.
  * @param input - Exact capsule, untrusted decision, lifecycle, loadout, and receipt facts.
@@ -688,7 +790,9 @@ export function prepareComponentReconfigurationPlan(input: PrepareComponentPlanI
   }
   const operation = item.operation as ComponentPlanOperation
   const capsule = structuredClone(validateCapsule(item.capsule as ComponentExperimentCapsule))
-  const decision = structuredClone(validateExternalDecision(item.decision as ExternalComponentDecision))
+  const decision = structuredClone(validateExternalDecision(
+    item.decision as ExternalComponentDecision, capsule,
+  ))
   if (decision.capsule_id !== capsule.capsule_id
     || decision.capsule_sha256 !== capsule.capsule_sha256) {
     throw new Error('typed_blocker:component_reconfiguration_decision_invalid')
@@ -699,18 +803,11 @@ export function prepareComponentReconfigurationPlan(input: PrepareComponentPlanI
   }
   const replayReceipt = optionalDigest(item.replay_receipt_sha256, 'component_reconfiguration_replay_receipt_invalid')
   const rollbackReceipt = optionalDigest(item.rollback_receipt_sha256, 'component_reconfiguration_rollback_receipt_invalid')
-  const blockers = [...decision.blockers]
-  if (operation === 'rollback' && rollbackReceipt === null) blockers.push('typed_blocker:rollback_receipt_missing')
-  if (operation === 'replay' && replayReceipt === null) blockers.push('typed_blocker:replay_receipt_missing')
-  if (operation === 'swap' && decision.disposition !== 'accept_candidate') {
-    blockers.push('typed_blocker:decision_disposition_incompatible_with_swap')
+  const requestedAt = timestamp(item.requested_at, 'component_reconfiguration_timestamp_invalid')
+  if (timestampOrdinal(requestedAt) < timestampOrdinal(decision.issued_at)) {
+    throw new Error('typed_blocker:component_reconfiguration_causal_time_invalid')
   }
-  if (operation === 'rollback' && decision.disposition !== 'rollback') {
-    blockers.push('typed_blocker:decision_disposition_incompatible_with_rollback')
-  }
-  const body = {
-    schema: 'mykrobial.harness.component-reconfiguration-plan.v1' as const,
-    plan_id: `component-${operation}-${canonicalSha256({ capsule: capsule.capsule_sha256, decision: decision.external_input_sha256 }).slice(0, 24)}`,
+  const immutable = {
     operation,
     capsule_id: capsule.capsule_id,
     capsule_sha256: capsule.capsule_sha256,
@@ -728,22 +825,107 @@ export function prepareComponentReconfigurationPlan(input: PrepareComponentPlanI
     replay_receipt_sha256: replayReceipt,
     rollback_receipt_sha256: rollbackReceipt,
     steps: operationSteps(operation),
-    blockers: [...new Set(blockers)].sort(),
-    requested_at: timestamp(item.requested_at, 'component_reconfiguration_timestamp_invalid'),
+    blockers: requiredPlanBlockers(operation, decision, replayReceipt, rollbackReceipt),
+    requested_at: requestedAt,
     state: 'prepared_unexecuted' as const,
     apply_authorized: false as const,
     trace_append_authorized: false as const,
-    non_claims: [
-      'not_component_activation',
-      'not_component_deactivation',
-      'not_replay_execution',
-      'not_rollback_execution',
-      'not_authority_verification',
-      'not_trace_append',
-      'not_deployment',
-    ],
+    non_claims: [...PLAN_NON_CLAIMS],
   }
-  return { ...body, plan_sha256: canonicalSha256(body) }
+  const body = {
+    schema: 'mykrobial.harness.component-reconfiguration-plan.v1' as const,
+    plan_id: `component-${operation}-${canonicalSha256(immutable).slice(0, 24)}`,
+    ...immutable,
+  }
+  return validateComponentReconfigurationPlan(
+    { ...body, plan_sha256: canonicalSha256(body) }, capsule, decision,
+  )
+}
+
+/** Revalidate an untrusted serialized no-apply component reconfiguration plan. */
+export function validateComponentReconfigurationPlan(
+  value: ComponentReconfigurationPlan,
+  capsule: ComponentExperimentCapsule,
+  decision: ExternalComponentDecision,
+): ComponentReconfigurationPlan {
+  const frozenCapsule = validateCapsule(capsule)
+  const frozenDecision = validateExternalDecision(decision, frozenCapsule)
+  record(value, [
+    'schema', 'plan_id', 'operation', 'capsule_id', 'capsule_sha256', 'decision_id',
+    'decision_external_input_sha256', 'target_component_ids', 'target_surface_ids',
+    'component_lifecycle_contract', 'loadout_contract',
+    'component_lifecycle_contract_sha256', 'loadout_contract_sha256',
+    'current_component_snapshot_sha256', 'current_loadout_manifest_sha256',
+    'dependency_closure_sha256', 'replay_receipt_sha256', 'rollback_receipt_sha256',
+    'steps', 'blockers', 'requested_at', 'state', 'apply_authorized',
+    'trace_append_authorized', 'non_claims', 'plan_sha256',
+  ], 'component_reconfiguration_plan_closed_object_invalid')
+  if (!['swap', 'rollback', 'replay'].includes(value.operation)) {
+    throw new Error('typed_blocker:component_reconfiguration_operation_invalid')
+  }
+  identifier(value.plan_id, 'component_reconfiguration_plan_identity_invalid')
+  identifier(value.capsule_id, 'component_reconfiguration_capsule_identity_invalid')
+  digest(value.capsule_sha256, 'component_reconfiguration_capsule_identity_invalid')
+  identifier(value.decision_id, 'component_reconfiguration_decision_identity_invalid')
+  digest(value.decision_external_input_sha256, 'component_reconfiguration_decision_identity_invalid')
+  if (!Array.isArray(value.target_component_ids) || value.target_component_ids.length === 0
+    || value.target_component_ids.length > 16
+    || value.target_component_ids.some(item => !IDENTIFIER.test(item))
+    || new Set(value.target_component_ids).size !== value.target_component_ids.length
+    || value.target_component_ids.join('\u0000') !== [...value.target_component_ids].sort().join('\u0000')
+    || !Array.isArray(value.target_surface_ids) || value.target_surface_ids.length === 0
+    || value.target_surface_ids.length > 16
+    || value.target_surface_ids.some(item => !SURFACES.has(item))
+    || new Set(value.target_surface_ids).size !== value.target_surface_ids.length
+    || value.target_surface_ids.join('\u0000') !== [...value.target_surface_ids].sort().join('\u0000')) {
+    throw new Error('typed_blocker:component_reconfiguration_targets_invalid')
+  }
+  digest(value.component_lifecycle_contract_sha256, 'component_reconfiguration_contract_invalid')
+  digest(value.loadout_contract_sha256, 'component_reconfiguration_contract_invalid')
+  digest(value.current_component_snapshot_sha256, 'component_reconfiguration_snapshot_invalid')
+  digest(value.current_loadout_manifest_sha256, 'component_reconfiguration_loadout_invalid')
+  digest(value.dependency_closure_sha256, 'component_reconfiguration_dependency_closure_invalid')
+  const replayReceipt = optionalDigest(value.replay_receipt_sha256, 'component_reconfiguration_replay_receipt_invalid')
+  const rollbackReceipt = optionalDigest(value.rollback_receipt_sha256, 'component_reconfiguration_rollback_receipt_invalid')
+  const blockers = stringList(value.blockers, 'component_reconfiguration_blockers_invalid')
+  if (blockers.length === 0 || blockers.length > 16
+    || blockers.some(blocker => !blocker.startsWith('typed_blocker:'))) {
+    throw new Error('typed_blocker:component_reconfiguration_blockers_invalid')
+  }
+  stringList(value.non_claims, 'component_reconfiguration_non_claims_invalid')
+  const requestedAt = timestamp(value.requested_at, 'component_reconfiguration_timestamp_invalid')
+  const { plan_sha256: _planSha256, ...withoutPlanSha256 } = value
+  const expectedPlanId = `component-${value.operation}-${canonicalSha256(
+    planIdentity(withoutPlanSha256),
+  ).slice(0, 24)}`
+  const expectedSha256 = canonicalSha256(
+    Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'plan_sha256')),
+  )
+  if (value.schema !== 'mykrobial.harness.component-reconfiguration-plan.v1'
+    || value.plan_id !== expectedPlanId
+    || value.capsule_id !== frozenCapsule.capsule_id
+    || value.capsule_sha256 !== frozenCapsule.capsule_sha256
+    || value.decision_id !== frozenDecision.decision_id
+    || value.decision_external_input_sha256 !== frozenDecision.external_input_sha256
+    || value.target_component_ids.join('\u0000') !== frozenCapsule.target_component_ids.join('\u0000')
+    || value.target_surface_ids.join('\u0000') !== frozenCapsule.target_surface_ids.join('\u0000')
+    || value.component_lifecycle_contract !== 'mykrobial.component-snapshot.v1'
+    || value.loadout_contract !== 'mykrobial.harness.loadout-manifest.v1'
+    || value.component_lifecycle_contract_sha256
+      !== frozenCapsule.source_binding.component_lifecycle_contract_sha256
+    || value.loadout_contract_sha256 !== frozenCapsule.source_binding.loadout_contract_sha256
+    || value.current_loadout_manifest_sha256 !== frozenCapsule.task_binding.loadout_manifest_sha256
+    || blockers.join('\u0000') !== requiredPlanBlockers(
+      value.operation, frozenDecision, replayReceipt, rollbackReceipt,
+    ).join('\u0000')
+    || value.non_claims.join('\u0000') !== PLAN_NON_CLAIMS.join('\u0000')
+    || timestampOrdinal(requestedAt) < timestampOrdinal(frozenDecision.issued_at)
+    || value.steps.join('\u0000') !== operationSteps(value.operation).join('\u0000')
+    || value.state !== 'prepared_unexecuted' || value.apply_authorized !== false
+    || value.trace_append_authorized !== false || value.plan_sha256 !== expectedSha256) {
+    throw new Error('typed_blocker:component_reconfiguration_plan_invalid')
+  }
+  return structuredClone(value)
 }
 
 function artifactRef(value: unknown): ArtifactRef {

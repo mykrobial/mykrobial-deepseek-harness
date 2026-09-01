@@ -1,0 +1,331 @@
+{
+  "schema": "mykrobial.goalrun.component-rsi-operator-view-round-5-fresh-critic-blocker.v1",
+  "review_id": "component-rsi-operator-view-v1-round-5-fresh-critic",
+  "generated_at": "2026-09-01T06:57:36Z",
+  "review_kind": "distinct_fresh_context_deterministic_source_only_adversarial_review",
+  "verdict": "source_blocked",
+  "accepted": false,
+  "reviewed": false,
+  "execution_authorized": false,
+  "manifest_excluded": true,
+  "typed_blocker": "typed_blocker:component_evolution_accepted_artifact_execution_admission_missing",
+  "largest_evidenced_gap": "The Round 4 stale-digest aliases are closed, but complete content-hashed capsule, decision, and plan artifacts are treated as sufficient runtime evidence without proving that the immutable plan is executable. A constructor-produced replay plan that still contains typed_blocker:replay_receipt_missing and no replay receipt, and a constructor-produced swap plan whose rollback disposition leaves typed_blocker:decision_disposition_incompatible_with_swap, can both be marked applied, projected as runtime_verified, and accepted unchanged by the public revalidator.",
+  "candidate": {
+    "worktree": "/Users/kalcypher/Projects/_worktrees/mykrobial-deepseek-component-rsi-operator-view-v1",
+    "commit": "11ca0aeca0633882854979f37243d85ac0ddeced",
+    "tree": "cd0e78710f949bb3223a39d5baa388fa963c8899",
+    "clean_before_review": true,
+    "clean_after_checks_before_review_artifact": true,
+    "candidate_source_changed_by_critic": false
+  },
+  "supplied_bindings": {
+    "round_1_blocker_ref": "goalrun/component-rsi-operator-view-v1/FRESH-CRITIC-BLOCKER.v1.json",
+    "round_1_blocker_sha256": "1d3702f803c9133e55c0397aac71c99a4fe668eb66f04d59c06600b108abdc9",
+    "round_2_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-2-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_2_blocker_sha256": "45daa0e5193e3d9a5703c1d625b7a0c77974fcbc84d2f64d68f37f00537a3388",
+    "round_3_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-3-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_3_blocker_sha256": "bc89ca36bd4da554356bfb6e320411132107411c4bcdb4294c6fea2c53685a85",
+    "round_4_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-4-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_4_blocker_sha256": "3e7b9ff3307901105102f2e715fae9bad5c6f651dc2297914b2a238f5940d205",
+    "content_manifest_ref": "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+    "content_manifest_sha256": "384c1ff04491b14b5303d63b89887fd8488d1cce5656f95d6c208e8ab7683225",
+    "content_file_count": 11,
+    "source_receipt_ref": "goalrun/component-rsi-operator-view-v1/SOURCE-RECEIPT.v1.json",
+    "source_receipt_sha256": "a74a593831efd2e439108212efa1acd0b1e3c024fd0f8410b0eeec15db1d70fa",
+    "accepted_component_seam_ref": "goalrun/component-rsi-seam-v1/ROUND-3-FRESH-CRITIC-ACCEPTANCE.v1.json",
+    "accepted_component_seam_sha256": "d486ad05503df956cd2195d7db7162d756f07e9575d496159640032f948ed3a5",
+    "state": "matched"
+  },
+  "declared_verification": {
+    "node_executable": "/opt/homebrew/bin/node",
+    "node_version": "v25.9.0",
+    "integrated_node_tests": {
+      "command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts packages/mykrobial/operator-projections/tests/source-safe.test.ts",
+      "passed": 52,
+      "failed": 0,
+      "component_seam_passed": 24,
+      "operator_projection_passed": 28
+    },
+    "typescript_syntax_checks": {
+      "passed": 6,
+      "failed": 0,
+      "paths": [
+        "packages/mykrobial/component-rsi-seam/src/index.ts",
+        "packages/mykrobial/component-rsi-seam/src/types.ts",
+        "packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts",
+        "packages/mykrobial/operator-projections/src/component-evolution.ts",
+        "packages/mykrobial/operator-projections/src/index.ts",
+        "packages/mykrobial/operator-projections/tests/source-safe.test.ts"
+      ]
+    },
+    "strict_authored_json_parses": {
+      "passed": 3,
+      "failed": 0,
+      "duplicate_keys_rejected": true,
+      "nonfinite_constants_rejected": true,
+      "paths": [
+        "contracts/mykrobial/component-rsi-seam.v1.schema.json",
+        "contracts/mykrobial/omnigent-component-evolution-read-model.v1.schema.json",
+        "goalrun/component-rsi-operator-view-v1/RUN-ENVELOPE.v1.json"
+      ]
+    },
+    "sha256_manifest": {
+      "command": "shasum -a 256 -c goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+      "passed": 11,
+      "failed": 0
+    },
+    "adversarial_node_matrix": {
+      "command_shape": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --input-type=module -",
+      "status": "completed",
+      "candidate_files_written": 0
+    },
+    "git_diff_check": "passed",
+    "working_tree_clean_after_checks_before_blocker": true
+  },
+  "preserved_prior_blockers": [
+    {
+      "round": 1,
+      "typed_blocker": "typed_blocker:component_evolution_semantic_cross_bindings_missing",
+      "artifact_sha256": "1d3702f803c9133e55c0397aac71c99a4fe668eb66f04d59c06600b108abdc9",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 2,
+      "typed_blocker": "typed_blocker:component_evolution_year_00_99_chronology_alias",
+      "artifact_sha256": "45daa0e5193e3d9a5703c1d625b7a0c77974fcbc84d2f64d68f37f00537a3388",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 3,
+      "typed_blocker": "typed_blocker:component_evolution_exact_capsule_bindings_not_projected",
+      "artifact_sha256": "bc89ca36bd4da554356bfb6e320411132107411c4bcdb4294c6fea2c53685a85",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 4,
+      "typed_blocker": "typed_blocker:component_evolution_stale_artifact_digest_aliases_accepted",
+      "artifact_sha256": "3e7b9ff3307901105102f2e715fae9bad5c6f651dc2297914b2a238f5940d205",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    }
+  ],
+  "prior_counterexample_replay": {
+    "round_1": {
+      "fractional_valid_time_reversal": "rejected",
+      "reversed_transaction_timeline": "rejected",
+      "cross_lineage_parent": "rejected",
+      "target_surface_component_mismatch": "rejected",
+      "verified_unapplied_without_verification_receipt": "rejected",
+      "lower_causality_with_receipt": "rejected",
+      "runtime_applied_with_planned_arms": "rejected",
+      "global_deployed_with_runtime_only_experiment": "rejected",
+      "rolled_back_without_application_receipt": "rejected"
+    },
+    "round_2": {
+      "reversed_valid_interval_0099_0100": "rejected",
+      "parent_after_child_0099_0100": "rejected",
+      "timeline_reversal_0099_0100": "rejected",
+      "exact_stale_public_projection": "rejected",
+      "ascending_0000_0099": "accepted_source_verified",
+      "ascending_0000_9999": "accepted_source_verified",
+      "reversed_9999_0000": "rejected"
+    },
+    "round_3": {
+      "base_true_applied_delta_semantics_swapped": "rejected",
+      "wrong_control_strategy": "rejected",
+      "true_delta_not_target_set": "rejected",
+      "capsule_digest_changed_without_decision_and_plan_rebind": "rejected",
+      "decision_external_input_changed_without_plan_rebind": "rejected",
+      "stale_plan_capsule_digest": "rejected",
+      "stale_decision_capsule_id": "rejected",
+      "stale_plan_decision_id": "rejected",
+      "exact_public_reseals": "rejected"
+    },
+    "round_4": {
+      "synchronized_capsule_id_with_stale_artifact_digests": "rejected",
+      "synchronized_decision_id_with_stale_artifact_digests": "rejected",
+      "plan_id_with_stale_plan_digest": "rejected",
+      "disposition_with_stale_decision_digest": "rejected",
+      "plane_with_stale_capsule_digest": "rejected",
+      "target_with_stale_capsule_digest": "rejected",
+      "loadout_with_stale_capsule_digest": "rejected",
+      "standalone_stale_plan_digest": "rejected_with_typed_blocker:component_reconfiguration_plan_invalid"
+    }
+  },
+  "new_counterexample": {
+    "name": "content_valid_blocked_plan_supports_runtime_verified",
+    "precondition": "The capsule, decision, and plan are complete constructor-produced artifacts that each pass their public accepted-artifact validator.",
+    "cases": [
+      {
+        "name": "replay_plan_missing_its_required_receipt",
+        "operation": "replay",
+        "immutable_replay_receipt_sha256": null,
+        "mutable_replay_receipt_sha256": null,
+        "plan_blockers": [
+          "typed_blocker:external_decision_authority_unverified",
+          "typed_blocker:replay_receipt_missing"
+        ],
+        "observed_proof_level": "runtime_verified",
+        "public_projection_revalidation": "accepted_same_view_sha256",
+        "view_sha256": "7356f3edd788a5aec3b0d3cd1e4150f498753742d1f727c0999c29d2e4fe59ff"
+      },
+      {
+        "name": "swap_plan_incompatible_with_rollback_disposition",
+        "operation": "swap",
+        "decision_disposition": "rollback",
+        "plan_blockers": [
+          "typed_blocker:decision_disposition_incompatible_with_swap",
+          "typed_blocker:external_decision_authority_unverified"
+        ],
+        "observed_proof_level": "runtime_verified",
+        "public_projection_revalidation": "accepted_same_view_sha256",
+        "view_sha256": "7f9ad2eec8c248c9ff2e106f792abb9ed1e495451a9c67f81f319b466943a5ab"
+      }
+    ],
+    "cause": "experimentRow validates the immutable artifacts and mutable receipt presence independently, but its runtime floor never requires the plan artifact's operation blockers to be resolved, never requires a replay receipt for a replay operation, and never rechecks decision disposition against plan operation. The top-level runtime floor then accepts the experiment, and the public revalidator rebuilds through the same weakened constructor.",
+    "falsified_claims": [
+      "accepted_artifact_content_identity_is_sufficient_for_runtime_projection",
+      "runtime_proof_requires_complete_operation_specific_evidence",
+      "public_revalidation_rejects_semantically_blocked_runtime_projections"
+    ]
+  },
+  "requested_attack_matrix": {
+    "synchronized_capsule_decision_plan_ids": "stale-digest substitutions rejected; fully rehashed chains are accepted as new content-addressed chains and have no binding to the originally accepted generation",
+    "disposition_change": "constructor-produced incompatible swap plan accepted_runtime_verified; view_sha256=7f9ad2eec8c248c9ff2e106f792abb9ed1e495451a9c67f81f319b466943a5ab",
+    "plane_target_loadout_arm_rehash": "accepted_runtime_verified while proposal_sha256 stayed unchanged and capsule loadout differed from active_loadout; view_sha256=a3fa5f1106d0141a72db2fc878fd53414285aa9daf38ecaa66a73cfb4db67c71",
+    "stale_standalone_plan_digest": "rejected_with_typed_blocker:component_reconfiguration_plan_invalid",
+    "plan_id_derivation": {
+      "result": "different immutable plan bodies can retain the same plan_id",
+      "same_plan_id": true,
+      "original_plan_sha256": "dd75b8ae060c78610a392e0a7cf60c2cdbb5218205a4cdc1fda98a24c98cfec1",
+      "rebound_plan_sha256": "aadd375223af7d187d5f595c5b5a5264aa67d4a0f029f1ac8722882295cdc4d7",
+      "accepted_runtime_view_sha256": "0cb23f55407dda380270b617804c1aa54e4c8c7ad1191bc25e981bb129329de5"
+    },
+    "plan_steps": "rehashed step-order substitution rejected_with_typed_blocker:component_reconfiguration_plan_invalid",
+    "plan_and_decision_blockers_nonclaims": "rehashed policy erasure accepted_runtime_verified; view_sha256=c28706a51be04fda9fd11e5e82f240cf27729a0fc5687e2c9065763181fbec9f",
+    "direct_capsule_decision_plan_artifact_substitution": "rejected when original outer experiment bindings remain; exact capsule decision plan identities and targets are cross-checked",
+    "synchronized_full_chain_substitution": "accepted after every artifact and outer summary is rehashed; provenance to the original proposal or accepted generation is not revalidated",
+    "mutable_execution_state_separation": "immutable plan content stays unchanged, but mutable applied state can bypass unresolved operation blockers and operation-specific receipts",
+    "public_schema_and_revalidator": "shape closure and stale hashes reject; all new accepted counterexamples pass constructor rebuild and equal view_sha256 revalidation",
+    "proof_lattice": "round 1 global and experiment floor regressions stay closed, but runtime_verified admits a semantically blocked plan",
+    "time_edges": "capsule created 2026-08-31T20:01:00Z, decision issued 2026-08-31T19:59:00Z, and plan requested 2026-08-31T19:58:00Z were accepted_runtime_verified; view_sha256=2d641203179083d972c2c0ffb94ba12953a3938f0faacd466384d70cb94a370e",
+    "root_and_nested_closure": "passed",
+    "authority_false": "immutable artifact authority booleans remain false; no execution authority, receipt authenticity, human approval, or deployment is proven by this review"
+  },
+  "accepted_artifact_validator_audit": {
+    "complete_capsule_required": true,
+    "complete_decision_required_when_state_not_none": true,
+    "complete_plan_required_when_state_not_none": true,
+    "capsule_content_hash_recomputed": true,
+    "decision_content_hash_recomputed": true,
+    "plan_content_hash_recomputed": true,
+    "stale_summary_or_artifact_hash_rejected": true,
+    "plan_steps_rederived": true,
+    "plan_id_rederived_from_operation_capsule_and_decision_only": true,
+    "required_decision_blocker_set_rederived": false,
+    "required_artifact_nonclaim_sets_rederived": false,
+    "required_plan_blocker_set_rederived": false,
+    "capsule_derivation_from_complete_proposal_revalidated": false,
+    "capsule_loadout_bound_to_operator_active_loadout": false,
+    "artifact_causal_time_order_revalidated": false,
+    "runtime_state_requires_resolved_operation_blockers": false,
+    "runtime_state_requires_operation_specific_receipts": false,
+    "public_revalidator_rejects_new_counterexample": false
+  },
+  "decisive_source": [
+    {
+      "path": "packages/mykrobial/component-rsi-seam/src/index.ts",
+      "lines": "619-648",
+      "finding": "The public decision validator recomputes the digest and fixed authority booleans but accepts any nonempty typed blocker list and any bounded non-claim list."
+    },
+    {
+      "path": "packages/mykrobial/component-rsi-seam/src/index.ts",
+      "lines": "694-760",
+      "finding": "The constructor preserves missing replay receipts and incompatible operation/disposition states as blockers in a complete prepared plan rather than execution admission."
+    },
+    {
+      "path": "packages/mykrobial/component-rsi-seam/src/index.ts",
+      "lines": "764-827",
+      "finding": "The plan validator rederives steps, plan_id, and content hash but does not rederive required blockers or non-claims; plan_id omits the remainder of the immutable plan body."
+    },
+    {
+      "path": "packages/mykrobial/operator-projections/src/component-evolution.ts",
+      "lines": "342-510",
+      "finding": "The operator revalidates complete artifacts and summary joins but does not bind active_loadout to the capsule or require immutable plan blockers to be resolved."
+    },
+    {
+      "path": "packages/mykrobial/operator-projections/src/component-evolution.ts",
+      "lines": "511-521",
+      "finding": "Experiment runtime proof requires completed arms, a verified decision, and applied or rolled-back mutable plan state, but not operation compatibility or operation-specific receipts."
+    },
+    {
+      "path": "packages/mykrobial/operator-projections/src/component-evolution.ts",
+      "lines": "694-708, 726-748",
+      "finding": "The global proof floor consumes the weakened experiment result, and the public revalidator rebuilds through the same constructor."
+    },
+    {
+      "path": "contracts/mykrobial/component-rsi-seam.v1.schema.json",
+      "lines": "735-1007",
+      "finding": "The public accepted-artifact schemas close objects but express blocker and non-claim syntax rather than the constructor-derived policy sets."
+    }
+  ],
+  "required_repair": [
+    "Treat accepted-artifact content validation and runtime execution admission as separate gates. Runtime or deployed projection must reject any unresolved operation blocker and require the exact operation-specific receipt and disposition compatibility.",
+    "Recompute required capsule, decision, and plan policy fields, including blocker and non-claim sets, or carry a validated derivation envelope that makes those sets mechanically recoverable.",
+    "Bind the capsule to its complete validated proposal or an equivalent proposal content-identity envelope, and bind any applied plan's capsule loadout to the operator active-loadout generation.",
+    "Make plan identity cover every immutable plan semantic or add an explicit plan generation/content identity so different plan bodies cannot alias under one plan_id.",
+    "Enforce capsule-created, decision-issued, and plan-requested causal time ordering for a single accepted artifact chain.",
+    "Freeze unresolved replay, incompatible disposition, policy erasure, rehashed semantic rebound, plan-id alias, reversed artifact time, direct cross-experiment substitution, and public-revalidator variants as regressions, then rebuild the exact manifest and source receipt and request a distinct fresh critic."
+  ],
+  "operation_state": {
+    "candidate_source_edits": 0,
+    "critic_artifact_files_written": 1,
+    "dependency_acquisition_executed": false,
+    "package_manager_executed": false,
+    "build_executed": false,
+    "runtime_or_service_executed": false,
+    "provider_or_model_executed": false,
+    "trace_executed": false,
+    "training_executed": false,
+    "optimizer_executed": false,
+    "component_application_executed": false,
+    "promotion_executed": false,
+    "deployment_executed": false
+  },
+  "route": {
+    "task_class": "component_system",
+    "agent_id": "agent:mykrobial-design",
+    "registry_sha256": "6da1ae96093f6e9310878d0e3f961461a68ebcfb2b869cbb9fcfc7934d54cb29",
+    "route_outcome": "resolved",
+    "provider_execution_verified": false,
+    "downstream_agent_invoked": false
+  },
+  "trace": {
+    "emitted": false,
+    "typed_blocker": "typed_blocker:trace_execution_forbidden_by_source_only_critic_scope"
+  },
+  "output_predicate": {
+    "candidate_answer_buffered_before_release": true,
+    "canonical_names_checked": true,
+    "requested_vs_verified_boundaries_checked": true,
+    "hard_live_commentary_egress_verifier_available": false,
+    "mathematical_pre_release_enforcement_claimed": false
+  },
+  "non_claims": [
+    "not_human_or_founder_review",
+    "not_reviewed_true",
+    "not_execution_authorized",
+    "not_package_install_or_build",
+    "not_runtime_or_provider_execution",
+    "not_receipt_authenticity_or_issuer_verification",
+    "not_model_or_optimizer_execution",
+    "not_trace_append",
+    "not_training",
+    "not_component_application",
+    "not_promotion",
+    "not_deployment_or_fleet_rollout"
+  ]
+}

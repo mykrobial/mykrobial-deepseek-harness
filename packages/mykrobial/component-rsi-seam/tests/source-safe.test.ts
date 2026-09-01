@@ -11,6 +11,9 @@ import {
   prepareComponentMutationProposal,
   prepareComponentReconfigurationPlan,
   projectComponentExperimentLifecycle,
+  validateComponentExperimentCapsule,
+  validateComponentReconfigurationPlan,
+  validateExternalComponentDecision,
   type ComponentExperimentCapsule,
   type ComponentMutationProposal,
   type ExternalComponentDecisionInput,
@@ -61,6 +64,7 @@ function jointCapsule(proposal = prepareComponentMutationProposal(copy(joint.pro
   fields.task_binding.task_capsule_id = proposal.task_capsule_id
   fields.task_binding.loadout_id = proposal.loadout_id
   fields.arms[1]!.applied_delta_sha256 = proposal.target_set_sha256
+  fields.created_at = '2026-08-31T21:01:00Z'
   return prepareComponentExperimentCapsule({ ...fields, proposal })
 }
 
@@ -247,26 +251,109 @@ test('swap plan binds lifecycle and loadout contracts but never applies', () => 
   assert.ok(plan.blockers.includes('typed_blocker:external_decision_authority_unverified'))
 })
 
+test('public artifact validators recheck exact capsule decision and plan content identities', () => {
+  assert.ok(single.plan_fields)
+  const capsule = singleCapsule()
+  const decision = acceptExternalComponentDecision(copy(single.decision_input), capsule)
+  const plan = prepareComponentReconfigurationPlan({ ...copy(single.plan_fields), capsule, decision })
+  assert.deepEqual(validateComponentExperimentCapsule(copy(capsule)), capsule)
+  assert.deepEqual(validateExternalComponentDecision(copy(decision), capsule), decision)
+  assert.deepEqual(validateComponentReconfigurationPlan(copy(plan), capsule, decision), plan)
+
+  const capsuleAlias = copy(capsule)
+  capsuleAlias.capsule_id = 'synchronized-capsule-alias'
+  assert.throws(
+    () => validateComponentExperimentCapsule(capsuleAlias),
+    /typed_blocker:component_experiment_capsule_invalid/,
+  )
+  const decisionAlias = copy(decision)
+  decisionAlias.decision_id = 'synchronized-decision-alias'
+  assert.throws(
+    () => validateExternalComponentDecision(decisionAlias, capsule),
+    /typed_blocker:external_component_decision_invalid/,
+  )
+  const planAlias = copy(plan)
+  planAlias.plan_id = 'synchronized-plan-alias'
+  assert.throws(
+    () => validateComponentReconfigurationPlan(planAlias, capsule, decision),
+    /typed_blocker:component_reconfiguration_plan_invalid/,
+  )
+  const planDigestAlias = copy(plan)
+  planDigestAlias.plan_sha256 = '0'.repeat(64)
+  assert.throws(
+    () => validateComponentReconfigurationPlan(planDigestAlias, capsule, decision),
+    /typed_blocker:component_reconfiguration_plan_invalid/,
+  )
+})
+
+test('artifact validators rederive policy sets causal order and full plan identity', () => {
+  assert.ok(single.plan_fields)
+  const capsule = singleCapsule()
+  const decision = acceptExternalComponentDecision(copy(single.decision_input), capsule)
+  const plan = prepareComponentReconfigurationPlan({ ...copy(single.plan_fields), capsule, decision })
+
+  const policyErasure = copy(decision)
+  policyErasure.blockers = ['typed_blocker:substituted_policy']
+  const { external_input_sha256: _oldDecisionSha, ...decisionBody } = policyErasure
+  policyErasure.external_input_sha256 = canonicalSha256(decisionBody)
+  assert.throws(
+    () => validateExternalComponentDecision(policyErasure, capsule),
+    /typed_blocker:external_component_decision_invalid/,
+  )
+
+  const planPolicyErasure = copy(plan)
+  planPolicyErasure.blockers = ['typed_blocker:substituted_policy']
+  const { plan_sha256: _oldPlanSha, ...planWithoutSha } = planPolicyErasure
+  const planIdentity = Object.fromEntries(
+    Object.entries(planWithoutSha).filter(([key]) => !['schema', 'plan_id'].includes(key)),
+  )
+  planPolicyErasure.plan_id = `component-${planPolicyErasure.operation}-${canonicalSha256(planIdentity).slice(0, 24)}`
+  const { plan_sha256: _ignored, ...resealedPlanBody } = planPolicyErasure
+  planPolicyErasure.plan_sha256 = canonicalSha256(resealedPlanBody)
+  assert.throws(
+    () => validateComponentReconfigurationPlan(planPolicyErasure, capsule, decision),
+    /typed_blocker:component_reconfiguration_plan_invalid/,
+  )
+
+  const laterSnapshotFields = copy(single.plan_fields)
+  laterSnapshotFields.current_component_snapshot_sha256 = 'f'.repeat(64)
+  const laterSnapshotPlan = prepareComponentReconfigurationPlan({
+    ...laterSnapshotFields, capsule, decision,
+  })
+  assert.notEqual(laterSnapshotPlan.plan_id, plan.plan_id)
+
+  const earlyDecision = copy(single.decision_input)
+  earlyDecision.issued_at = '2026-08-31T19:59:59Z'
+  assert.throws(
+    () => acceptExternalComponentDecision(earlyDecision, capsule),
+    /typed_blocker:external_component_decision_causal_time_invalid/,
+  )
+  const earlyPlanFields = copy(single.plan_fields)
+  earlyPlanFields.requested_at = '2026-08-31T20:01:59Z'
+  assert.throws(
+    () => prepareComponentReconfigurationPlan({ ...earlyPlanFields, capsule, decision }),
+    /typed_blocker:component_reconfiguration_causal_time_invalid/,
+  )
+})
+
 test('decision and plan reject a same-id capsule rebound to a different digest', () => {
   assert.ok(single.plan_fields)
   const original = singleCapsule()
   const decision = acceptExternalComponentDecision(copy(single.decision_input), original)
-  const rebound = copy(original)
-  const alternateLoadout = '0'.repeat(64)
-  rebound.task_binding.loadout_manifest_sha256 = alternateLoadout
-  for (const arm of rebound.arms) arm.loadout_manifest_sha256 = alternateLoadout
-  rebound.plane = 'frontier_builder_critic'
-  const { capsule_sha256: _old, ...body } = rebound
-  rebound.capsule_sha256 = canonicalSha256(body)
+  const proposalInput = copy(single.proposal_input)
+  proposalInput.plane = 'frontier_builder_critic'
+  const reboundProposal = prepareComponentMutationProposal(proposalInput)
+  const rebound = prepareComponentExperimentCapsule({
+    ...copy(single.capsule_fields), proposal: reboundProposal,
+  })
   assert.notEqual(rebound.capsule_sha256, original.capsule_sha256)
   assert.throws(
     () => prepareComponentReconfigurationPlan({
       ...copy(single.plan_fields),
-      current_loadout_manifest_sha256: alternateLoadout,
       capsule: rebound,
       decision,
     }),
-    /typed_blocker:component_reconfiguration_decision_invalid/,
+    /typed_blocker:external_component_decision_invalid/,
   )
 })
 

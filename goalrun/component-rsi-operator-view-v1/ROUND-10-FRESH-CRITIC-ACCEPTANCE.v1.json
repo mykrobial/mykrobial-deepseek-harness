@@ -1,0 +1,270 @@
+{
+  "schema": "mykrobial.goalrun.component-rsi-operator-view-round-10-fresh-critic-acceptance.v1",
+  "review_id": "component-rsi-operator-view-v1-round-10-fresh-critic",
+  "generated_at": "2026-09-01T08:43:48Z",
+  "review_kind": "distinct_fresh_context_source_only_critic",
+  "verdict": "accepted_source_only_read_model_scope",
+  "accepted": true,
+  "reviewed": false,
+  "execution_authorized": false,
+  "manifest_excluded": true,
+  "candidate": {
+    "worktree": "/Users/kalcypher/Projects/_worktrees/mykrobial-deepseek-component-rsi-operator-view-v1",
+    "commit": "b1dae628484275c39a2fc68bd5435386e53915b5",
+    "tree": "33b16fa2a8754f5c0b4a7d9a9b3abdda4a265b3f",
+    "clean_before_review": true,
+    "clean_after_checks_before_review_artifact": true,
+    "candidate_source_changed_by_critic": false
+  },
+  "supplied_bindings": {
+    "round_9_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-9-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_9_blocker_sha256": "95140607178fd00736a3967c7aec3cb4c3724c653e2cb05913796ba231b881a6",
+    "content_manifest_ref": "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+    "content_manifest_sha256": "08c6c43ec3cc184565ade399dd35ef38074b8a79e715ddea123f67b6ba2cd5c0",
+    "content_file_count": 12,
+    "source_receipt_ref": "goalrun/component-rsi-operator-view-v1/SOURCE-RECEIPT.v1.json",
+    "source_receipt_sha256": "f6b735d0b6facd0a40a3135a28f2aad540e3ffc9b3821872f26d8b0a21c6a99b",
+    "state": "matched"
+  },
+  "verification": {
+    "node_executable": "/opt/homebrew/bin/node",
+    "node_version": "v25.9.0",
+    "integrated_node_tests": {
+      "command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts packages/mykrobial/operator-projections/tests/source-safe.test.ts",
+      "passed": 58,
+      "failed": 0,
+      "component_seam_passed": 25,
+      "operator_projection_passed": 33
+    },
+    "typescript_syntax_checks": {
+      "passed": 6,
+      "failed": 0,
+      "paths": [
+        "packages/mykrobial/component-rsi-seam/src/index.ts",
+        "packages/mykrobial/component-rsi-seam/src/types.ts",
+        "packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts",
+        "packages/mykrobial/operator-projections/src/component-evolution.ts",
+        "packages/mykrobial/operator-projections/src/index.ts",
+        "packages/mykrobial/operator-projections/tests/source-safe.test.ts"
+      ]
+    },
+    "strict_authored_json_parses": {
+      "passed": 3,
+      "failed": 0,
+      "duplicate_keys_rejected": true,
+      "nonfinite_constants_rejected": true,
+      "paths": [
+        "contracts/mykrobial/component-rsi-seam.v1.schema.json",
+        "contracts/mykrobial/omnigent-component-evolution-read-model.v1.schema.json",
+        "goalrun/component-rsi-operator-view-v1/RUN-ENVELOPE.v1.json"
+      ]
+    },
+    "sha256_manifest": {
+      "command": "shasum -a 256 -c goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+      "passed": 12,
+      "failed": 0
+    },
+    "adversarial_node_matrix": {
+      "command_shape": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --input-type=module -",
+      "status": "passed",
+      "candidate_files_written": 0,
+      "baseline_result_id": "component-result-fbb3a1738addc6414de41351",
+      "baseline_result_sha256": "c9f64635681547c24fb3d40835f5d70725d4286649ed2979e1ca3f953d40112d"
+    }
+  },
+  "preserved_prior_blockers": [
+    {
+      "round": 1,
+      "typed_blocker": "typed_blocker:component_evolution_semantic_cross_bindings_missing",
+      "artifact_sha256": "1d3702f803c9133e55c0397aac71c99a4fe668eb66ef04d59c06600b108abdc9",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 2,
+      "typed_blocker": "typed_blocker:component_evolution_year_00_99_chronology_alias",
+      "artifact_sha256": "45daa0e5193e3d9a5703c1d625b7a0c77974fcbc84d2f64d68f37f00537a3388",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 3,
+      "typed_blocker": "typed_blocker:component_evolution_exact_capsule_bindings_not_projected",
+      "artifact_sha256": "bc89ca36bd4da554356bfb6e320411132107411c4bcdb4294c6fea2c53685a85",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 4,
+      "typed_blocker": "typed_blocker:component_evolution_stale_artifact_digest_aliases_accepted",
+      "artifact_sha256": "3e7b9ff3307901105102f2e715fae9bad5c6f651dc2297914b2a238f5940d205",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 5,
+      "typed_blocker": "typed_blocker:component_evolution_accepted_artifact_execution_admission_missing",
+      "artifact_sha256": "9abdc43b64a6ad104d0d5f23b316b164e941aec6931ec91e9d16a61298a449de",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 6,
+      "typed_blocker": "typed_blocker:component_evolution_post_operation_component_readback_missing",
+      "artifact_sha256": "e4688684d7e464812c558bffc3d181325ff782373996c5fe90d8ec8a11a3c756",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 7,
+      "typed_blocker": "typed_blocker:component_evolution_operation_result_observation_basis_incomplete",
+      "artifact_sha256": "bf31ba788b4c773662263a026b8921f18854c8b7bb0ef19f0eec78f35e944837",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 8,
+      "typed_blocker": "typed_blocker:component_evolution_receipt_lifecycle_causality_incomplete",
+      "artifact_sha256": "6a326c2298c2ca1182839030edbb4a07eb8691077829ae0ae9d5698b51e0024a",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 9,
+      "typed_blocker": "typed_blocker:component_evolution_cross_class_nonce_receipt_role_alias",
+      "artifact_sha256": "95140607178fd00736a3967c7aec3cb4c3724c653e2cb05913796ba231b881a6",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    }
+  ],
+  "prior_counterexample_replay": {
+    "round_1": "fractional valid-time reversal, transaction chronology reversal, cross-lineage parents, target-surface mismatch, proof overstatement, rollback receipt loss, and runtime/deployed floor variants rejected",
+    "round_2": "0099/0100 valid-time, parent-time, timeline, and public-reseal reversals rejected",
+    "round_3": "BASE TRUE SHAM semantic swaps and stale capsule, decision, plan, target-set, and public-reseal bindings rejected",
+    "round_4": "synchronized stale artifact IDs and digests, disposition, plane, target, loadout, plan-ID, and standalone plan-digest aliases rejected",
+    "round_5": "unresolved replay, incompatible disposition, policy erasure, stale outer bindings, reversed artifact time, loadout mismatch, and blocked-replay public reseal rejected",
+    "round_6": "inactive swap target with still-active parent rejected for runtime, deployed, and public-revalidation variants",
+    "round_7": "receipt-distinct result identity, parentless replacement, future-dated rows, replay drift, root supersets, and runtime/deployed/public variants rejected",
+    "round_8": "expired verification, future-issued operation receipt, same-position receipt ID, raw digest, nonce, reservation, consumption aliases, and exact runtime/deployed/public reseals rejected",
+    "round_9": "reservation-to-consumption and consumption-to-reservation aliases rejected at construction and after full envelope, basis, result-ID, result, runtime, deployed, and public resealing"
+  },
+  "round_10_attack_matrix": {
+    "eight_digest_roles": [
+      "verification_receipt.receipt_sha256",
+      "verification_receipt.nonce_sha256",
+      "verification_receipt.nonce_reservation_receipt_sha256",
+      "verification_receipt.nonce_consumption_receipt_sha256",
+      "operation_receipt.receipt_sha256",
+      "operation_receipt.nonce_sha256",
+      "operation_receipt.nonce_reservation_receipt_sha256",
+      "operation_receipt.nonce_consumption_receipt_sha256"
+    ],
+    "pairwise_role_permutations": {
+      "total": 28,
+      "cross_class": 16,
+      "within_envelope": 12,
+      "constructor_rejected": 28,
+      "fully_resealed_result_rejected": 28
+    },
+    "receipt_ids": {
+      "equal_verification_and_operation_id_rejected": true,
+      "receipt_id_content_addressed_by_envelope_basis_and_result": true
+    },
+    "authority_ids": {
+      "malformed_or_stale_unresealed_authority_id_rejected": true,
+      "changed_valid_authority_id_after_complete_reseal_accepted": true,
+      "acceptance_interpretation": "The authority ID is an unauthenticated projected backend fact. Both receipt envelopes retain issuer_authenticity_verified false and exact not_action_authority nonclaims, so changing and content-addressing that identifier does not claim replay authority, issuer authenticity, or action authority."
+    },
+    "envelope_and_result_reseals": {
+      "stale_envelope_or_result_hash_rejected": true,
+      "complete_semantic_alias_reseal_rejected": true,
+      "issuer_authenticity_promotion_after_reseal_rejected": true,
+      "required_receipt_nonclaim_erasure_after_reseal_rejected": true
+    },
+    "evidence_use_timing": {
+      "verification_expired_before_before_snapshot_rejected": true,
+      "operation_issued_before_observation_rejected": true,
+      "future_operation_issuance_at_root_generation_rejected": true,
+      "receipts_required_live_through_projection_generation": true
+    },
+    "exhaustive_snapshots": {
+      "missing_target_or_parent_readback_rejected": true,
+      "before_after_identity_set_exact": true,
+      "root_after_snapshot_exact": true,
+      "replay_state_change_rejected": true,
+      "swap_and_rollback_lineage_postconditions_exact": true
+    },
+    "proof_and_public_paths": {
+      "runtime_verified_alias_variant_rejected": true,
+      "deployed_verified_alias_variant_rejected": true,
+      "public_revalidation_alias_variant_rejected": true,
+      "runtime_service_or_deployment_execution_inferred": false
+    },
+    "artifact_admission_schema_nonclaim_boundaries": {
+      "complete_artifact_content_revalidated": true,
+      "operation_admission_exact": true,
+      "causal_time_joins_exact": true,
+      "public_schema_closed": true,
+      "receipt_and_operation_nonclaims_exact": true,
+      "authority_promotion_rejected": true
+    }
+  },
+  "acceptance_basis": {
+    "declared_scope": "pure deterministic source-only OmniGent component-evolution read model",
+    "source_complete_for_declared_scope": true,
+    "source_honest_for_declared_scope": true,
+    "reason": "The candidate revalidates complete accepted artifacts and operation admission, binds exhaustive causal operation observations and receipt envelopes, rejects every repeated identity in the declared eight-digest uniqueness set regardless of role, and preserves explicit authority and execution nonclaims. Public revalidation rebuilds the same semantic joins. No inspected source path converts these structural source facts into issuer authenticity, action authority, runtime execution, deployment, or public availability claims."
+  },
+  "route": {
+    "registry_validated": true,
+    "registry_sha256": "6da1ae96093f6e9310878d0e3f961461a68ebcfb2b869cbb9fcfc7934d54cb29",
+    "task_class": "security_research",
+    "resolved_agent_id": "agent:mykrobial-security",
+    "route_kind": "mykrobial_harness_named_agent",
+    "execution_mode": "harness_named_agent_observe_only",
+    "provider_execution_verified": false,
+    "side_effect_authority_from_route": false
+  },
+  "trace": {
+    "emitted": false,
+    "typed_blocker": "typed_blocker:trace_execution_forbidden_by_source_only_critic_scope"
+  },
+  "operation_state": {
+    "candidate_source_edits": 0,
+    "critic_artifact_files_written": 1,
+    "dependency_acquisition_executed": false,
+    "package_manager_executed": false,
+    "build_executed": false,
+    "runtime_or_service_executed": false,
+    "provider_or_model_executed": false,
+    "trace_executed": false,
+    "training_executed": false,
+    "optimizer_executed": false,
+    "component_application_executed": false,
+    "promotion_executed": false,
+    "deployment_executed": false
+  },
+  "output_predicate": {
+    "candidate_buffered_before_release": true,
+    "canonical_names_checked": true,
+    "requested_vs_verified_boundaries_checked": true,
+    "hard_runtime_egress_verifier_available": false,
+    "mathematical_pre_release_enforcement_claimed": false
+  },
+  "non_claims": [
+    "not_human_or_founder_review",
+    "not_reviewed_true",
+    "not_execution_authorized",
+    "not_package_install_or_build",
+    "not_runtime_or_provider_execution",
+    "not_receipt_authenticity_or_issuer_verification",
+    "not_replay_authority_verification",
+    "not_model_or_optimizer_execution",
+    "not_trace_append",
+    "not_training",
+    "not_component_application",
+    "not_promotion",
+    "not_deployment_or_fleet_rollout",
+    "not_public_availability"
+  ]
+}

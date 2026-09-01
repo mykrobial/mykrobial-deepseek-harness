@@ -1,0 +1,255 @@
+{
+  "schema": "mykrobial.goalrun.component-rsi-operator-view-fresh-critic-blocker.v1",
+  "review_id": "component-rsi-operator-view-v1-round-9-fresh-critic",
+  "generated_at": "2026-09-01T08:30:08Z",
+  "review_kind": "distinct_fresh_context_source_only_critic",
+  "verdict": "still_loses",
+  "accepted": false,
+  "reviewed": false,
+  "execution_authorized": false,
+  "manifest_excluded": true,
+  "typed_blocker": "typed_blocker:component_evolution_cross_class_nonce_receipt_role_alias",
+  "largest_evidenced_gap": "The candidate rejects same-position receipt, nonce, reservation, and consumption identities across verification and operation classes, but it does not reject cross-role aliasing between reservation and consumption receipt identities. Swapping the verification reservation digest into the operation consumption field and the verification consumption digest into the operation reservation field preserves distinct values inside each envelope and bypasses the pairwise checks. The source constructor content-addresses that replay-identity contradiction, labels the view runtime_verified and deployed_verified, and public revalidation accepts both labels unchanged.",
+  "candidate": {
+    "worktree": "/Users/kalcypher/Projects/_worktrees/mykrobial-deepseek-component-rsi-operator-view-v1",
+    "commit": "c783b6083e0e9f0ccbfa793d416f1827162a2bfa",
+    "tree": "7860ab5774b9300e56b11408dbe6e50fd6620be0",
+    "clean_before_review": true,
+    "clean_after_checks_before_review_artifact": true,
+    "candidate_source_changed_by_critic": false
+  },
+  "supplied_bindings": {
+    "round_8_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-8-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_8_blocker_sha256": "6a326c2298c2ca1182839030edbb4a07eb8691077829ae0ae9d5698b51e0024a",
+    "content_manifest_ref": "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+    "content_manifest_sha256": "4887cf468f921c698fbc0bfb4d0ff093f1cfef2516b5b4c502c2ddcb340b41e6",
+    "content_file_count": 12,
+    "source_receipt_ref": "goalrun/component-rsi-operator-view-v1/SOURCE-RECEIPT.v1.json",
+    "source_receipt_sha256": "43ed798134e790f0eb468164904993a096fffedcca301eb39b6cc3b06c4698c7",
+    "state": "matched"
+  },
+  "declared_verification": {
+    "node_executable": "/opt/homebrew/bin/node",
+    "node_version": "v25.9.0",
+    "integrated_node_tests": {
+      "command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts packages/mykrobial/operator-projections/tests/source-safe.test.ts",
+      "passed": 58,
+      "failed": 0,
+      "component_seam_passed": 25,
+      "operator_projection_passed": 33
+    },
+    "typescript_syntax_checks": {
+      "passed": 6,
+      "failed": 0
+    },
+    "strict_authored_json_parses": {
+      "passed": 3,
+      "failed": 0,
+      "duplicate_keys_rejected": true,
+      "nonfinite_constants_rejected": true
+    },
+    "sha256_manifest": {
+      "command": "shasum -a 256 -c goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+      "passed": 12,
+      "failed": 0
+    },
+    "adversarial_node_matrix": {
+      "command_shape": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --input-type=module -",
+      "status": "completed",
+      "candidate_files_written": 0
+    },
+    "git_diff_check": "pending_artifact_only_commit",
+    "working_tree_clean_after_checks_before_blocker": true
+  },
+  "preserved_prior_blockers": [
+    {
+      "round": 1,
+      "typed_blocker": "typed_blocker:component_evolution_semantic_cross_bindings_missing",
+      "artifact_sha256": "1d3702f803c9133e55c0397aac71c99a4fe668eb66ef04d59c06600b108abdc9",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 2,
+      "typed_blocker": "typed_blocker:component_evolution_year_00_99_chronology_alias",
+      "artifact_sha256": "45daa0e5193e3d9a5703c1d625b7a0c77974fcbc84d2f64d68f37f00537a3388",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 3,
+      "typed_blocker": "typed_blocker:component_evolution_exact_capsule_bindings_not_projected",
+      "artifact_sha256": "bc89ca36bd4da554356bfb6e320411132107411c4bcdb4294c6fea2c53685a85",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 4,
+      "typed_blocker": "typed_blocker:component_evolution_stale_artifact_digest_aliases_accepted",
+      "artifact_sha256": "3e7b9ff3307901105102f2e715fae9bad5c6f651dc2297914b2a238f5940d205",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 5,
+      "typed_blocker": "typed_blocker:component_evolution_accepted_artifact_execution_admission_missing",
+      "artifact_sha256": "9abdc43b64a6ad104d0d5f23b316b164e941aec6931ec91e9d16a61298a449de",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 6,
+      "typed_blocker": "typed_blocker:component_evolution_post_operation_component_readback_missing",
+      "artifact_sha256": "e4688684d7e464812c558bffc3d181325ff782373996c5fe90d8ec8a11a3c756",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 7,
+      "typed_blocker": "typed_blocker:component_evolution_operation_result_observation_basis_incomplete",
+      "artifact_sha256": "bf31ba788b4c773662263a026b8921f18854c8b7bb0ef19f0eec78f35e944837",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 8,
+      "typed_blocker": "typed_blocker:component_evolution_receipt_lifecycle_causality_incomplete",
+      "artifact_sha256": "6a326c2298c2ca1182839030edbb4a07eb8691077829ae0ae9d5698b51e0024a",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected",
+      "residual_cause": "same-position aliases are rejected, but reservation and consumption identities can cross-alias between evidence classes"
+    }
+  ],
+  "prior_counterexample_replay": {
+    "round_1": "fractional valid-time reversal, transaction chronology reversal, cross-lineage parents, target-surface mismatch, proof overstatement, rollback receipt loss, and runtime/deployed floor variants rejected",
+    "round_2": "0099/0100 valid-time, parent-time, timeline, and public-reseal reversals rejected",
+    "round_3": "BASE TRUE SHAM semantic swaps and stale capsule, decision, plan, target-set, and public-reseal bindings rejected",
+    "round_4": "synchronized stale artifact IDs and digests, disposition, plane, target, loadout, plan-ID, and standalone plan-digest aliases rejected",
+    "round_5": "unresolved replay, incompatible disposition, policy erasure, stale outer bindings, reversed artifact time, loadout mismatch, and blocked-replay public reseal rejected",
+    "round_6": "inactive swap target with still-active parent rejected for runtime, deployed, and public-revalidation variants",
+    "round_7": "receipt-distinct result identity, parentless replacement, future-dated rows, replay drift, root supersets, and runtime/deployed/public variants rejected",
+    "round_8": "expired verification, future-issued operation receipt, same-position receipt ID, raw digest, nonce, reservation, consumption aliases, and exact runtime/deployed/public reseals rejected"
+  },
+  "new_counterexample": {
+    "name": "verification_reservation_and_consumption_receipts_cross_alias_into_operation_roles",
+    "support_type": "executed",
+    "precondition": "The accepted swap has exhaustive root-equal before and after component snapshots, exact proposal/capsule/decision/plan bindings, complete BASE TRUE SHAM results, causal receipt issue and expiry times, distinct receipt IDs, distinct raw receipt digests, distinct nonces, and distinct reservation and consumption digests within each envelope.",
+    "mutation": {
+      "verification_reservation_equals_operation_consumption": true,
+      "verification_consumption_equals_operation_reservation": true,
+      "same_position_reservation_alias": false,
+      "same_position_consumption_alias": false
+    },
+    "expected": "Reject because reservation and consumption receipt identities cannot alias across verification and application classes, regardless of which role each class assigns to the repeated identity.",
+    "observed": {
+      "operation_result_accepted": true,
+      "source_constructor_runtime_verified_label_accepted": true,
+      "runtime_public_revalidation_accepted": true,
+      "source_constructor_deployed_verified_label_accepted": true,
+      "deployed_public_revalidation_accepted": true,
+      "runtime_view_sha256": "5e6fc65ef8e4ea2d30104eb010a6d8345fad533fdca9fa984de85af6de769b1d",
+      "deployed_view_sha256": "c0a5f34d26a4af67e8920706a95b0bf622a6aca2af62783c089f7082a5e7d2bf",
+      "result_id": "component-result-ca29f07972cf4639d2dcfcca",
+      "observation_sha256": "dc59aab0cb249474b90e99f61db19d2a895ac8f2d0892d7396340b5b33841777",
+      "basis_sha256": "ca29f07972cf4639d2dcfcca109ed271bedd51ff23c1b04302f24c0795a97ad0",
+      "result_sha256": "d9518c0604e04b0669e0360781d17deb726f1bffda233983d0d961c141413307",
+      "verification_envelope_sha256": "b4e0b64242b0d6778f43570fc44ab7297cd7b2e01327a9e06dbef8dadb60d586",
+      "operation_envelope_sha256": "14b73faf37617eafa213452af7fe513bb14167bc122bf1c8b88e4f2912d99a24"
+    },
+    "cause": "validateComponentOperationResult compares receipt ID, raw receipt digest, nonce, reservation digest, and consumption digest only against the same field in the other envelope. It never compares either reservation or consumption receipt identity against the opposite role in the other class. The basis, result, and view hashes therefore preserve a role-permuted replay identity instead of rejecting it.",
+    "falsified_claims": [
+      "cross_class_receipt_and_nonce_identity_unique",
+      "classed_subject_expiry_replay_receipt_envelopes_exact",
+      "operation_specific_admission_exact",
+      "source_runtime_deployment_proof_lattice",
+      "public_revalidation_rejects_cross_class_replay_identity_aliases"
+    ]
+  },
+  "requested_attack_matrix": {
+    "receipt_evidence_use_time": "The direct Round 8 expiry and future-issuance counterexample is rejected; verification is checked at before_observed_at and both envelopes are bounded at generated_at.",
+    "expiry_at_before_after_and_generated_times": "The source uses inclusive equality at evidence and projection times. This is consistent with its declared live-through wording and was not the decisive loss; no issuer or clock authority is inferred.",
+    "future_issuance": "Operation issuance later than generated_at is rejected by the root projection.",
+    "receipt_id_raw_digest_and_nonce_aliasing": "Same-field aliases across verification and operation classes are rejected.",
+    "reservation_and_consumption_aliasing": "Failed: cross-role reservation/consumption permutations are accepted and preserved through runtime, deployed, and public source projections.",
+    "replay_authority_identity": "The authority identifier is closed and content-addressed, while authenticity and action authority remain false. No provider or authority execution was inferred.",
+    "class_and_subject_mismatch": "Verification versus operation class and exact plan versus observation subjects are revalidated and mismatches are rejected.",
+    "envelope_and_result_hash_reseals": "Stale reseals are rejected, but complete recomputation accepts the semantic cross-role alias because the omitted uniqueness join is outside the hashed validator predicate.",
+    "exhaustive_before_after_lifecycle_observations": "Prior subset, root-superset, parentless replacement, replay drift, future-row, swap, rollback, and multi-row lifecycle regressions remain rejected.",
+    "runtime_deployed_and_public_proof": "Failed only as source labels: the executed counterexample is accepted by runtime_verified, deployed_verified, and both public revalidation paths. No runtime, service, or deployment action occurred.",
+    "artifact_admission_time_schema_and_nonclaim_joins": "All prior artifact-content, operation-admission, chronology, public-schema, and authority-nonclaim counterexamples remain rejected; the isolated loss is the non-exhaustive cross-class replay-identity uniqueness set."
+  },
+  "decisive_source": [
+    {
+      "path": "packages/mykrobial/operator-projections/src/component-evolution.ts",
+      "lines": "643-656",
+      "finding": "Class and subject validation is followed by same-position identity comparisons only; reservation-to-consumption and consumption-to-reservation comparisons are absent."
+    },
+    {
+      "path": "packages/mykrobial/operator-projections/README.md",
+      "lines": "20-25",
+      "finding": "The declared read-model scope says reservation and consumption receipt identities cannot alias across classes."
+    },
+    {
+      "path": "goalrun/component-rsi-operator-view-v1/SOURCE-RECEIPT.v1.json",
+      "lines": "47-59",
+      "finding": "The source receipt declares exact operation admission, exact replay receipt envelopes, unique cross-class identities, and an exact source/runtime/deployment proof lattice."
+    }
+  ],
+  "required_repair": [
+    "Treat the two replay receipt identities in each envelope as one role-tagged identity set and reject every intersection across verification and operation classes, including reservation-to-consumption and consumption-to-reservation permutations.",
+    "Freeze the exact result, runtime, deployed, envelope, basis, observation, and public-revalidation hashes from this counterexample as permanent regressions.",
+    "Keep replay-authority identity, issuer authenticity, replay-state authority, and application authority as separate claims; closing the structural identity set must not promote any of them.",
+    "Rebuild the exact 12-file manifest and source receipt, then request another distinct fresh critic."
+  ],
+  "route": {
+    "registry_validated": true,
+    "registry_sha256": "6da1ae96093f6e9310878d0e3f961461a68ebcfb2b869cbb9fcfc7934d54cb29",
+    "task_class": "security_research",
+    "resolved_agent_id": "agent:mykrobial-security",
+    "route_kind": "mykrobial_harness_named_agent",
+    "execution_mode": "harness_named_agent_observe_only",
+    "provider_execution_verified": false,
+    "side_effect_authority_from_route": false
+  },
+  "trace": {
+    "emitted": false,
+    "typed_blocker": "typed_blocker:trace_execution_forbidden_by_source_only_critic_scope"
+  },
+  "operation_state": {
+    "candidate_source_edits": 0,
+    "critic_artifact_files_written": 1,
+    "dependency_acquisition_executed": false,
+    "package_manager_executed": false,
+    "build_executed": false,
+    "runtime_or_service_executed": false,
+    "provider_or_model_executed": false,
+    "trace_executed": false,
+    "training_executed": false,
+    "optimizer_executed": false,
+    "component_application_executed": false,
+    "promotion_executed": false,
+    "deployment_executed": false
+  },
+  "output_predicate": {
+    "candidate_buffered_before_release": true,
+    "canonical_names_checked": true,
+    "requested_vs_verified_boundaries_checked": true,
+    "hard_runtime_egress_verifier_available": false,
+    "mathematical_pre_release_enforcement_claimed": false
+  },
+  "non_claims": [
+    "not_human_or_founder_review",
+    "not_reviewed_true",
+    "not_execution_authorized",
+    "not_package_install_or_build",
+    "not_runtime_or_provider_execution",
+    "not_receipt_authenticity_or_issuer_verification",
+    "not_replay_authority_verification",
+    "not_model_or_optimizer_execution",
+    "not_trace_append",
+    "not_training",
+    "not_component_application",
+    "not_promotion",
+    "not_deployment_or_fleet_rollout"
+  ]
+}
