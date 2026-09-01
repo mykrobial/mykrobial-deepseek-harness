@@ -1,0 +1,47 @@
+{
+  "schema": "mykrobial.goalrun.component-rsi-operator-view.v1",
+  "goal": "Expose a closed source-only OmniGent read model for component generations, experiments, optimizer ports, timeline, replay, and rollback.",
+  "basis": {
+    "repository": "https://github.com/mykrobial/mykrobial-deepseek-harness.git",
+    "commit": "8fc0fa910383bb3bdd087f1804cb2924b90beff6",
+    "tree": "c404f288d764389bd0ea2fb318b3b2ac9c7ce995",
+    "component_rsi_acceptance_ref": "goalrun/component-rsi-seam-v1/ROUND-3-FRESH-CRITIC-ACCEPTANCE.v1.json",
+    "component_rsi_acceptance_sha256": "d486ad05503df956cd2195d7db7162d756f07e9575d496159640032f948ed3a5",
+    "cross_lane_ownership_sha256": "0390b197f6caab76d1fa54c0a7d01066c32fc2796044b50fef48e16af241d269"
+  },
+  "owned_outputs": [
+    "closed OmniGent component-evolution JSON schema",
+    "pure deterministic read-model constructor",
+    "active component generation and lineage projection",
+    "BASE TRUE SHAM experiment projection",
+    "four-plane proposal-only optimizer port projection",
+    "transaction-time and valid-time timeline projection",
+    "Trace replay rollback and proof-level readback",
+    "source-safe schema and hostile mutation tests"
+  ],
+  "authority_boundary": {
+    "read_model_only": true,
+    "optimizer_execution_authorized": false,
+    "component_application_authorized": false,
+    "trace_append_authorized": false,
+    "training_authorized": false,
+    "promotion_authorized": false,
+    "deployment_authorized": false
+  },
+  "external_source_posture": {
+    "exo": "quarantined_evidence_only_not_implementation_authority",
+    "semantica_or_mindwalk": "not_imported_or_executed",
+    "implementation_basis": "direct_user_requirement_plus_accepted_Mykrobial_public_contracts"
+  },
+  "operation_state": {
+    "pnpm_executed": false,
+    "package_installed": false,
+    "build_executed": false,
+    "service_started": false,
+    "model_executed": false,
+    "trace_appended": false,
+    "component_applied": false,
+    "deployment_executed": false
+  },
+  "status": "source_candidate_unreviewed"
+}

@@ -1,0 +1,48 @@
+{
+  "schema": "mykrobial.goalrun.component-rsi-operator-view-source-receipt.v1",
+  "basis": {
+    "commit": "8fc0fa910383bb3bdd087f1804cb2924b90beff6",
+    "tree": "c404f288d764389bd0ea2fb318b3b2ac9c7ce995"
+  },
+  "content_manifest": {
+    "ref": "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+    "sha256": "3ad4ac6a848bc61bdd14479696dba445bd86dd4232bc38eced57df0a73152611",
+    "content_file_count": 6,
+    "manifest_excludes": [
+      "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+      "goalrun/component-rsi-operator-view-v1/SOURCE-RECEIPT.v1.json"
+    ]
+  },
+  "verification": {
+    "node_executable": "/opt/homebrew/bin/node",
+    "node_version": "v25.9.0",
+    "test_command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/operator-projections/tests/source-safe.test.ts",
+    "tests_passed": 25,
+    "tests_failed": 0,
+    "typescript_syntax_checks": 3,
+    "strict_authored_json_checks": 2,
+    "content_hash_checks": 6,
+    "git_diff_check": "passed"
+  },
+  "view_contract": {
+    "component_surface_count": 14,
+    "evolution_plane_count": 4,
+    "base_true_sham_exact": true,
+    "transaction_and_valid_time": true,
+    "optimizer_ports_proposal_only": true,
+    "trace_replay_rollback_readback": true,
+    "source_runtime_deployment_proof_lattice": true,
+    "view_hash_deterministic": true
+  },
+  "authority": {
+    "reviewed": false,
+    "fresh_critic_receipt_sha256": null,
+    "optimizer_execution_authorized": false,
+    "component_application_authorized": false,
+    "trace_append_authorized": false,
+    "training_authorized": false,
+    "promotion_authorized": false,
+    "deployment_authorized": false
+  },
+  "status": "source_candidate_unreviewed"
+}

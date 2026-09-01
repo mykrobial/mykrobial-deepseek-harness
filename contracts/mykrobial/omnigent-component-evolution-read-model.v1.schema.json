@@ -1,0 +1,512 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mykrobial.org/schemas/omnigent-component-evolution-read-model.v1.schema.json",
+  "title": "OmniGent component evolution read model",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "generated_at", "task_capsule_id", "run_id", "harness_generation",
+    "active_loadout", "component_manifest_sha256", "mutation_surface_registry_sha256",
+    "components", "experiments", "optimizer_ports", "timeline", "trace", "replay",
+    "rollback", "proof_level", "deployment_receipt_sha256", "non_claims", "view_sha256"
+  ],
+  "properties": {
+    "schema": { "const": "mykrobial.omnigent.component-evolution-read-model.v1" },
+    "generated_at": { "$ref": "harness-parity.v1.schema.json#/$defs/timestamp" },
+    "task_capsule_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+    "run_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+    "harness_generation": { "$ref": "harness-parity.v1.schema.json#/$defs/generation" },
+    "active_loadout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["loadout_id", "manifest_sha256"],
+      "properties": {
+        "loadout_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+        "manifest_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" }
+      }
+    },
+    "component_manifest_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+    "mutation_surface_registry_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/component" }
+    },
+    "experiments": {
+      "type": "array",
+      "maxItems": 128,
+      "items": { "$ref": "#/$defs/experiment" }
+    },
+    "optimizer_ports": {
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/optimizerPort" }
+    },
+    "timeline": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": { "$ref": "#/$defs/timelineRow" }
+    },
+    "trace": { "$ref": "#/$defs/traceState" },
+    "replay": { "$ref": "#/$defs/replayState" },
+    "rollback": { "$ref": "#/$defs/rollbackState" },
+    "proof_level": { "$ref": "#/$defs/proofLevel" },
+    "deployment_receipt_sha256": {
+      "anyOf": [
+        { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        { "type": "null" }
+      ]
+    },
+    "non_claims": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+    },
+    "view_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "proof_level": { "enum": ["runtime_verified", "deployed_verified"] } },
+        "required": ["proof_level"]
+      },
+      "then": {
+        "properties": {
+          "trace": { "properties": { "state": { "const": "append_verified" } }, "required": ["state"] },
+          "replay": { "properties": { "state": { "const": "verified" } }, "required": ["state"] },
+          "rollback": { "properties": { "state": { "const": "verified" } }, "required": ["state"] },
+          "experiments": {
+            "contains": {
+              "properties": {
+                "proof_level": { "enum": ["runtime_verified", "deployed_verified"] },
+                "plan": { "properties": { "state": { "enum": ["applied", "rolled_back"] } }, "required": ["state"] }
+              },
+              "required": ["proof_level", "plan"]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "proof_level": { "const": "deployed_verified" } }, "required": ["proof_level"] },
+      "then": {
+        "properties": {
+          "deployment_receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" }
+        }
+      },
+      "else": {
+        "properties": { "deployment_receipt_sha256": { "const": null } }
+      }
+    }
+  ],
+  "$defs": {
+    "surface": { "$ref": "component-rsi-seam.v1.schema.json#/$defs/surfaceId" },
+    "plane": { "$ref": "component-rsi-seam.v1.schema.json#/$defs/plane" },
+    "proofLevel": {
+      "enum": ["designed", "source_built", "source_verified", "runtime_verified", "deployed_verified"]
+    },
+    "nullableSha": {
+      "anyOf": [
+        { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        { "type": "null" }
+      ]
+    },
+    "nullableId": {
+      "anyOf": [
+        { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+        { "type": "null" }
+      ]
+    },
+    "nullableTimestamp": {
+      "anyOf": [
+        { "$ref": "harness-parity.v1.schema.json#/$defs/timestamp" },
+        { "type": "null" }
+      ]
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component_id", "logical_identity", "surface_id", "generation",
+        "lifecycle_state", "source_sha256", "configuration_sha256",
+        "dependency_ids", "branch_id", "parent_component_id", "transaction_time",
+        "valid_from", "valid_until", "experiment_id", "active", "rollback_available"
+      ],
+      "properties": {
+        "component_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+        "logical_identity": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+        "surface_id": { "$ref": "#/$defs/surface" },
+        "generation": { "type": "integer", "minimum": 0 },
+        "lifecycle_state": {
+          "enum": ["registered", "pending_dependencies", "active", "unloading", "inactive", "disposed", "failed"]
+        },
+        "source_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        "configuration_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        "dependency_ids": {
+          "type": "array", "maxItems": 128, "uniqueItems": true,
+          "items": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" }
+        },
+        "branch_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+        "parent_component_id": { "$ref": "#/$defs/nullableId" },
+        "transaction_time": { "$ref": "harness-parity.v1.schema.json#/$defs/timestamp" },
+        "valid_from": { "$ref": "#/$defs/nullableTimestamp" },
+        "valid_until": { "$ref": "#/$defs/nullableTimestamp" },
+        "experiment_id": { "$ref": "#/$defs/nullableId" },
+        "active": { "type": "boolean" },
+        "rollback_available": { "type": "boolean" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "active": { "const": true } }, "required": ["active"] },
+          "then": {
+            "properties": {
+              "lifecycle_state": { "const": "active" },
+              "valid_until": { "const": null }
+            }
+          }
+        }
+      ]
+    },
+    "arm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role", "loadout_manifest_sha256", "component_set_sha256",
+        "applied_delta_sha256", "execution_state", "result_receipt_sha256"
+      ],
+      "properties": {
+        "role": { "enum": ["BASE", "TRUE", "SHAM"] },
+        "loadout_manifest_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        "component_set_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        "applied_delta_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        "execution_state": { "enum": ["planned", "running", "completed", "blocked"] },
+        "result_receipt_sha256": { "$ref": "#/$defs/nullableSha" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "execution_state": { "const": "completed" } }, "required": ["execution_state"] },
+          "then": {
+            "properties": { "result_receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" } }
+          },
+          "else": { "properties": { "result_receipt_sha256": { "const": null } } }
+        }
+      ]
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "decision_id", "decision_sha256", "disposition", "authority_receipt_sha256"],
+      "properties": {
+        "state": { "enum": ["none", "untrusted", "verified", "blocked"] },
+        "decision_id": { "$ref": "#/$defs/nullableId" },
+        "decision_sha256": { "$ref": "#/$defs/nullableSha" },
+        "disposition": {
+          "type": ["string", "null"],
+          "enum": ["accept_candidate", "reject_candidate", "revise_candidate", "no_change", "rollback", null]
+        },
+        "authority_receipt_sha256": { "$ref": "#/$defs/nullableSha" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "state": { "const": "none" } }, "required": ["state"] },
+          "then": {
+            "properties": {
+              "decision_id": { "const": null },
+              "decision_sha256": { "const": null },
+              "disposition": { "const": null },
+              "authority_receipt_sha256": { "const": null }
+            }
+          },
+          "else": {
+            "properties": {
+              "decision_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+              "decision_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+              "disposition": { "enum": ["accept_candidate", "reject_candidate", "revise_candidate", "no_change", "rollback"] }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "state": { "const": "verified" } }, "required": ["state"] },
+          "then": {
+            "properties": { "authority_receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" } }
+          },
+          "else": { "properties": { "authority_receipt_sha256": { "const": null } } }
+        }
+      ]
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state", "plan_id", "plan_sha256", "applied_receipt_sha256",
+        "replay_receipt_sha256", "rollback_receipt_sha256"
+      ],
+      "properties": {
+        "state": { "enum": ["none", "prepared_unexecuted", "verified_unapplied", "applied", "rolled_back", "blocked"] },
+        "plan_id": { "$ref": "#/$defs/nullableId" },
+        "plan_sha256": { "$ref": "#/$defs/nullableSha" },
+        "applied_receipt_sha256": { "$ref": "#/$defs/nullableSha" },
+        "replay_receipt_sha256": { "$ref": "#/$defs/nullableSha" },
+        "rollback_receipt_sha256": { "$ref": "#/$defs/nullableSha" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "state": { "const": "none" } }, "required": ["state"] },
+          "then": {
+            "properties": {
+              "plan_id": { "const": null },
+              "plan_sha256": { "const": null },
+              "applied_receipt_sha256": { "const": null },
+              "replay_receipt_sha256": { "const": null },
+              "rollback_receipt_sha256": { "const": null }
+            }
+          },
+          "else": {
+            "properties": {
+              "plan_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+              "plan_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "state": { "const": "applied" } }, "required": ["state"] },
+          "then": {
+            "properties": { "applied_receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" } }
+          },
+          "else": { "properties": { "applied_receipt_sha256": { "const": null } } }
+        },
+        {
+          "if": { "properties": { "state": { "const": "rolled_back" } }, "required": ["state"] },
+          "then": {
+            "properties": { "rollback_receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" } }
+          },
+          "else": { "properties": { "rollback_receipt_sha256": { "const": null } } }
+        }
+      ]
+    },
+    "experiment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "experiment_id", "capsule_id", "capsule_sha256", "plane",
+        "target_component_ids", "target_surface_ids", "arms", "decision", "plan", "proof_level"
+      ],
+      "properties": {
+        "experiment_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+        "capsule_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+        "capsule_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        "plane": { "$ref": "#/$defs/plane" },
+        "target_component_ids": {
+          "type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true,
+          "items": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" }
+        },
+        "target_surface_ids": {
+          "type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true,
+          "items": { "$ref": "#/$defs/surface" }
+        },
+        "arms": {
+          "type": "array",
+          "prefixItems": [
+            { "allOf": [{ "$ref": "#/$defs/arm" }, { "properties": { "role": { "const": "BASE" } } }] },
+            { "allOf": [{ "$ref": "#/$defs/arm" }, { "properties": { "role": { "const": "TRUE" } } }] },
+            { "allOf": [{ "$ref": "#/$defs/arm" }, { "properties": { "role": { "const": "SHAM" } } }] }
+          ],
+          "items": false,
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "decision": { "$ref": "#/$defs/decision" },
+        "plan": { "$ref": "#/$defs/plan" },
+        "proof_level": { "$ref": "#/$defs/proofLevel" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "target_surface_ids": { "contains": { "const": "model_weights" } }
+            },
+            "required": ["target_surface_ids"]
+          },
+          "then": { "properties": { "plane": { "const": "future_joint_model_harness" } } }
+        },
+        {
+          "if": {
+            "properties": { "proof_level": { "enum": ["runtime_verified", "deployed_verified"] } },
+            "required": ["proof_level"]
+          },
+          "then": {
+            "properties": {
+              "plan": { "properties": { "state": { "enum": ["applied", "rolled_back"] } }, "required": ["state"] }
+            }
+          },
+          "else": {
+            "properties": {
+              "plan": { "properties": { "state": { "enum": ["none", "prepared_unexecuted", "verified_unapplied", "blocked"] } }, "required": ["state"] }
+            }
+          }
+        }
+      ]
+    },
+    "optimizerPort": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy_id", "plane", "strategy_class", "state", "receipt_sha256",
+        "blocker", "proposal_only", "training_authorized", "apply_authorized"
+      ],
+      "properties": {
+        "strategy_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+        "plane": { "$ref": "#/$defs/plane" },
+        "strategy_class": {
+          "enum": ["inner_loop", "external_optimizer", "areal_online", "local_idle", "frontier_builder_critic", "future_joint"]
+        },
+        "state": { "enum": ["declared", "available", "blocked"] },
+        "receipt_sha256": { "$ref": "#/$defs/nullableSha" },
+        "blocker": {
+          "anyOf": [
+            { "type": "string", "pattern": "^typed_blocker:[a-z0-9_:-]+$" },
+            { "type": "null" }
+          ]
+        },
+        "proposal_only": { "const": true },
+        "training_authorized": { "const": false },
+        "apply_authorized": { "const": false }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "state": { "const": "blocked" } }, "required": ["state"] },
+          "then": {
+            "properties": {
+              "blocker": { "type": "string", "pattern": "^typed_blocker:[a-z0-9_:-]+$" },
+              "receipt_sha256": { "const": null }
+            }
+          },
+          "else": { "properties": { "blocker": { "const": null } } }
+        },
+        {
+          "if": { "properties": { "state": { "const": "available" } }, "required": ["state"] },
+          "then": {
+            "properties": { "receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" } }
+          },
+          "else": { "properties": { "receipt_sha256": { "const": null } } }
+        }
+      ]
+    },
+    "timelineRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence", "transaction_time", "valid_from", "valid_until", "phase",
+        "source_event_sha256", "component_ids", "experiment_id", "causality_state",
+        "receipt_sha256"
+      ],
+      "properties": {
+        "sequence": { "type": "integer", "minimum": 0 },
+        "transaction_time": { "$ref": "harness-parity.v1.schema.json#/$defs/timestamp" },
+        "valid_from": { "$ref": "#/$defs/nullableTimestamp" },
+        "valid_until": { "$ref": "#/$defs/nullableTimestamp" },
+        "phase": {
+          "enum": [
+            "proposal_prepared", "capsule_prepared", "evaluation_requested",
+            "external_decision_received", "swap_planned", "rollback_planned",
+            "replay_planned", "mismatch_observed", "no_change_selected"
+          ]
+        },
+        "source_event_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        "component_ids": {
+          "type": "array", "minItems": 1, "maxItems": 128, "uniqueItems": true,
+          "items": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" }
+        },
+        "experiment_id": { "$ref": "#/$defs/nullableId" },
+        "causality_state": { "enum": ["not_asserted", "asserted_unverified", "verified"] },
+        "receipt_sha256": { "$ref": "#/$defs/nullableSha" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "causality_state": { "const": "verified" } }, "required": ["causality_state"] },
+          "then": {
+            "properties": { "receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" } }
+          }
+        }
+      ]
+    },
+    "traceState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "intent_count", "chain_head_sha256", "append_receipt_sha256", "blocker"],
+      "properties": {
+        "state": { "enum": ["intent_only", "queued", "append_verified", "blocked"] },
+        "intent_count": { "type": "integer", "minimum": 0 },
+        "chain_head_sha256": { "$ref": "#/$defs/nullableSha" },
+        "append_receipt_sha256": { "$ref": "#/$defs/nullableSha" },
+        "blocker": {
+          "anyOf": [
+            { "type": "string", "pattern": "^typed_blocker:[a-z0-9_:-]+$" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "state": { "const": "blocked" } }, "required": ["state"] },
+          "then": {
+            "properties": {
+              "blocker": { "type": "string", "pattern": "^typed_blocker:[a-z0-9_:-]+$" },
+              "append_receipt_sha256": { "const": null }
+            }
+          },
+          "else": { "properties": { "blocker": { "const": null } } }
+        },
+        {
+          "if": { "properties": { "state": { "const": "append_verified" } }, "required": ["state"] },
+          "then": {
+            "properties": {
+              "chain_head_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+              "append_receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" }
+            }
+          },
+          "else": { "properties": { "append_receipt_sha256": { "const": null } } }
+        }
+      ]
+    },
+    "replayState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "receipt_sha256"],
+      "properties": {
+        "state": { "enum": ["available", "verified", "blocked"] },
+        "receipt_sha256": { "$ref": "#/$defs/nullableSha" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "state": { "const": "verified" } }, "required": ["state"] },
+          "then": {
+            "properties": { "receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" } }
+          },
+          "else": { "properties": { "receipt_sha256": { "const": null } } }
+        }
+      ]
+    },
+    "rollbackState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "receipt_sha256"],
+      "properties": {
+        "state": { "enum": ["declared", "rehearsed", "verified", "blocked"] },
+        "receipt_sha256": { "$ref": "#/$defs/nullableSha" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "state": { "enum": ["rehearsed", "verified"] } }, "required": ["state"] },
+          "then": {
+            "properties": { "receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" } }
+          },
+          "else": { "properties": { "receipt_sha256": { "const": null } } }
+        }
+      ]
+    }
+  }
+}

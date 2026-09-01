@@ -313,3 +313,5 @@ export function buildOmniGentHarnessView(source: OmniGentHarnessViewInput): Omni
   if (input.non_claims.length === 0) throw new Error('typed_blocker:omnigent_non_claims_missing')
   return { ...input, schema: 'mykrobial.omnigent.harness-read-model.v1' }
 }
+
+export * from './component-evolution.ts'
