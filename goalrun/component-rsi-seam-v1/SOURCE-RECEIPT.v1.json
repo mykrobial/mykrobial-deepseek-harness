@@ -1,0 +1,76 @@
+{
+  "schema": "mykrobial.goalrun.component-rsi-seam-source-receipt.v1",
+  "basis": {
+    "commit": "60d50ae18f660817277efa7c997bfa17f2caab4f",
+    "tree": "5bd82cac86bb5c3d51387ae0e164f7712dd0128f"
+  },
+  "content_manifest": {
+    "ref": "goalrun/component-rsi-seam-v1/SHA256SUMS",
+    "sha256": "4f61b64ba9e92baa6545741ffbf2cf7429ec805b7807ceaf2d5f7e38690e4f17",
+    "content_file_count": 20,
+    "manifest_excludes": [
+      "goalrun/component-rsi-seam-v1/SHA256SUMS",
+      "goalrun/component-rsi-seam-v1/SOURCE-RECEIPT.v1.json"
+    ]
+  },
+  "verification": {
+    "node_executable": "/opt/homebrew/bin/node",
+    "node_version": "v25.9.0",
+    "test_command": "/opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts",
+    "tests_passed": 23,
+    "tests_failed": 0,
+    "syntax_check_count": 3,
+    "strict_json_check_count": 12,
+    "sha256_manifest_check_count": 20,
+    "git_diff_check": "passed"
+  },
+  "surface_count": 14,
+  "repair_basis": {
+    "critic_ref": "goalrun/component-rsi-seam-v1/FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "4f27ef56d22b1404e794005ba0a5e9840fe936e9c261ff12f850d4e4ca9c9fd8",
+    "finding": "typed_blocker:component_experiment_arm_loadout_binding_revalidation_missing",
+    "repair": "public capsule validation now rechecks every BASE TRUE SHAM arm loadout against the frozen task loadout and permanently tests each single-arm plus all-arm resealed mutation"
+  },
+  "round_2_repair_basis": {
+    "critic_ref": "goalrun/component-rsi-seam-v1/ROUND-2-FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "102b2627587e48b1b0a4ec3f85eaddd45a8d703feb22cb49dfe22db18da583d8",
+    "finding": "typed_blocker:external_decision_exact_capsule_digest_binding_missing",
+    "repair": "external decisions now require and preserve the exact capsule_sha256; every plan revalidates decision capsule id plus digest and embeds both capsule_sha256 and decision_external_input_sha256; a permanent same-id cross-loadout cross-plane reseal regression rejects"
+  },
+  "adjacent_schema_hardening": {
+    "runtime_non_claims_match_schema": true,
+    "duplicate_non_claims_rejected": true,
+    "overlong_non_claims_rejected": true,
+    "external_blocker_count_maximum": 16,
+    "permanent_regression_added": true
+  },
+  "mutation_surface_registry_sha256": "1ee9e6c81287939795d538f7b92eb2167429ca9ed3f53e55f74d0752ad4aa451",
+  "evolution_plane_parity": {
+    "contract_ref": "contracts/mykrobial/evidence/evolution-plane-registry.binding.v1.json",
+    "source_contract_sha256": "724e1ab4df67bab9b9ab9538d549d6faa29088fc60db6272f8d692ef4a9e74a4",
+    "exact_plane_ids": [
+      "online_areal_actual_work",
+      "local_idle_compute",
+      "frontier_builder_critic",
+      "future_joint_model_harness"
+    ],
+    "external_optimizer_is_strategy_adapter_not_plane": true
+  },
+  "trace": {
+    "intent_projection_tested": true,
+    "append_attempted": false,
+    "append_authorized": false,
+    "blocker": "typed_blocker:trace_append_out_of_scope_source_only_component_rsi_seam"
+  },
+  "authority": {
+    "reviewed": false,
+    "independent_critic_receipt_sha256": null,
+    "optimizer_execution_authorized": false,
+    "evaluator_execution_authorized": false,
+    "training_authorized": false,
+    "component_application_authorized": false,
+    "promotion_authorized": false,
+    "deployment_authorized": false
+  },
+  "status": "source_candidate_unreviewed"
+}

@@ -1,0 +1,1129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mykrobial.org/schemas/component-rsi-seam.v1.schema.json",
+  "title": "Next-Generation DeepSeek/CORDIS per-component RSI public seam",
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "gitSha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\\.[0-9]{1,6})?Z$"
+    },
+    "surfaceId": {
+      "enum": [
+        "prompt",
+        "skill_card",
+        "ontology_edge_or_function",
+        "router",
+        "workflow",
+        "memory",
+        "tool",
+        "model_route",
+        "model_adapter",
+        "model_weights",
+        "harness",
+        "guardrail",
+        "ui_projection",
+        "loadout"
+      ]
+    },
+    "plane": {
+      "enum": [
+        "online_areal_actual_work",
+        "local_idle_compute",
+        "frontier_builder_critic",
+        "future_joint_model_harness"
+      ]
+    },
+    "nonClaims": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      },
+      "uniqueItems": true,
+      "maxItems": 32
+    },
+    "sourceIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "commit",
+        "tree",
+        "dirty_state",
+        "configuration_sha256"
+      ],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "commit": {
+          "$ref": "#/$defs/gitSha"
+        },
+        "tree": {
+          "$ref": "#/$defs/gitSha"
+        },
+        "dirty_state": {
+          "enum": [
+            "clean",
+            "dirty_bound",
+            "unknown"
+          ]
+        },
+        "configuration_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "mutationSurfacePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "surface_id",
+        "independently_versioned",
+        "independently_swappable",
+        "per_task_experiment_allowed",
+        "allowed_planes",
+        "training_gate_required",
+        "runtime_application_authority_required",
+        "trace_projection_required"
+      ],
+      "properties": {
+        "surface_id": {
+          "$ref": "#/$defs/surfaceId"
+        },
+        "independently_versioned": {
+          "const": true
+        },
+        "independently_swappable": {
+          "const": true
+        },
+        "per_task_experiment_allowed": {
+          "const": true
+        },
+        "allowed_planes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/plane"
+          },
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true
+        },
+        "training_gate_required": {
+          "type": "boolean"
+        },
+        "runtime_application_authority_required": {
+          "const": true
+        },
+        "trace_projection_required": {
+          "const": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "surface_id": {
+                "const": "model_weights"
+              }
+            },
+            "required": [
+              "surface_id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "allowed_planes": {
+                "const": [
+                  "future_joint_model_harness"
+                ]
+              },
+              "training_gate_required": {
+                "const": true
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "training_gate_required": {
+                "const": false
+              }
+            }
+          }
+        }
+      ]
+    },
+    "mutationSurfaceRegistry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "registry_id",
+        "surfaces",
+        "registry_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.harness.component-mutation-surface-registry.v1"
+        },
+        "registry_id": {
+          "const": "next-deepseek-cordis-component-surfaces-v1"
+        },
+        "surfaces": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mutationSurfacePolicy"
+          },
+          "minItems": 14,
+          "maxItems": 14
+        },
+        "registry_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "mutationTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component_id",
+        "surface_id",
+        "base_component_identity_sha256",
+        "candidate_component_identity_sha256",
+        "delta_sha256"
+      ],
+      "properties": {
+        "component_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "surface_id": {
+          "$ref": "#/$defs/surfaceId"
+        },
+        "base_component_identity_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "candidate_component_identity_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "delta_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "mutationProposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "proposal_id",
+        "plane",
+        "task_capsule_id",
+        "loadout_id",
+        "source",
+        "context_pack_sha256",
+        "optimizer_input_sha256",
+        "targets",
+        "joint_delta_declaration_sha256",
+        "created_at",
+        "harness_generation",
+        "delta_mode",
+        "target_set_sha256",
+        "mutation_surface_registry_sha256",
+        "status",
+        "apply_authorized",
+        "training_authorized",
+        "promotion_authorized",
+        "non_claims",
+        "proposal_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.harness.component-mutation-proposal.v1"
+        },
+        "proposal_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "plane": {
+          "$ref": "#/$defs/plane"
+        },
+        "task_capsule_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "loadout_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "source": {
+          "$ref": "#/$defs/sourceIdentity"
+        },
+        "context_pack_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "optimizer_input_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mutationTarget"
+          },
+          "minItems": 1,
+          "maxItems": 16
+        },
+        "joint_delta_declaration_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "harness_generation": {
+          "const": "next_deepseek_cordis"
+        },
+        "delta_mode": {
+          "enum": [
+            "single_component",
+            "declared_joint"
+          ]
+        },
+        "target_set_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "mutation_surface_registry_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "status": {
+          "const": "proposal_only_untrusted"
+        },
+        "apply_authorized": {
+          "const": false
+        },
+        "training_authorized": {
+          "const": false
+        },
+        "promotion_authorized": {
+          "const": false
+        },
+        "non_claims": {
+          "$ref": "#/$defs/nonClaims"
+        },
+        "proposal_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "delta_mode": {
+                "const": "single_component"
+              }
+            },
+            "required": [
+              "delta_mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "targets": {
+                "maxItems": 1
+              },
+              "joint_delta_declaration_sha256": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "targets": {
+                "minItems": 2
+              },
+              "joint_delta_declaration_sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "targets": {
+                "contains": {
+                  "properties": {
+                    "surface_id": {
+                      "const": "model_weights"
+                    }
+                  },
+                  "required": [
+                    "surface_id"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "targets"
+            ]
+          },
+          "then": {
+            "properties": {
+              "plane": {
+                "const": "future_joint_model_harness"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "taskBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_capsule_id",
+        "task_capsule_sha256",
+        "task_population_sha256",
+        "loadout_id",
+        "loadout_manifest_sha256",
+        "seed",
+        "task_order_sha256"
+      ],
+      "properties": {
+        "task_capsule_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "task_capsule_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "task_population_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "loadout_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "loadout_manifest_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "task_order_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "evaluatorBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluator_id",
+        "evaluator_sha256",
+        "evaluator_source_sha256",
+        "candidate_visible",
+        "frozen"
+      ],
+      "properties": {
+        "evaluator_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "evaluator_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "evaluator_source_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "candidate_visible": {
+          "const": false
+        },
+        "frozen": {
+          "const": true
+        }
+      }
+    },
+    "budgetBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_input_tokens",
+        "max_output_tokens",
+        "max_wall_ms",
+        "max_monetary_microusd",
+        "max_actions"
+      ],
+      "properties": {
+        "max_input_tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_output_tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_wall_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_monetary_microusd": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_actions": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "anyOf": [
+        { "properties": { "max_input_tokens": { "minimum": 1 } } },
+        { "properties": { "max_output_tokens": { "minimum": 1 } } },
+        { "properties": { "max_wall_ms": { "minimum": 1 } } },
+        { "properties": { "max_monetary_microusd": { "minimum": 1 } } },
+        { "properties": { "max_actions": { "minimum": 1 } } }
+      ]
+    },
+    "sourceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "harness_source",
+        "component_lifecycle_contract_sha256",
+        "loadout_contract_sha256",
+        "trajectory_contract_sha256",
+        "trace_bridge_source_sha256",
+        "mutation_surface_registry_sha256"
+      ],
+      "properties": {
+        "harness_source": {
+          "$ref": "#/$defs/sourceIdentity"
+        },
+        "component_lifecycle_contract_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "loadout_contract_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "trajectory_contract_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "trace_bridge_source_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "mutation_surface_registry_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "experimentArm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "arm_id",
+        "role",
+        "control_strategy",
+        "loadout_manifest_sha256",
+        "component_set_sha256",
+        "applied_delta_sha256"
+      ],
+      "properties": {
+        "arm_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "role": {
+          "enum": [
+            "BASE",
+            "TRUE",
+            "SHAM"
+          ]
+        },
+        "control_strategy": {
+          "enum": [
+            "unchanged_baseline",
+            "candidate_delta",
+            "placebo_delta"
+          ]
+        },
+        "loadout_manifest_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "component_set_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "applied_delta_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "experimentCapsule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "capsule_id",
+        "experiment_id",
+        "proposal_id",
+        "proposal_sha256",
+        "plane",
+        "delta_mode",
+        "target_component_ids",
+        "target_surface_ids",
+        "target_set_sha256",
+        "task_binding",
+        "evaluator_binding",
+        "budget_binding",
+        "source_binding",
+        "arms",
+        "created_at",
+        "status",
+        "evaluation_authorized",
+        "training_authorized",
+        "promotion_authorized",
+        "non_claims",
+        "capsule_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.harness.component-experiment-capsule.v1"
+        },
+        "capsule_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "experiment_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "proposal_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "proposal_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "plane": {
+          "$ref": "#/$defs/plane"
+        },
+        "delta_mode": {
+          "enum": [
+            "single_component",
+            "declared_joint"
+          ]
+        },
+        "target_component_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "target_surface_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/surfaceId"
+          },
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "target_set_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "task_binding": {
+          "$ref": "#/$defs/taskBinding"
+        },
+        "evaluator_binding": {
+          "$ref": "#/$defs/evaluatorBinding"
+        },
+        "budget_binding": {
+          "$ref": "#/$defs/budgetBinding"
+        },
+        "source_binding": {
+          "$ref": "#/$defs/sourceBinding"
+        },
+        "arms": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "allOf": [
+                { "$ref": "#/$defs/experimentArm" },
+                { "properties": { "role": { "const": "BASE" }, "control_strategy": { "const": "unchanged_baseline" } } }
+              ]
+            },
+            {
+              "allOf": [
+                { "$ref": "#/$defs/experimentArm" },
+                { "properties": { "role": { "const": "TRUE" }, "control_strategy": { "const": "candidate_delta" } } }
+              ]
+            },
+            {
+              "allOf": [
+                { "$ref": "#/$defs/experimentArm" },
+                { "properties": { "role": { "const": "SHAM" }, "control_strategy": { "const": "placebo_delta" } } }
+              ]
+            }
+          ],
+          "items": false,
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "status": {
+          "const": "prepared_unexecuted"
+        },
+        "evaluation_authorized": {
+          "const": false
+        },
+        "training_authorized": {
+          "const": false
+        },
+        "promotion_authorized": {
+          "const": false
+        },
+        "non_claims": {
+          "$ref": "#/$defs/nonClaims"
+        },
+        "capsule_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "target_surface_ids": {
+                "contains": {
+                  "const": "model_weights"
+                }
+              }
+            },
+            "required": [
+              "target_surface_ids"
+            ]
+          },
+          "then": {
+            "properties": {
+              "plane": {
+                "const": "future_joint_model_harness"
+              },
+              "training_authorized": {
+                "const": false
+              }
+            }
+          }
+        }
+      ]
+    },
+    "externalDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "decision_id",
+        "capsule_id",
+        "capsule_sha256",
+        "decision_kind",
+        "disposition",
+        "issuer_id",
+        "issuer_artifact_sha256",
+        "decision_payload_sha256",
+        "authority_receipt_sha256",
+        "training_gate_receipt_sha256",
+        "issued_at",
+        "trust_state",
+        "authority_verified",
+        "training_gate_verified",
+        "apply_authorized",
+        "promotion_authorized",
+        "blockers",
+        "non_claims",
+        "external_input_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.harness.external-component-decision.v1"
+        },
+        "decision_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "capsule_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "capsule_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "decision_kind": {
+          "enum": [
+            "optimizer_recommendation",
+            "promotion_recommendation",
+            "rollback_recommendation"
+          ]
+        },
+        "disposition": {
+          "enum": [
+            "accept_candidate",
+            "reject_candidate",
+            "revise_candidate",
+            "no_change",
+            "rollback"
+          ]
+        },
+        "issuer_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "issuer_artifact_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "decision_payload_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "authority_receipt_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "training_gate_receipt_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "trust_state": {
+          "const": "untrusted_external_input"
+        },
+        "authority_verified": {
+          "const": false
+        },
+        "training_gate_verified": {
+          "const": false
+        },
+        "apply_authorized": {
+          "const": false
+        },
+        "promotion_authorized": {
+          "const": false
+        },
+        "blockers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^typed_blocker:"
+          },
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "non_claims": {
+          "$ref": "#/$defs/nonClaims"
+        },
+        "external_input_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "reconfigurationPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "plan_id",
+        "operation",
+        "capsule_id",
+        "capsule_sha256",
+        "decision_id",
+        "decision_external_input_sha256",
+        "target_component_ids",
+        "target_surface_ids",
+        "component_lifecycle_contract",
+        "loadout_contract",
+        "component_lifecycle_contract_sha256",
+        "loadout_contract_sha256",
+        "current_component_snapshot_sha256",
+        "current_loadout_manifest_sha256",
+        "dependency_closure_sha256",
+        "replay_receipt_sha256",
+        "rollback_receipt_sha256",
+        "steps",
+        "blockers",
+        "requested_at",
+        "state",
+        "apply_authorized",
+        "trace_append_authorized",
+        "non_claims",
+        "plan_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.harness.component-reconfiguration-plan.v1"
+        },
+        "plan_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "operation": {
+          "enum": [
+            "swap",
+            "rollback",
+            "replay"
+          ]
+        },
+        "capsule_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "capsule_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "decision_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "decision_external_input_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "target_component_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "target_surface_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/surfaceId"
+          },
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "component_lifecycle_contract": {
+          "const": "mykrobial.component-snapshot.v1"
+        },
+        "loadout_contract": {
+          "const": "mykrobial.harness.loadout-manifest.v1"
+        },
+        "component_lifecycle_contract_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "loadout_contract_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "current_component_snapshot_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "current_loadout_manifest_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "dependency_closure_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "replay_receipt_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rollback_receipt_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "blockers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^typed_blocker:"
+          },
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "requested_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "state": {
+          "const": "prepared_unexecuted"
+        },
+        "apply_authorized": {
+          "const": false
+        },
+        "trace_append_authorized": {
+          "const": false
+        },
+        "non_claims": {
+          "$ref": "#/$defs/nonClaims"
+        },
+        "plan_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "traceIntent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "target_schema",
+        "target_schema_version",
+        "trace_id",
+        "session_id",
+        "source_event_sha256",
+        "source_event_sequence",
+        "source_event_kind",
+        "scope",
+        "phase",
+        "content_mode",
+        "status",
+        "blocker",
+        "non_claims"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.deepseek.trace-v2.3-intent.v1"
+        },
+        "target_schema": {
+          "const": "mykrobial.trace.v2.3.event.v1"
+        },
+        "target_schema_version": {
+          "const": "2.3.0"
+        },
+        "trace_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "session_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "source_event_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "source_event_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_event_kind": {
+          "$ref": "#/$defs/identifier"
+        },
+        "scope": {
+          "const": "root_run"
+        },
+        "phase": {
+          "const": "progress"
+        },
+        "content_mode": {
+          "const": "metadata_only"
+        },
+        "status": {
+          "const": "candidate_report_only"
+        },
+        "blocker": {
+          "const": "typed_blocker:mykrobial_trace_v2_3_schema_and_append_authority_unadmitted"
+        },
+        "non_claims": {
+          "$ref": "#/$defs/nonClaims"
+        }
+      }
+    },
+    "experimentProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "phase",
+        "capsule_id",
+        "trajectory_event",
+        "trace_v2_3_intent",
+        "trajectory_append_authorized",
+        "trace_append_authorized",
+        "non_claims",
+        "projection_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.harness.component-experiment-projection.v1"
+        },
+        "phase": {
+          "enum": [
+            "proposal_prepared",
+            "capsule_prepared",
+            "evaluation_requested",
+            "external_decision_received",
+            "swap_planned",
+            "rollback_planned",
+            "replay_planned",
+            "mismatch_observed",
+            "no_change_selected"
+          ]
+        },
+        "capsule_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "trajectory_event": {
+          "$ref": "./harness-parity.v1.schema.json#/$defs/trajectoryEvent"
+        },
+        "trace_v2_3_intent": {
+          "$ref": "#/$defs/traceIntent"
+        },
+        "trajectory_append_authorized": {
+          "const": false
+        },
+        "trace_append_authorized": {
+          "const": false
+        },
+        "non_claims": {
+          "$ref": "#/$defs/nonClaims"
+        },
+        "projection_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    }
+  }
+}

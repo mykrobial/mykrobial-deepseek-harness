@@ -1,0 +1,139 @@
+{
+  "schema": "mykrobial.component-rsi-seam-test-fixture.v1",
+  "proposal_input": {
+    "proposal_id": "proposal-prompt-v1",
+    "plane": "local_idle_compute",
+    "task_capsule_id": "task-capsule-one",
+    "loadout_id": "retrodict-default-v1",
+    "source": {
+      "repository": "https://github.com/mykrobial/mykrobial-deepseek-harness.git",
+      "commit": "60d50ae18f660817277efa7c997bfa17f2caab4f",
+      "tree": "5bd82cac86bb5c3d51387ae0e164f7712dd0128f",
+      "dirty_state": "clean",
+      "configuration_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    },
+    "context_pack_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "optimizer_input_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "targets": [
+      {
+        "component_id": "system-prompt-v1",
+        "surface_id": "prompt",
+        "base_component_identity_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "candidate_component_identity_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "delta_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      }
+    ],
+    "joint_delta_declaration_sha256": null,
+    "created_at": "2026-08-31T20:00:00Z"
+  },
+  "expected_target_set_sha256": "98729957670019b1f33ee09010fe21ddb1ea88f681c098e1e0527f723b2f8657",
+  "capsule_fields": {
+    "capsule_id": "capsule-prompt-v1",
+    "experiment_id": "experiment-prompt-v1",
+    "task_binding": {
+      "task_capsule_id": "task-capsule-one",
+      "task_capsule_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "task_population_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "loadout_id": "retrodict-default-v1",
+      "loadout_manifest_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "seed": 17,
+      "task_order_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+    },
+    "evaluator_binding": {
+      "evaluator_id": "frozen-evaluator-v1",
+      "evaluator_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "evaluator_source_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "candidate_visible": false,
+      "frozen": true
+    },
+    "budget_binding": {
+      "max_input_tokens": 12000,
+      "max_output_tokens": 4000,
+      "max_wall_ms": 120000,
+      "max_monetary_microusd": 500000,
+      "max_actions": 32
+    },
+    "source_binding": {
+      "harness_source": {
+        "repository": "https://github.com/mykrobial/mykrobial-deepseek-harness.git",
+        "commit": "60d50ae18f660817277efa7c997bfa17f2caab4f",
+        "tree": "5bd82cac86bb5c3d51387ae0e164f7712dd0128f",
+        "dirty_state": "clean",
+        "configuration_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      "component_lifecycle_contract_sha256": "d52c0211625cfb17270985c9aa33eace8c445aa01b21022bdeb559155a141208",
+      "loadout_contract_sha256": "e6b1492cf5c20752db15d7e734df2183447167dbf2d44adc818fb9f306b04ed5",
+      "trajectory_contract_sha256": "7f53dd79b5c4f103a1e27c892734fb9c716ee9f5d86875287959fe946b054c4d",
+      "trace_bridge_source_sha256": "6026502646b480aa025b5bf5ec1fdb7fbfa79665e313d96a9489e5b57044cc9c",
+      "mutation_surface_registry_sha256": "1ee9e6c81287939795d538f7b92eb2167429ca9ed3f53e55f74d0752ad4aa451"
+    },
+    "arms": [
+      {
+        "arm_id": "arm-base",
+        "role": "BASE",
+        "control_strategy": "unchanged_baseline",
+        "loadout_manifest_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "component_set_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+        "applied_delta_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+      },
+      {
+        "arm_id": "arm-true",
+        "role": "TRUE",
+        "control_strategy": "candidate_delta",
+        "loadout_manifest_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "component_set_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+        "applied_delta_sha256": "98729957670019b1f33ee09010fe21ddb1ea88f681c098e1e0527f723b2f8657"
+      },
+      {
+        "arm_id": "arm-sham",
+        "role": "SHAM",
+        "control_strategy": "placebo_delta",
+        "loadout_manifest_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "component_set_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "applied_delta_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+      }
+    ],
+    "created_at": "2026-08-31T20:01:00Z"
+  },
+  "decision_input": {
+    "decision_id": "decision-prompt-v1",
+    "capsule_id": "capsule-prompt-v1",
+    "capsule_sha256": "7208b915b1e2cc096b71d79c4b16cb987814f3b111dedf155e9c98ae73c52552",
+    "decision_kind": "optimizer_recommendation",
+    "disposition": "accept_candidate",
+    "issuer_id": "external-optimizer-v1",
+    "issuer_artifact_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "decision_payload_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "authority_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "training_gate_receipt_sha256": null,
+    "issued_at": "2026-08-31T20:02:00Z"
+  },
+  "plan_fields": {
+    "operation": "swap",
+    "current_component_snapshot_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "current_loadout_manifest_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "dependency_closure_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "replay_receipt_sha256": null,
+    "rollback_receipt_sha256": null,
+    "requested_at": "2026-08-31T20:03:00Z"
+  },
+  "projection_fields": {
+    "phase": "swap_planned",
+    "event_id": "event-swap-planned",
+    "run_id": "run-one",
+    "trace_id": "trace-one",
+    "session_id": "session-one",
+    "sequence": 4,
+    "previous_event_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "occurred_at": "2026-08-31T20:04:00Z",
+    "branch_id": "branch-main",
+    "component_generation": 2,
+    "payload_ref": {
+      "ref": "artifact://component-rsi/capsule-prompt-v1",
+      "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "bytes": 4096,
+      "media_type": "application/json",
+      "storage_class": "restricted"
+    }
+  }
+}

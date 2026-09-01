@@ -1,0 +1,147 @@
+{
+  "schema": "mykrobial.harness.component-mutation-surface-registry.v1",
+  "registry_id": "next-deepseek-cordis-component-surfaces-v1",
+  "surfaces": [
+    {
+      "surface_id": "prompt",
+      "independently_versioned": true,
+      "independently_swappable": true,
+      "per_task_experiment_allowed": true,
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
+      "training_gate_required": false,
+      "runtime_application_authority_required": true,
+      "trace_projection_required": true
+    },
+    {
+      "surface_id": "skill_card",
+      "independently_versioned": true,
+      "independently_swappable": true,
+      "per_task_experiment_allowed": true,
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
+      "training_gate_required": false,
+      "runtime_application_authority_required": true,
+      "trace_projection_required": true
+    },
+    {
+      "surface_id": "ontology_edge_or_function",
+      "independently_versioned": true,
+      "independently_swappable": true,
+      "per_task_experiment_allowed": true,
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
+      "training_gate_required": false,
+      "runtime_application_authority_required": true,
+      "trace_projection_required": true
+    },
+    {
+      "surface_id": "router",
+      "independently_versioned": true,
+      "independently_swappable": true,
+      "per_task_experiment_allowed": true,
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
+      "training_gate_required": false,
+      "runtime_application_authority_required": true,
+      "trace_projection_required": true
+    },
+    {
+      "surface_id": "workflow",
+      "independently_versioned": true,
+      "independently_swappable": true,
+      "per_task_experiment_allowed": true,
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
+      "training_gate_required": false,
+      "runtime_application_authority_required": true,
+      "trace_projection_required": true
+    },
+    {
+      "surface_id": "memory",
+      "independently_versioned": true,
+      "independently_swappable": true,
+      "per_task_experiment_allowed": true,
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
+      "training_gate_required": false,
+      "runtime_application_authority_required": true,
+      "trace_projection_required": true
+    },
+    {
+      "surface_id": "tool",
+      "independently_versioned": true,
+      "independently_swappable": true,
+      "per_task_experiment_allowed": true,
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
+      "training_gate_required": false,
+      "runtime_application_authority_required": true,
+      "trace_projection_required": true
+    },
+    {
+      "surface_id": "model_route",
+      "independently_versioned": true,
+      "independently_swappable": true,
+      "per_task_experiment_allowed": true,
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
+      "training_gate_required": false,
+      "runtime_application_authority_required": true,
+      "trace_projection_required": true
+    },
+    {
+      "surface_id": "model_adapter",
+      "independently_versioned": true,
+      "independently_swappable": true,
+      "per_task_experiment_allowed": true,
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
+      "training_gate_required": false,
+      "runtime_application_authority_required": true,
+      "trace_projection_required": true
+    },
+    {
+      "surface_id": "model_weights",
+      "independently_versioned": true,
+      "independently_swappable": true,
+      "per_task_experiment_allowed": true,
+      "allowed_planes": ["future_joint_model_harness"],
+      "training_gate_required": true,
+      "runtime_application_authority_required": true,
+      "trace_projection_required": true
+    },
+    {
+      "surface_id": "harness",
+      "independently_versioned": true,
+      "independently_swappable": true,
+      "per_task_experiment_allowed": true,
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
+      "training_gate_required": false,
+      "runtime_application_authority_required": true,
+      "trace_projection_required": true
+    },
+    {
+      "surface_id": "guardrail",
+      "independently_versioned": true,
+      "independently_swappable": true,
+      "per_task_experiment_allowed": true,
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
+      "training_gate_required": false,
+      "runtime_application_authority_required": true,
+      "trace_projection_required": true
+    },
+    {
+      "surface_id": "ui_projection",
+      "independently_versioned": true,
+      "independently_swappable": true,
+      "per_task_experiment_allowed": true,
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
+      "training_gate_required": false,
+      "runtime_application_authority_required": true,
+      "trace_projection_required": true
+    },
+    {
+      "surface_id": "loadout",
+      "independently_versioned": true,
+      "independently_swappable": true,
+      "per_task_experiment_allowed": true,
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
+      "training_gate_required": false,
+      "runtime_application_authority_required": true,
+      "trace_projection_required": true
+    }
+  ],
+  "registry_sha256": "1ee9e6c81287939795d538f7b92eb2167429ca9ed3f53e55f74d0752ad4aa451"
+}

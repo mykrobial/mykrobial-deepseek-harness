@@ -1,0 +1,50 @@
+{
+  "schema": "mykrobial.component-rsi-seam-test-fixture.v1",
+  "proposal_input": {
+    "proposal_id": "proposal-joint-v1",
+    "plane": "future_joint_model_harness",
+    "task_capsule_id": "task-capsule-joint",
+    "loadout_id": "retrodict-future-joint-v1",
+    "source": {
+      "repository": "https://github.com/mykrobial/mykrobial-deepseek-harness.git",
+      "commit": "60d50ae18f660817277efa7c997bfa17f2caab4f",
+      "tree": "5bd82cac86bb5c3d51387ae0e164f7712dd0128f",
+      "dirty_state": "clean",
+      "configuration_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    },
+    "context_pack_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "optimizer_input_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "targets": [
+      {
+        "component_id": "model-weights-v2",
+        "surface_id": "model_weights",
+        "base_component_identity_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "candidate_component_identity_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "delta_sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+      },
+      {
+        "component_id": "harness-core-v2",
+        "surface_id": "harness",
+        "base_component_identity_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "candidate_component_identity_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+        "delta_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+      }
+    ],
+    "joint_delta_declaration_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+    "created_at": "2026-08-31T21:00:00Z"
+  },
+  "expected_target_set_sha256": "2a3491f3da1812280b2921f62a5308de544be9fc231ec04b0d96f61c61965ec2",
+  "decision_input": {
+    "decision_id": "decision-joint-v1",
+    "capsule_id": "capsule-joint-v1",
+    "capsule_sha256": "98c3a4bd75a2cf3b60bd8080be291131a43976e7c190b243da41987e1c370cce",
+    "decision_kind": "promotion_recommendation",
+    "disposition": "accept_candidate",
+    "issuer_id": "external-optimizer-v1",
+    "issuer_artifact_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+    "decision_payload_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+    "authority_receipt_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "training_gate_receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "issued_at": "2026-08-31T21:02:00Z"
+  }
+}

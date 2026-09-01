@@ -1,0 +1,83 @@
+{
+  "schema": "mykrobial.goalrun.component-rsi-seam-fresh-critic-blocker.v1",
+  "subject": {
+    "commit": "af83580956f9200c771131788214406a4170a406",
+    "tree": "8e034669000f4edc91028a2f2f163f59760f8d12",
+    "content_manifest_sha256": "e6a78860ee3f507c853ca717ae0feb54b0d3e8fba31108cb32587ace35deda5b",
+    "source_receipt_sha256": "a0e7055ec0637e2cf56b2cf38aebaac211fc6082d48851bbda281c9f5aa1e63b"
+  },
+  "verdict": "blocked",
+  "accepted": false,
+  "blocker": "typed_blocker:component_experiment_arm_loadout_binding_revalidation_missing",
+  "counterexample": {
+    "entrypoint": "acceptExternalComponentDecision",
+    "starting_artifact": "valid single-prompt capsule returned by prepareComponentExperimentCapsule",
+    "mutation": "replace only BASE loadout_manifest_sha256 with a different valid SHA-256 and recompute capsule_sha256 with canonicalSha256",
+    "task_loadout_manifest_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "base_arm_loadout_manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "observed": "accepted_without_throw",
+    "expected": "reject_component_experiment_controls_not_distinct",
+    "validator_ref": "packages/mykrobial/component-rsi-seam/src/index.ts:461",
+    "missing_guard_ref": "packages/mykrobial/component-rsi-seam/src/index.ts:512",
+    "falsified_claim": "frozen matched BASE TRUE SHAM loadout basis remains enforced when a public capsule is revalidated"
+  },
+  "otherwise_verified": {
+    "candidate_scope": {
+      "basis_commit": "60d50ae18f660817277efa7c997bfa17f2caab4f",
+      "files_added": 22,
+      "upstream_or_core_files_modified": 0,
+      "upstream_or_core_files_deleted": 0
+    },
+    "direct_node_tests_passed": 20,
+    "direct_node_tests_failed": 0,
+    "typescript_syntax_checks_passed": 3,
+    "strict_json_parses_passed": 12,
+    "sha256_manifest_checks_passed": 20,
+    "mutation_surface_count": 14,
+    "mutation_surface_registry_sha256": "1ee9e6c81287939795d538f7b92eb2167429ca9ed3f53e55f74d0752ad4aa451",
+    "evolution_plane_binding_sha256": "e036850447bbf03e3298bdcd4ae7e77a8f1b35337807073d5f7c365f0994649d",
+    "current_production_evolution_plane_source_sha256": "724e1ab4df67bab9b9ab9538d549d6faa29088fc60db6272f8d692ef4a9e74a4",
+    "exact_evolution_plane_ids": [
+      "online_areal_actual_work",
+      "local_idle_compute",
+      "frontier_builder_critic",
+      "future_joint_model_harness"
+    ],
+    "external_optimizer_is_strategy_adapter_not_plane": true,
+    "model_weights_plane": "future_joint_model_harness",
+    "metadata_only_trace_intents": true,
+    "external_decisions_remain_untrusted": true,
+    "cordis_plans_apply_authorized": false,
+    "ownership_boundary_remains_source_only": true
+  },
+  "operation_state": {
+    "candidate_source_edited": false,
+    "dependency_acquisition_executed": false,
+    "package_manager_executed": false,
+    "build_executed": false,
+    "runtime_executed": false,
+    "provider_or_model_executed": false,
+    "trace_executed": false,
+    "deployment_executed": false
+  },
+  "trace": {
+    "attempted": false,
+    "blocker": "typed_blocker:trace_execution_forbidden_by_review_scope"
+  },
+  "authority": {
+    "reviewed": false,
+    "execution_authorized": false,
+    "component_application_authorized": false,
+    "promotion_authorized": false,
+    "deployment_authorized": false
+  },
+  "non_claims": [
+    "not_runtime_execution",
+    "not_provider_execution",
+    "not_trace_execution",
+    "not_component_application",
+    "not_promotion",
+    "not_deployment",
+    "not_human_or_founder_review"
+  ]
+}
