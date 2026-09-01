@@ -23,7 +23,7 @@ export type ExperimentPhase =
 
 const ID = /^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$/
 const SHA = /^[0-9a-f]{64}$/
-const UTC = /^(\d{4})-(\d{2})-(\d{2})T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,6})?Z$/
+const UTC = /^(\d{4})-(\d{2})-(\d{2})T((?:[01]\d|2[0-3])):([0-5]\d):([0-5]\d)(?:\.(\d{1,6}))?Z$/
 const BLOCKER = /^typed_blocker:[a-z0-9_:-]+$/
 const SURFACES: readonly EvolutionSurfaceId[] = [
   'prompt', 'skill_card', 'ontology_edge_or_function', 'router', 'workflow',
@@ -113,6 +113,17 @@ function timestamp(value: unknown, blocker: string): string {
   return value as string
 }
 
+function timestampOrdinal(value: string): bigint {
+  const match = UTC.exec(value)
+  if (match === null) throw new Error('typed_blocker:component_view_timestamp_invalid')
+  const milliseconds = Date.UTC(
+    Number(match[1]), Number(match[2]) - 1, Number(match[3]), Number(match[4]),
+    Number(match[5]), Number(match[6]),
+  )
+  const microseconds = BigInt((match[7] ?? '').padEnd(6, '0') || '0')
+  return BigInt(milliseconds) * 1000n + microseconds
+}
+
 function oneOf<T extends string>(value: unknown, allowed: readonly T[], blocker: string): T {
   if (typeof value !== 'string' || !allowed.includes(value as T)) throw new Error(`typed_blocker:${blocker}`)
   return value as T
@@ -183,6 +194,7 @@ export interface ComponentExperimentViewInput {
     state: 'none' | 'prepared_unexecuted' | 'verified_unapplied' | 'applied' | 'rolled_back' | 'blocked'
     plan_id: string | null
     plan_sha256: string | null
+    verification_receipt_sha256: string | null
     applied_receipt_sha256: string | null
     replay_receipt_sha256: string | null
     rollback_receipt_sha256: string | null
@@ -271,7 +283,8 @@ function componentRow(value: unknown): ComponentGenerationViewInput {
   if (typeof row.active !== 'boolean' || typeof row.rollback_available !== 'boolean'
     || row.parent_component_id === row.component_id
     || (row.active && (row.lifecycle_state !== 'active' || row.valid_until !== null))
-    || (row.valid_from !== null && row.valid_until !== null && row.valid_until < row.valid_from)) {
+    || (row.valid_from !== null && row.valid_until !== null
+      && timestampOrdinal(row.valid_until) < timestampOrdinal(row.valid_from))) {
     throw new Error('typed_blocker:component_view_component_state_invalid')
   }
   return row
@@ -347,7 +360,7 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
     throw new Error('typed_blocker:component_view_decision_state_invalid')
   }
   exact(row.plan, [
-    'state', 'plan_id', 'plan_sha256', 'applied_receipt_sha256',
+    'state', 'plan_id', 'plan_sha256', 'verification_receipt_sha256', 'applied_receipt_sha256',
     'replay_receipt_sha256', 'rollback_receipt_sha256',
   ], 'component_view_plan_closure_invalid')
   row.plan.state = oneOf(row.plan.state, [
@@ -355,24 +368,31 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
   ] as const, 'component_view_plan_state_invalid')
   row.plan.plan_id = row.plan.plan_id === null ? null : identifier(row.plan.plan_id)
   row.plan.plan_sha256 = optionalDigest(row.plan.plan_sha256, 'component_view_plan_digest_invalid')
+  row.plan.verification_receipt_sha256 = optionalDigest(row.plan.verification_receipt_sha256, 'component_view_plan_receipt_invalid')
   row.plan.applied_receipt_sha256 = optionalDigest(row.plan.applied_receipt_sha256, 'component_view_plan_receipt_invalid')
   row.plan.replay_receipt_sha256 = optionalDigest(row.plan.replay_receipt_sha256, 'component_view_plan_receipt_invalid')
   row.plan.rollback_receipt_sha256 = optionalDigest(row.plan.rollback_receipt_sha256, 'component_view_plan_receipt_invalid')
   const planCore = [row.plan.plan_id, row.plan.plan_sha256]
   if ((row.plan.state === 'none' && [
-    ...planCore, row.plan.applied_receipt_sha256, row.plan.replay_receipt_sha256,
+    ...planCore, row.plan.verification_receipt_sha256, row.plan.applied_receipt_sha256, row.plan.replay_receipt_sha256,
     row.plan.rollback_receipt_sha256,
   ].some(item => item !== null))
     || (row.plan.state !== 'none' && planCore.some(item => item === null))
+    || (['verified_unapplied', 'applied', 'rolled_back'].includes(row.plan.state)
+      !== (row.plan.verification_receipt_sha256 !== null))
     || (row.plan.state === 'applied' && row.plan.applied_receipt_sha256 === null)
-    || (row.plan.state === 'rolled_back' && row.plan.rollback_receipt_sha256 === null)
-    || (!['applied'].includes(row.plan.state) && row.plan.applied_receipt_sha256 !== null)
+    || (row.plan.state === 'rolled_back'
+      && (row.plan.applied_receipt_sha256 === null || row.plan.rollback_receipt_sha256 === null))
+    || (!['applied', 'rolled_back'].includes(row.plan.state) && row.plan.applied_receipt_sha256 !== null)
     || (row.plan.state !== 'rolled_back' && row.plan.rollback_receipt_sha256 !== null)) {
     throw new Error('typed_blocker:component_view_plan_state_invalid')
   }
   row.proof_level = oneOf(row.proof_level, PROOF_LEVELS, 'component_view_proof_level_invalid')
   if (['runtime_verified', 'deployed_verified'].includes(row.proof_level)
-    && !['applied', 'rolled_back'].includes(row.plan.state)) {
+    && (!['applied', 'rolled_back'].includes(row.plan.state)
+      || row.decision.state !== 'verified'
+      || row.arms.some(arm => arm.execution_state !== 'completed'
+        || arm.result_receipt_sha256 === null))) {
     throw new Error('typed_blocker:component_view_experiment_proof_incomplete')
   }
   if (!['runtime_verified', 'deployed_verified'].includes(row.proof_level)
@@ -427,11 +447,15 @@ function timelineRow(value: unknown): ComponentTimelineRowInput {
     'not_asserted', 'asserted_unverified', 'verified',
   ] as const, 'component_view_causality_invalid')
   row.receipt_sha256 = optionalDigest(row.receipt_sha256, 'component_view_timeline_receipt_invalid')
-  if (row.valid_from !== null && row.valid_until !== null && row.valid_until < row.valid_from) {
+  if (row.valid_from !== null && row.valid_until !== null
+    && timestampOrdinal(row.valid_until) < timestampOrdinal(row.valid_from)) {
     throw new Error('typed_blocker:component_view_valid_time_invalid')
   }
   if (row.causality_state === 'verified' && row.receipt_sha256 === null) {
     throw new Error('typed_blocker:component_view_causality_receipt_missing')
+  }
+  if (row.causality_state !== 'verified' && row.receipt_sha256 !== null) {
+    throw new Error('typed_blocker:component_view_causality_state_invalid')
   }
   return row
 }
@@ -472,9 +496,17 @@ export function buildOmniGentComponentEvolutionView(
     left.component_id.localeCompare(right.component_id) || left.generation - right.generation)
   const componentIds = new Set(input.components.map(row => row.component_id))
   if (componentIds.size !== input.components.length) throw new Error('typed_blocker:component_view_component_duplicate_invalid')
-  if (input.components.some(row => row.parent_component_id !== null
-    && !componentIds.has(row.parent_component_id))) {
-    throw new Error('typed_blocker:component_view_parent_identity_invalid')
+  const componentById = new Map(input.components.map(row => [row.component_id, row]))
+  for (const row of input.components) {
+    if (row.parent_component_id === null) continue
+    const parent = componentById.get(row.parent_component_id)
+    if (parent === undefined
+      || parent.logical_identity !== row.logical_identity
+      || parent.surface_id !== row.surface_id
+      || parent.generation >= row.generation
+      || timestampOrdinal(parent.transaction_time) > timestampOrdinal(row.transaction_time)) {
+      throw new Error('typed_blocker:component_view_parent_identity_invalid')
+    }
   }
   const activeLogical = input.components.filter(row => row.active).map(row => row.logical_identity)
   if (new Set(activeLogical).size !== activeLogical.length) throw new Error('typed_blocker:component_view_active_identity_collision')
@@ -485,6 +517,14 @@ export function buildOmniGentComponentEvolutionView(
     || input.components.some(row => row.experiment_id !== null && !experimentIds.has(row.experiment_id))) {
     throw new Error('typed_blocker:component_view_experiment_identity_invalid')
   }
+  for (const experiment of input.experiments) {
+    const targetSurfaces = [...new Set(experiment.target_component_ids.map(
+      id => componentById.get(id)!.surface_id,
+    ))].sort()
+    if (targetSurfaces.join('\u0000') !== experiment.target_surface_ids.join('\u0000')) {
+      throw new Error('typed_blocker:component_view_experiment_target_mismatch')
+    }
+  }
   input.optimizer_ports = input.optimizer_ports.map(optimizerPort).sort((left, right) => left.strategy_id.localeCompare(right.strategy_id))
   if (new Set(input.optimizer_ports.map(row => row.strategy_id)).size !== input.optimizer_ports.length) {
     throw new Error('typed_blocker:component_view_optimizer_duplicate_invalid')
@@ -492,7 +532,9 @@ export function buildOmniGentComponentEvolutionView(
   input.timeline = input.timeline.map(timelineRow)
   for (let index = 0; index < input.timeline.length; index += 1) {
     const row = input.timeline[index]!
-    if ((index > 0 && row.sequence <= input.timeline[index - 1]!.sequence)
+    if ((index > 0 && (row.sequence <= input.timeline[index - 1]!.sequence
+      || timestampOrdinal(row.transaction_time)
+        < timestampOrdinal(input.timeline[index - 1]!.transaction_time)))
       || row.component_ids.some(id => !componentIds.has(id))
       || (row.experiment_id !== null && !experimentIds.has(row.experiment_id))) {
       throw new Error('typed_blocker:component_view_timeline_identity_or_order_invalid')
@@ -539,6 +581,11 @@ export function buildOmniGentComponentEvolutionView(
   if (input.proof_level === 'deployed_verified' && input.deployment_receipt_sha256 === null) {
     throw new Error('typed_blocker:component_view_deployment_proof_incomplete')
   }
+  if (input.proof_level === 'deployed_verified'
+    && !input.experiments.some(row => row.proof_level === 'deployed_verified'
+      && ['applied', 'rolled_back'].includes(row.plan.state))) {
+    throw new Error('typed_blocker:component_view_deployment_proof_incomplete')
+  }
   if (input.proof_level !== 'deployed_verified' && input.deployment_receipt_sha256 !== null) {
     throw new Error('typed_blocker:component_view_deployment_proof_overstated')
   }
@@ -548,4 +595,35 @@ export function buildOmniGentComponentEvolutionView(
     schema: 'mykrobial.omnigent.component-evolution-read-model.v1' as const,
   }
   return { ...body, view_sha256: sha(body) }
+}
+
+/**
+ * Revalidate a public component-evolution projection at every consumer boundary.
+ * @param value - Untrusted serialized read-model value.
+ * @returns The exact canonical projection when every semantic join still holds.
+ */
+export function validateOmniGentComponentEvolutionView(
+  value: unknown,
+): OmniGentComponentEvolutionView {
+  exact(value, [
+    'generated_at', 'task_capsule_id', 'run_id', 'harness_generation',
+    'active_loadout', 'component_manifest_sha256', 'mutation_surface_registry_sha256',
+    'components', 'experiments', 'optimizer_ports', 'timeline', 'trace', 'replay',
+    'rollback', 'proof_level', 'deployment_receipt_sha256', 'non_claims',
+    'schema', 'view_sha256',
+  ], 'component_view_public_closure_invalid')
+  const candidate = structuredClone(value) as unknown as OmniGentComponentEvolutionView
+  if (candidate.schema !== 'mykrobial.omnigent.component-evolution-read-model.v1') {
+    throw new Error('typed_blocker:component_view_schema_invalid')
+  }
+  digest(candidate.view_sha256, 'component_view_digest_invalid')
+  const { schema: _schema, view_sha256: _viewSha256, ...input } = candidate
+  const rebuilt = buildOmniGentComponentEvolutionView(
+    input as OmniGentComponentEvolutionViewInput,
+  )
+  if (rebuilt.view_sha256 !== candidate.view_sha256
+    || JSON.stringify(canonical(rebuilt)) !== JSON.stringify(canonical(candidate))) {
+    throw new Error('typed_blocker:component_view_public_revalidation_failed')
+  }
+  return rebuilt
 }

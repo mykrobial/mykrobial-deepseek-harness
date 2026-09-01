@@ -6,7 +6,7 @@
   },
   "content_manifest": {
     "ref": "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
-    "sha256": "3ad4ac6a848bc61bdd14479696dba445bd86dd4232bc38eced57df0a73152611",
+    "sha256": "4507dac5fc7510b94568f16d1ff3e0acd65c915434d57806b3aa94366eb99b31",
     "content_file_count": 6,
     "manifest_excludes": [
       "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
@@ -17,7 +17,7 @@
     "node_executable": "/opt/homebrew/bin/node",
     "node_version": "v25.9.0",
     "test_command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/operator-projections/tests/source-safe.test.ts",
-    "tests_passed": 25,
+    "tests_passed": 27,
     "tests_failed": 0,
     "typescript_syntax_checks": 3,
     "strict_authored_json_checks": 2,
@@ -33,6 +33,23 @@
     "trace_replay_rollback_readback": true,
     "source_runtime_deployment_proof_lattice": true,
     "view_hash_deterministic": true
+  },
+  "repair_basis": {
+    "critic_ref": "goalrun/component-rsi-operator-view-v1/FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "1d3702f803c9133e55c0397aac71c99a4fe668eb66f04d59c06600b108abdc9",
+    "finding": "typed_blocker:component_evolution_semantic_cross_bindings_missing",
+    "repairs": [
+      "microsecond chronological valid-time comparison",
+      "monotone timeline transaction time",
+      "same-logical-identity same-surface earlier-generation parent lineage",
+      "target component to target surface equality",
+      "verified-unapplied verification receipt",
+      "runtime proof requires all three completed arms and verified decision",
+      "rollback preserves application plus rollback receipts",
+      "deployed proof requires deployed experiment evidence",
+      "nonverified causality forbids receipt",
+      "public projection revalidation at every consumer"
+    ]
   },
   "authority": {
     "reviewed": false,

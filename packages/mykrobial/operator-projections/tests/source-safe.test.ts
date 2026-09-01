@@ -5,6 +5,7 @@ import {
   buildFactoryHandoff,
   buildOmniGentComponentEvolutionView,
   buildOmniGentHarnessView,
+  validateOmniGentComponentEvolutionView,
   type FactoryHandoffInput,
   type OmniGentComponentEvolutionViewInput,
   type OmniGentHarnessViewInput,
@@ -732,7 +733,8 @@ function componentEvolutionView(): OmniGentComponentEvolutionViewInput {
         },
         plan: {
           state: 'prepared_unexecuted', plan_id: 'plan-prompt',
-          plan_sha256: digest('0'), applied_receipt_sha256: null,
+          plan_sha256: digest('0'), verification_receipt_sha256: null,
+          applied_receipt_sha256: null,
           replay_receipt_sha256: null, rollback_receipt_sha256: null,
         },
         proof_level: 'source_verified',
@@ -816,6 +818,10 @@ function withComponentRuntimeEvidence(
   input.replay = { state: 'verified', receipt_sha256: digest('e') }
   input.rollback = { state: 'verified', receipt_sha256: digest('f') }
   const experiment = input.experiments[0]!
+  for (const [index, arm] of experiment.arms.entries()) {
+    arm.execution_state = 'completed'
+    arm.result_receipt_sha256 = digest(String(7 + index))
+  }
   experiment.proof_level = 'runtime_verified'
   experiment.decision = {
     state: 'verified', decision_id: 'decision-prompt',
@@ -824,7 +830,8 @@ function withComponentRuntimeEvidence(
   }
   experiment.plan = {
     state: 'applied', plan_id: 'plan-prompt', plan_sha256: digest('0'),
-    applied_receipt_sha256: digest('2'), replay_receipt_sha256: null,
+    verification_receipt_sha256: digest('6'), applied_receipt_sha256: digest('2'),
+    replay_receipt_sha256: null,
     rollback_receipt_sha256: null,
   }
   input.proof_level = 'runtime_verified'
@@ -891,6 +898,18 @@ test('component identity, active generation, and timeline references fail closed
   const unknownParent = componentEvolutionView()
   unknownParent.components[1]!.parent_component_id = 'missing-parent'
   assert.throws(() => buildOmniGentComponentEvolutionView(unknownParent), /parent_identity_invalid/)
+  const crossLineage = componentEvolutionView()
+  crossLineage.components[1]!.logical_identity = 'different-logical-component'
+  assert.throws(() => buildOmniGentComponentEvolutionView(crossLineage), /parent_identity_invalid/)
+  const crossSurface = componentEvolutionView()
+  crossSurface.components[1]!.surface_id = 'router'
+  assert.throws(() => buildOmniGentComponentEvolutionView(crossSurface), /parent_identity_invalid/)
+  const nonEarlierParent = componentEvolutionView()
+  nonEarlierParent.components[1]!.generation = 1
+  assert.throws(() => buildOmniGentComponentEvolutionView(nonEarlierParent), /parent_identity_invalid/)
+  const parentAfterChild = componentEvolutionView()
+  parentAfterChild.components[0]!.transaction_time = '2026-09-01T00:02:00Z'
+  assert.throws(() => buildOmniGentComponentEvolutionView(parentAfterChild), /parent_identity_invalid/)
   const unknownComponentExperiment = componentEvolutionView()
   unknownComponentExperiment.components[1]!.experiment_id = 'missing-experiment'
   assert.throws(() => buildOmniGentComponentEvolutionView(unknownComponentExperiment), /experiment_identity_invalid/)
@@ -912,6 +931,9 @@ test('component experiments require exact BASE TRUE SHAM controls and planes', (
   const modelWeights = componentEvolutionView()
   modelWeights.experiments[0]!.target_surface_ids = ['model_weights']
   assert.throws(() => buildOmniGentComponentEvolutionView(modelWeights), /model_weights_plane_invalid/)
+  const targetSurfaceMismatch = componentEvolutionView()
+  targetSurfaceMismatch.experiments[0]!.target_surface_ids = ['router']
+  assert.throws(() => buildOmniGentComponentEvolutionView(targetSurfaceMismatch), /experiment_target_mismatch/)
   const completedWithoutReceipt = componentEvolutionView()
   completedWithoutReceipt.experiments[0]!.arms[0]!.execution_state = 'completed'
   assert.throws(() => buildOmniGentComponentEvolutionView(completedWithoutReceipt), /arm_receipt_missing/)
@@ -924,13 +946,27 @@ test('component decision and plan states cannot overstate receipts', () => {
   const verifiedWithoutAuthority = componentEvolutionView()
   verifiedWithoutAuthority.experiments[0]!.decision.state = 'verified'
   assert.throws(() => buildOmniGentComponentEvolutionView(verifiedWithoutAuthority), /decision_state_invalid/)
-  const sourceApplied = componentEvolutionView()
-  sourceApplied.experiments[0]!.plan.state = 'applied'
-  sourceApplied.experiments[0]!.plan.applied_receipt_sha256 = digest('2')
+  const verifiedUnappliedWithoutReceipt = componentEvolutionView()
+  verifiedUnappliedWithoutReceipt.experiments[0]!.plan.state = 'verified_unapplied'
+  assert.throws(() => buildOmniGentComponentEvolutionView(verifiedUnappliedWithoutReceipt), /plan_state_invalid/)
+  const sourceApplied = withComponentRuntimeEvidence(componentEvolutionView())
+  sourceApplied.proof_level = 'source_verified'
+  sourceApplied.experiments[0]!.proof_level = 'source_verified'
   assert.throws(() => buildOmniGentComponentEvolutionView(sourceApplied), /proof_overstated/)
   const appliedWithoutReceipt = withComponentRuntimeEvidence(componentEvolutionView())
   appliedWithoutReceipt.experiments[0]!.plan.applied_receipt_sha256 = null
   assert.throws(() => buildOmniGentComponentEvolutionView(appliedWithoutReceipt), /plan_state_invalid/)
+  const runtimeWithPlannedArms = withComponentRuntimeEvidence(componentEvolutionView())
+  for (const arm of runtimeWithPlannedArms.experiments[0]!.arms) {
+    arm.execution_state = 'planned'
+    arm.result_receipt_sha256 = null
+  }
+  assert.throws(() => buildOmniGentComponentEvolutionView(runtimeWithPlannedArms), /experiment_proof_incomplete/)
+  const rollbackWithoutApplication = withComponentRuntimeEvidence(componentEvolutionView())
+  rollbackWithoutApplication.experiments[0]!.plan.state = 'rolled_back'
+  rollbackWithoutApplication.experiments[0]!.plan.applied_receipt_sha256 = null
+  rollbackWithoutApplication.experiments[0]!.plan.rollback_receipt_sha256 = digest('5')
+  assert.throws(() => buildOmniGentComponentEvolutionView(rollbackWithoutApplication), /plan_state_invalid/)
 })
 
 test('component runtime and deployment proof levels require the complete floor', () => {
@@ -944,6 +980,10 @@ test('component runtime and deployment proof levels require the complete floor',
   deployedWithoutReceipt.proof_level = 'deployed_verified'
   deployedWithoutReceipt.experiments[0]!.proof_level = 'deployed_verified'
   assert.throws(() => buildOmniGentComponentEvolutionView(deployedWithoutReceipt), /deployment_proof_incomplete/)
+  const deployedWithRuntimeOnlyExperiment = withComponentRuntimeEvidence(componentEvolutionView())
+  deployedWithRuntimeOnlyExperiment.proof_level = 'deployed_verified'
+  deployedWithRuntimeOnlyExperiment.deployment_receipt_sha256 = digest('3')
+  assert.throws(() => buildOmniGentComponentEvolutionView(deployedWithRuntimeOnlyExperiment), /deployment_proof_incomplete/)
   const deployed = withComponentRuntimeEvidence(componentEvolutionView())
   deployed.proof_level = 'deployed_verified'
   deployed.experiments[0]!.proof_level = 'deployed_verified'
@@ -959,6 +999,10 @@ test('component valid time and strict UTC calendar dates reject normalization', 
   reversed.components[1]!.valid_from = '2026-09-02T00:00:00Z'
   reversed.components[1]!.valid_until = '2026-09-01T00:00:00Z'
   assert.throws(() => buildOmniGentComponentEvolutionView(reversed), /component_state_invalid/)
+  const fractionalReversal = componentEvolutionView()
+  fractionalReversal.components[1]!.valid_from = '2026-09-01T00:00:00.1Z'
+  fractionalReversal.components[1]!.valid_until = '2026-09-01T00:00:00Z'
+  assert.throws(() => buildOmniGentComponentEvolutionView(fractionalReversal), /component_state_invalid/)
   const activeUntil = componentEvolutionView()
   activeUntil.components[0]!.valid_until = '2026-09-02T00:00:00Z'
   assert.throws(() => buildOmniGentComponentEvolutionView(activeUntil), /component_state_invalid/)
@@ -999,6 +1043,12 @@ test('component timeline causality and Trace states require exact receipts', () 
   const causal = componentEvolutionView()
   causal.timeline[0]!.causality_state = 'verified'
   assert.throws(() => buildOmniGentComponentEvolutionView(causal), /causality_receipt_missing/)
+  const nonCausalReceipt = componentEvolutionView()
+  nonCausalReceipt.timeline[0]!.receipt_sha256 = digest('4')
+  assert.throws(() => buildOmniGentComponentEvolutionView(nonCausalReceipt), /causality_state_invalid/)
+  const reversedTransactionTime = componentEvolutionView()
+  reversedTransactionTime.timeline[0]!.transaction_time = '2026-09-01T00:02:00Z'
+  assert.throws(() => buildOmniGentComponentEvolutionView(reversedTransactionTime), /timeline_identity_or_order_invalid/)
   const appendWithoutReceipts = componentEvolutionView()
   appendWithoutReceipts.trace.state = 'append_verified'
   appendWithoutReceipts.trace.blocker = null
@@ -1009,4 +1059,52 @@ test('component timeline causality and Trace states require exact receipts', () 
   const replayReceiptDrift = componentEvolutionView()
   replayReceiptDrift.replay.receipt_sha256 = digest('6')
   assert.throws(() => buildOmniGentComponentEvolutionView(replayReceiptDrift), /replay_state_invalid/)
+})
+
+test('public component projection revalidation rejects semantic reseals', () => {
+  const source = buildOmniGentComponentEvolutionView(componentEvolutionView())
+  assert.deepEqual(validateOmniGentComponentEvolutionView(source), source)
+  const crossLineage: any = structuredClone(source)
+  crossLineage.components[1].logical_identity = 'wrong-lineage'
+  assert.throws(() => validateOmniGentComponentEvolutionView(crossLineage), /parent_identity_invalid/)
+  const reversedTimeline: any = structuredClone(source)
+  reversedTimeline.timeline[0].transaction_time = '2026-09-01T00:02:00Z'
+  assert.throws(() => validateOmniGentComponentEvolutionView(reversedTimeline), /timeline_identity_or_order_invalid/)
+  const wrongViewHash: any = structuredClone(source)
+  wrongViewHash.view_sha256 = digest('f')
+  assert.throws(() => validateOmniGentComponentEvolutionView(wrongViewHash), /public_revalidation_failed/)
+})
+
+test('component public schema mirrors every expressible proof and receipt join', () => {
+  const schema = schemaFiles['omnigent-component-evolution-read-model.v1.schema.json']
+  const verifiedUnapplied: any = buildOmniGentComponentEvolutionView(componentEvolutionView())
+  verifiedUnapplied.experiments[0].plan.state = 'verified_unapplied'
+  assert.notDeepEqual(schemaErrors(verifiedUnapplied, schema, schema), [])
+
+  const runtimePlannedArms: any = buildOmniGentComponentEvolutionView(
+    withComponentRuntimeEvidence(componentEvolutionView()),
+  )
+  for (const arm of runtimePlannedArms.experiments[0].arms) {
+    arm.execution_state = 'planned'
+    arm.result_receipt_sha256 = null
+  }
+  assert.notDeepEqual(schemaErrors(runtimePlannedArms, schema, schema), [])
+
+  const deployedRuntimeOnly: any = buildOmniGentComponentEvolutionView(
+    withComponentRuntimeEvidence(componentEvolutionView()),
+  )
+  deployedRuntimeOnly.proof_level = 'deployed_verified'
+  deployedRuntimeOnly.deployment_receipt_sha256 = digest('3')
+  assert.notDeepEqual(schemaErrors(deployedRuntimeOnly, schema, schema), [])
+
+  const rolledBackInput = withComponentRuntimeEvidence(componentEvolutionView())
+  rolledBackInput.experiments[0]!.plan.state = 'rolled_back'
+  rolledBackInput.experiments[0]!.plan.rollback_receipt_sha256 = digest('5')
+  const rolledBack: any = buildOmniGentComponentEvolutionView(rolledBackInput)
+  rolledBack.experiments[0].plan.applied_receipt_sha256 = null
+  assert.notDeepEqual(schemaErrors(rolledBack, schema, schema), [])
+
+  const nonCausalReceipt: any = buildOmniGentComponentEvolutionView(componentEvolutionView())
+  nonCausalReceipt.timeline[0].receipt_sha256 = digest('4')
+  assert.notDeepEqual(schemaErrors(nonCausalReceipt, schema, schema), [])
 })
