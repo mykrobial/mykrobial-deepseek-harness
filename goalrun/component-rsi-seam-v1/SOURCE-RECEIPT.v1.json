@@ -6,7 +6,7 @@
   },
   "content_manifest": {
     "ref": "goalrun/component-rsi-seam-v1/SHA256SUMS",
-    "sha256": "2c32e18ac05afcec1980902f4d6992bcce303da815d2139177f2513e7c1af289",
+    "sha256": "4f61b64ba9e92baa6545741ffbf2cf7429ec805b7807ceaf2d5f7e38690e4f17",
     "content_file_count": 20,
     "manifest_excludes": [
       "goalrun/component-rsi-seam-v1/SHA256SUMS",
@@ -17,7 +17,7 @@
     "node_executable": "/opt/homebrew/bin/node",
     "node_version": "v25.9.0",
     "test_command": "/opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts",
-    "tests_passed": 22,
+    "tests_passed": 23,
     "tests_failed": 0,
     "syntax_check_count": 3,
     "strict_json_check_count": 12,
@@ -36,6 +36,13 @@
     "critic_sha256": "102b2627587e48b1b0a4ec3f85eaddd45a8d703feb22cb49dfe22db18da583d8",
     "finding": "typed_blocker:external_decision_exact_capsule_digest_binding_missing",
     "repair": "external decisions now require and preserve the exact capsule_sha256; every plan revalidates decision capsule id plus digest and embeds both capsule_sha256 and decision_external_input_sha256; a permanent same-id cross-loadout cross-plane reseal regression rejects"
+  },
+  "adjacent_schema_hardening": {
+    "runtime_non_claims_match_schema": true,
+    "duplicate_non_claims_rejected": true,
+    "overlong_non_claims_rejected": true,
+    "external_blocker_count_maximum": 16,
+    "permanent_regression_added": true
   },
   "mutation_surface_registry_sha256": "1ee9e6c81287939795d538f7b92eb2167429ca9ed3f53e55f74d0752ad4aa451",
   "evolution_plane_parity": {

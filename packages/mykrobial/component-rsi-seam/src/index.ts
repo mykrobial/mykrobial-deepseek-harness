@@ -143,7 +143,9 @@ function safeInteger(value: unknown, blocker: string): number {
 }
 
 function stringList(values: unknown, blocker: string): string[] {
-  if (!Array.isArray(values) || values.some(value => typeof value !== 'string')) {
+  if (!Array.isArray(values) || values.length > 32
+    || values.some(value => typeof value !== 'string' || value.length === 0 || value.length > 128)
+    || new Set(values).size !== values.length) {
     throw new Error(`typed_blocker:${blocker}`)
   }
   return [...values] as string[]
@@ -625,8 +627,8 @@ function validateExternalDecision(value: ExternalComponentDecision): ExternalCom
   optionalDigest(value.training_gate_receipt_sha256, 'external_component_decision_training_receipt_invalid')
   timestamp(value.issued_at, 'external_component_decision_timestamp_invalid')
   const blockers = stringList(value.blockers, 'external_component_decision_blockers_invalid')
-  if (blockers.length === 0 || blockers.some(blocker => !blocker.startsWith('typed_blocker:'))
-    || new Set(blockers).size !== blockers.length) {
+  if (blockers.length === 0 || blockers.length > 16
+    || blockers.some(blocker => !blocker.startsWith('typed_blocker:'))) {
     throw new Error('typed_blocker:external_component_decision_blockers_invalid')
   }
   stringList(value.non_claims, 'external_component_decision_non_claims_invalid')

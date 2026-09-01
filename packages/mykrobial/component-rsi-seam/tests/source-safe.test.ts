@@ -131,6 +131,21 @@ test('single and joint deltas require exact declaration cardinality', () => {
   )
 })
 
+test('public artifact revalidation rejects duplicate non-claims after reseal', () => {
+  assert.ok(single.capsule_fields)
+  const proposal = singleProposal()
+  proposal.non_claims.push(proposal.non_claims[0]!)
+  const { proposal_sha256: _old, ...body } = proposal
+  proposal.proposal_sha256 = canonicalSha256(body)
+  assert.throws(
+    () => prepareComponentExperimentCapsule({
+      ...copy(single.capsule_fields),
+      proposal,
+    }),
+    /typed_blocker:component_mutation_non_claims_invalid/,
+  )
+})
+
 test('experiment capsule freezes distinct BASE TRUE SHAM arms and immutable bindings', () => {
   const capsule = singleCapsule()
   assert.deepEqual(capsule.arms.map(arm => arm.role), ['BASE', 'TRUE', 'SHAM'])
