@@ -158,6 +158,28 @@ test('capsule rejects duplicate controls and candidate-visible evaluators', () =
   )
 })
 
+test('public capsule revalidation rejects every arm loadout drift after reseal', () => {
+  const valid = singleCapsule()
+  for (const index of [0, 1, 2]) {
+    const mutated = copy(valid)
+    mutated.arms[index]!.loadout_manifest_sha256 = '0'.repeat(64)
+    const { capsule_sha256: _old, ...body } = mutated
+    mutated.capsule_sha256 = canonicalSha256(body)
+    assert.throws(
+      () => acceptExternalComponentDecision(copy(single.decision_input), mutated),
+      /typed_blocker:component_experiment_controls_not_distinct/,
+    )
+  }
+  const allMutated = copy(valid)
+  for (const arm of allMutated.arms) arm.loadout_manifest_sha256 = '0'.repeat(64)
+  const { capsule_sha256: _old, ...body } = allMutated
+  allMutated.capsule_sha256 = canonicalSha256(body)
+  assert.throws(
+    () => acceptExternalComponentDecision(copy(single.decision_input), allMutated),
+    /typed_blocker:component_experiment_controls_not_distinct/,
+  )
+})
+
 test('capsule rejects non-finite or wholly zero experiment budgets', () => {
   assert.ok(single.capsule_fields)
   const nonFinite = copy(single.capsule_fields) as unknown as Record<string, unknown>

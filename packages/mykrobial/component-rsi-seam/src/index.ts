@@ -464,6 +464,7 @@ function validateCapsule(value: ComponentExperimentCapsule): ComponentExperiment
     || checkedArms[1]?.control_strategy !== 'candidate_delta'
     || checkedArms[2]?.control_strategy !== 'placebo_delta'
     || checkedArms[1]?.applied_delta_sha256 !== value.target_set_sha256
+    || checkedArms.some(arm => arm.loadout_manifest_sha256 !== value.task_binding.loadout_manifest_sha256)
     || new Set(checkedArms.map(arm => arm.arm_id)).size !== 3
     || new Set(checkedArms.map(arm => arm.component_set_sha256)).size !== 3
     || new Set(checkedArms.map(arm => arm.applied_delta_sha256)).size !== 3) {
