@@ -128,6 +128,8 @@ export interface ComponentActivationTransactionReceipt {
   health_observations: ComponentHealthObservation[]
   outcome: 'committed' | 'rolled_back' | 'rollback_failed'
   blocker: string | null
+  residual_effect_labels: string[]
+  environment_contamination_possible: boolean
   component_effects_executed: true
   promotion_authorized: false
   trace_append_authorized: false
@@ -162,6 +164,13 @@ export interface ExecuteComponentActivationTransactionInput {
     sequence: number,
     snapshot: ComponentSnapshot,
   ) => Readonly<Record<string, boolean>>
+}
+
+class ComponentCleanupIncompleteError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'ComponentCleanupIncompleteError'
+  }
 }
 
 function canonical(value: unknown): string {
@@ -252,6 +261,7 @@ export class ComponentLifecycleController {
       this.activate('replacement_dependencies_satisfied')
       return this.snapshot()
     } catch (error: unknown) {
+      if (error instanceof ComponentCleanupIncompleteError) throw error
       this.definition = previousDefinition
       this.installer = previousInstaller
       this.generation += 1
@@ -327,16 +337,27 @@ export class ComponentLifecycleController {
       this.state = 'active'
       this.record('activated', reason)
     } catch (error: unknown) {
-      for (const effect of installed.reverse()) {
+      const failedEffects: Array<{ label: string; dispose: () => void }> = []
+      for (const effect of [...installed].reverse()) {
         try {
           effect.dispose()
         } catch {
-          // Preserve the activation failure; cleanup failure remains evidenced by failed state.
+          failedEffects.push(effect)
         }
       }
-      this.effects = []
+      this.effects = failedEffects.reverse()
       this.state = 'failed'
-      this.record('failed', 'activation_failed_and_rolled_back')
+      this.record(
+        'failed',
+        failedEffects.length === 0
+          ? 'activation_failed_cleanup_complete'
+          : 'activation_failed_cleanup_incomplete',
+      )
+      if (failedEffects.length > 0) {
+        throw new ComponentCleanupIncompleteError(
+          'typed_blocker:component_activation_cleanup_incomplete',
+        )
+      }
       throw error
     }
   }
@@ -344,15 +365,16 @@ export class ComponentLifecycleController {
   private deactivate(reason: string): void {
     this.state = 'unloading'
     this.record('unloading', reason)
-    let cleanupFailed = false
+    const failedEffects: Array<{ label: string; dispose: () => void }> = []
     for (const effect of [...this.effects].reverse()) {
       try {
         effect.dispose()
       } catch {
-        cleanupFailed = true
+        failedEffects.push(effect)
       }
     }
-    this.effects = []
+    this.effects = failedEffects.reverse()
+    const cleanupFailed = failedEffects.length > 0
     this.state = cleanupFailed ? 'failed' : 'inactive'
     this.record(cleanupFailed ? 'failed' : 'inactive', cleanupFailed ? 'cleanup_failed' : reason)
     if (cleanupFailed) throw new Error('typed_blocker:component_cleanup_failed')
@@ -461,6 +483,11 @@ function transactionReceipt(
     health_observations: structuredClone(observations),
     outcome,
     blocker,
+    residual_effect_labels: finalSnapshot.state === 'failed'
+      ? [...finalSnapshot.active_effect_labels]
+      : [],
+    environment_contamination_possible: finalSnapshot.state === 'failed'
+      && finalSnapshot.active_effect_labels.length > 0,
     component_effects_executed: true,
     promotion_authorized: false,
     trace_append_authorized: false,
@@ -548,6 +575,9 @@ export function executeComponentActivationTransaction(
     const finalSnapshot = controller.snapshot()
     const rolledBack = finalSnapshot.state === 'active'
       && hash(finalSnapshot.definition) === hash(before.definition)
+    const residual = finalSnapshot.state === 'failed'
+      && finalSnapshot.active_effect_labels.length > 0
+    const failedOnPrior = hash(finalSnapshot.definition) === hash(before.definition)
     return transactionReceipt(
       input,
       decision,
@@ -558,6 +588,10 @@ export function executeComponentActivationTransaction(
       rolledBack ? 'rolled_back' : 'rollback_failed',
       rolledBack
         ? 'typed_blocker:component_candidate_activation_failed'
+        : residual && failedOnPrior
+        ? 'typed_blocker:component_prior_quiesce_cleanup_incomplete'
+        : residual
+        ? 'typed_blocker:component_candidate_activation_cleanup_incomplete'
         : 'typed_blocker:component_candidate_activation_and_rollback_failed',
     )
   }
@@ -619,15 +653,20 @@ export function executeComponentActivationTransaction(
       'typed_blocker:component_health_horizon_failed',
     )
   } catch {
+    const finalSnapshot = controller.snapshot()
+    const cleanupIncomplete = finalSnapshot.state === 'failed'
+      && finalSnapshot.active_effect_labels.length > 0
     return transactionReceipt(
       input,
       decision,
       before,
       candidateSnapshot,
-      controller.snapshot(),
+      finalSnapshot,
       observations,
       'rollback_failed',
-      'typed_blocker:component_health_horizon_and_rollback_failed',
+      cleanupIncomplete
+        ? 'typed_blocker:component_health_horizon_cleanup_incomplete'
+        : 'typed_blocker:component_health_horizon_and_rollback_failed',
     )
   }
 }

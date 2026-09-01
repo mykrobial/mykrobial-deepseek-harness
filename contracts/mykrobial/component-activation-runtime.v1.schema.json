@@ -197,6 +197,8 @@
         "health_observations",
         "outcome",
         "blocker",
+        "residual_effect_labels",
+        "environment_contamination_possible",
         "component_effects_executed",
         "promotion_authorized",
         "trace_append_authorized",
@@ -313,6 +315,17 @@
               "type": "null"
             }
           ]
+        },
+        "residual_effect_labels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "maxItems": 128,
+          "uniqueItems": true
+        },
+        "environment_contamination_possible": {
+          "type": "boolean"
         },
         "component_effects_executed": {
           "const": true

@@ -215,6 +215,8 @@ test('admitted component activation commits only after the complete health horiz
   assert.equal(receipt.health_observations.length, 4)
   assert.equal(receipt.health_observations.every(row => row.passed), true)
   assert.equal(receipt.component_effects_executed, true)
+  assert.deepEqual(receipt.residual_effect_labels, [])
+  assert.equal(receipt.environment_contamination_possible, false)
   assert.equal(receipt.promotion_authorized, false)
   assert.equal(receipt.trace_append_authorized, false)
   assert.equal(receipt.deployment_authorized, false)
@@ -253,6 +255,8 @@ test('a failed component-local health observation rolls back the prior generatio
   assert.equal(receipt.blocker, 'typed_blocker:component_health_horizon_failed')
   assert.equal(receipt.planned_health_observation_count, 2)
   assert.equal(receipt.completed_health_observation_count, 2)
+  assert.deepEqual(receipt.residual_effect_labels, [])
+  assert.equal(receipt.environment_contamination_possible, false)
   assert.equal(receipt.health_observations.at(-2)?.passed, false)
   assert.equal(active, 'prior')
   assert.equal(controller.snapshot().definition.source_sha256, definition('one').source_sha256)
@@ -337,6 +341,81 @@ test('candidate activation failure returns a rollback receipt with the prior com
   assert.equal(receipt.outcome, 'rolled_back')
   assert.equal(receipt.blocker, 'typed_blocker:component_candidate_activation_failed')
   assert.equal(receipt.candidate_snapshot_sha256, null)
+  assert.deepEqual(receipt.residual_effect_labels, [])
+  assert.equal(receipt.environment_contamination_possible, false)
   assert.equal(active, 'prior')
   assert.equal(controller.snapshot().definition.source_sha256, definition('one').source_sha256)
+})
+
+test('candidate cleanup failure stays failed and never remounts the prior component', () => {
+  let priorMounts = 0
+  let leakedCandidateEffect = false
+  const prior: ComponentInstaller = (_definition, effects) => {
+    priorMounts += 1
+    effects.effect('prior-effect', () => {})
+  }
+  const controller = new ComponentLifecycleController(definition('one'))
+  controller.reconcile(['session'], prior)
+  const receipt = executeComponentActivationTransaction(
+    controller,
+    activationInput(controller, {
+      candidate_installer: (_definition, effects) => {
+        leakedCandidateEffect = true
+        effects.effect('candidate-leaked-effect', () => {
+          throw new Error('synthetic candidate disposer failure')
+        })
+        throw new Error('synthetic candidate activation failure')
+      },
+      rollback_installer: prior,
+    }),
+  )
+  const final = controller.snapshot()
+  assert.equal(receipt.outcome, 'rollback_failed')
+  assert.equal(
+    receipt.blocker,
+    'typed_blocker:component_candidate_activation_cleanup_incomplete',
+  )
+  assert.deepEqual(receipt.residual_effect_labels, ['candidate-leaked-effect'])
+  assert.equal(receipt.environment_contamination_possible, true)
+  assert.equal(leakedCandidateEffect, true)
+  assert.equal(priorMounts, 1)
+  assert.equal(final.state, 'failed')
+  assert.equal(final.definition.source_sha256, definition('two').source_sha256)
+  assert.deepEqual(final.active_effect_labels, ['candidate-leaked-effect'])
+})
+
+test('health rollback cleanup failure exposes contamination and withholds prior remount', () => {
+  let priorMounts = 0
+  const prior: ComponentInstaller = (_definition, effects) => {
+    priorMounts += 1
+    effects.effect('prior-effect', () => {})
+  }
+  const controller = new ComponentLifecycleController(definition('one'))
+  controller.reconcile(['session'], prior)
+  const receipt = executeComponentActivationTransaction(
+    controller,
+    activationInput(controller, {
+      candidate_installer: (_definition, effects) => {
+        effects.effect('candidate-live-effect', () => {
+          throw new Error('synthetic health-rollback disposer failure')
+        })
+      },
+      rollback_installer: prior,
+      observe_health: () => ({
+        'behavior-projection': false,
+        'effect-balance': true,
+      }),
+    }),
+  )
+  const final = controller.snapshot()
+  assert.equal(receipt.outcome, 'rollback_failed')
+  assert.equal(
+    receipt.blocker,
+    'typed_blocker:component_health_horizon_cleanup_incomplete',
+  )
+  assert.equal(receipt.environment_contamination_possible, true)
+  assert.deepEqual(receipt.residual_effect_labels, ['candidate-live-effect'])
+  assert.equal(priorMounts, 1)
+  assert.equal(final.state, 'failed')
+  assert.equal(final.definition.source_sha256, definition('two').source_sha256)
 })
