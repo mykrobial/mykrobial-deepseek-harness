@@ -1,0 +1,85 @@
+{
+  "schema": "mykrobial.component-rsi-seam.round-3-fresh-critic-acceptance.v1",
+  "review_kind": "distinct_fresh_source_only_correctness_critic",
+  "verdict": "accepted_source_only",
+  "accepted": true,
+  "reviewed": false,
+  "execution_authorized": false,
+  "manifest_excluded": true,
+  "candidate": {
+    "commit": "0c1a7e42802851174a4428132b5ad17d81238a7e",
+    "tree": "13c298efb7cef97cc29dcee55fef6dfb480aee71",
+    "clean_before_review": true,
+    "content_manifest_sha256": "4f61b64ba9e92baa6545741ffbf2cf7429ec805b7807ceaf2d5f7e38690e4f17",
+    "source_receipt_sha256": "80d570802d296b1148f314a36eded0b7505ed901cdf0373869c50aed563f4c40"
+  },
+  "repair_basis": {
+    "round_1_blocker_sha256": "4f27ef56d22b1404e794005ba0a5e9840fe936e9c261ff12f850d4e4ca9c9fd8",
+    "round_2_blocker_sha256": "102b2627587e48b1b0a4ec3f85eaddd45a8d703feb22cb49dfe22db18da583d8"
+  },
+  "verification": {
+    "direct_node_tests": "23 passed 0 failed",
+    "typescript_syntax_checks": "3 passed 0 failed",
+    "strict_authored_json": "12 passed 0 failed",
+    "content_manifest_hashes": "20 passed 0 failed",
+    "git_diff_check": "passed",
+    "exact_public_evolution_planes": [
+      "online_areal_actual_work",
+      "local_idle_compute",
+      "frontier_builder_critic",
+      "future_joint_model_harness"
+    ],
+    "mutation_surface_count": 14,
+    "external_optimizer_is_strategy_adapter_not_plane": true,
+    "model_weights_remains_future_joint_training_gated": true,
+    "trace_intent_is_metadata_only": true
+  },
+  "counterexample_replay": {
+    "original_capsule_sha256": "7208b915b1e2cc096b71d79c4b16cb987814f3b111dedf155e9c98ae73c52552",
+    "rebound_capsule_sha256": "fdcbdbe4fb0475e604825c113d0563ae3664336f4249127953f54a2bb237c646",
+    "same_id_cross_loadout_cross_plane_decision_reuse": "rejected",
+    "decision_requires_exact_capsule_sha256": true,
+    "plan_revalidates_exact_capsule_sha256": true,
+    "plan_embeds_capsule_sha256": true,
+    "plan_embeds_decision_external_input_sha256": true,
+    "round_1_base_true_sham_loadout_revalidation": "passed",
+    "duplicate_resealed_non_claims": "rejected",
+    "overlong_resealed_non_claim": "rejected",
+    "external_blocker_max_items": 16,
+    "public_non_claims_unique_and_max_length": true
+  },
+  "ownership_boundary": {
+    "runtime_seam_source_only": true,
+    "optimizer_implemented": false,
+    "evaluator_implemented": false,
+    "training_implemented": false,
+    "pareto_adjudication_implemented": false,
+    "causal_value_readback_implemented": false,
+    "promotion_implemented": false
+  },
+  "authority": {
+    "component_apply_authorized": false,
+    "trace_append_authorized": false,
+    "optimizer_execution_authorized": false,
+    "evaluator_execution_authorized": false,
+    "training_authorized": false,
+    "promotion_authorized": false,
+    "deployment_authorized": false
+  },
+  "actual_actions": {
+    "candidate_source_edits": 0,
+    "runtime_or_provider_execution": 0,
+    "trace_appends": 0,
+    "training_or_application_actions": 0,
+    "promotion_or_deployment_actions": 0
+  },
+  "non_claims": [
+    "not_reviewed_true",
+    "not_runtime_admission",
+    "not_optimizer_or_evaluator_execution",
+    "not_training",
+    "not_component_application",
+    "not_Trace_append",
+    "not_promotion_or_deployment"
+  ]
+}
