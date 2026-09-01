@@ -10,6 +10,8 @@ import {
   type ExternalHarnessEventKind,
   type PrepareTerminalTaskContextRequestInput,
   type TerminalTaskContextRequest,
+  type TerminalTaskAuthorityHostRequestV38,
+  validateTerminalTaskAuthorityHostRequestV38,
 } from '../src/index.ts'
 
 const digest = (label: string): string => createHash('sha256').update(label).digest('hex')
@@ -581,6 +583,16 @@ function resealContextRequest(source: TerminalTaskContextRequest): TerminalTaskC
   return value
 }
 
+function resealV38HostRequest(
+  source: TerminalTaskAuthorityHostRequestV38,
+): TerminalTaskAuthorityHostRequestV38 {
+  const value = structuredClone(source)
+  value.request_sha256 = externalEventCanonicalSha256(
+    Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'request_sha256')),
+  )
+  return value
+}
+
 test('V38 host request binds the unsigned subject, exact scope and callback vocabulary', () => {
   const context = validTerminalContextRequest()
   const request = prepareTerminalTaskAuthorityHostRequestV38(context, {
@@ -695,4 +707,42 @@ test('V38 host request pins the accepted V37 source and review identities', () =
     source_sha256: '41b69284cf397beb787471bd8951cdd99b532b1f9c7ff5317a19c458147c9bc9',
     contract_sha256: 'b97a77d986717181d59f2fcbd566ebca65e26fe2e3ef93551c601b56ac73a376',
   })
+})
+
+test('V38 canonical blocker vocabulary is exact ordered and reseal-resistant', () => {
+  const baseline = prepareTerminalTaskAuthorityHostRequestV38(validTerminalContextRequest(), {
+    operation_profile_receipt_sha256: digest('operation-profile-receipt'),
+    requested_ttl_seconds: 300,
+  })
+  const mutations: Array<(value: TerminalTaskAuthorityHostRequestV38) => void> = [
+    value => {
+      value.authority_delegate_contract.canonical_blockers = Array.from(
+        { length: 13 },
+        (_, index) => `typed_blocker:authority_delegate_forged_${String(index).padStart(2, '0')}`,
+      ) as TerminalTaskAuthorityHostRequestV38['authority_delegate_contract']['canonical_blockers']
+    },
+    value => {
+      value.authority_delegate_contract.canonical_blockers = value.authority_delegate_contract
+        .canonical_blockers.slice(0, -1) as TerminalTaskAuthorityHostRequestV38['authority_delegate_contract']['canonical_blockers']
+    },
+    value => {
+      const blockers = value.authority_delegate_contract.canonical_blockers as unknown as string[]
+      blockers[3] = 'typed_blocker:authority_delegate_forged_substitution'
+    },
+    value => {
+      const blockers = value.authority_delegate_contract.canonical_blockers as unknown as string[]
+      const first = blockers[0]!
+      blockers[0] = blockers[1]!
+      blockers[1] = first
+    },
+  ]
+  for (const mutate of mutations) {
+    const value = structuredClone(baseline)
+    mutate(value)
+    assert.throws(
+      () => validateTerminalTaskAuthorityHostRequestV38(resealV38HostRequest(value)),
+      /typed_blocker:terminal_task_authority_host_request_invalid/,
+    )
+  }
+  assert.deepEqual(validateTerminalTaskAuthorityHostRequestV38(baseline), baseline)
 })

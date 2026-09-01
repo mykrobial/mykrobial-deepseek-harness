@@ -229,13 +229,24 @@
         },
         "canonical_blockers": {
           "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^typed_blocker:authority_delegate_"
-          },
+          "prefixItems": [
+            { "const": "typed_blocker:authority_delegate_agent_enrollment_authority_missing" },
+            { "const": "typed_blocker:authority_delegate_agent_enrollment_binding_invalid" },
+            { "const": "typed_blocker:authority_delegate_agent_enrollment_epoch_invalid" },
+            { "const": "typed_blocker:authority_delegate_agent_enrollment_invalid" },
+            { "const": "typed_blocker:authority_delegate_agent_enrollment_missing" },
+            { "const": "typed_blocker:authority_delegate_agent_enrollment_scope_invalid" },
+            { "const": "typed_blocker:authority_delegate_agent_enrollment_self_hash_invalid" },
+            { "const": "typed_blocker:authority_delegate_agent_enrollment_stale" },
+            { "const": "typed_blocker:authority_delegate_agent_unregistered" },
+            { "const": "typed_blocker:authority_delegate_enrollment_time_invalid" },
+            { "const": "typed_blocker:authority_delegate_registry_invalid" },
+            { "const": "typed_blocker:authority_delegate_request_invalid" },
+            { "const": "typed_blocker:authority_delegate_scope_invalid" }
+          ],
+          "items": false,
           "minItems": 13,
-          "maxItems": 13,
-          "uniqueItems": true
+          "maxItems": 13
         }
       }
     },
