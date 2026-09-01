@@ -1,0 +1,45 @@
+{
+  "schema": "mykrobial.goalrun.component-rsi-seam-source-receipt.v1",
+  "basis": {
+    "commit": "60d50ae18f660817277efa7c997bfa17f2caab4f",
+    "tree": "5bd82cac86bb5c3d51387ae0e164f7712dd0128f"
+  },
+  "content_manifest": {
+    "ref": "goalrun/component-rsi-seam-v1/SHA256SUMS",
+    "sha256": "616d8c301b2b3c5d83caeca68fa6410a88ce76c5af3feb346c2b8c9c9023325e",
+    "content_file_count": 19,
+    "manifest_excludes": [
+      "goalrun/component-rsi-seam-v1/SHA256SUMS",
+      "goalrun/component-rsi-seam-v1/SOURCE-RECEIPT.v1.json"
+    ]
+  },
+  "verification": {
+    "node_executable": "/opt/homebrew/bin/node",
+    "node_version": "v25.9.0",
+    "test_command": "/opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts",
+    "tests_passed": 20,
+    "tests_failed": 0,
+    "syntax_check_count": 3,
+    "strict_json_check_count": 11,
+    "sha256_manifest_check_count": 19,
+    "git_diff_check": "passed"
+  },
+  "surface_count": 14,
+  "trace": {
+    "intent_projection_tested": true,
+    "append_attempted": false,
+    "append_authorized": false,
+    "blocker": "typed_blocker:trace_append_out_of_scope_source_only_component_rsi_seam"
+  },
+  "authority": {
+    "reviewed": false,
+    "independent_critic_receipt_sha256": null,
+    "optimizer_execution_authorized": false,
+    "evaluator_execution_authorized": false,
+    "training_authorized": false,
+    "component_application_authorized": false,
+    "promotion_authorized": false,
+    "deployment_authorized": false
+  },
+  "status": "source_candidate_unreviewed"
+}

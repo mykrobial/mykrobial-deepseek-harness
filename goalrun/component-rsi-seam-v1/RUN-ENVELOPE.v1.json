@@ -1,0 +1,58 @@
+{
+  "schema": "mykrobial.goalrun.component-rsi-seam.v1",
+  "goal": "Expose a source-only Next-Generation DeepSeek/CORDIS public seam for independently versioned, task-scoped component mutation experiments and no-apply lifecycle plans.",
+  "basis": {
+    "repository": "https://github.com/mykrobial/mykrobial-deepseek-harness.git",
+    "commit": "60d50ae18f660817277efa7c997bfa17f2caab4f",
+    "tree": "5bd82cac86bb5c3d51387ae0e164f7712dd0128f",
+    "cross_lane_ownership_ref": "/Users/kalcypher/Projects/_goalruns/deepseek-cordis-retrodict-mykrobial-20260830/CROSS-LANE-OWNERSHIP.v2.md",
+    "cross_lane_ownership_sha256": "0390b197f6caab76d1fa54c0a7d01066c32fc2796044b50fef48e16af241d269",
+    "request_specific_meta_prompt_sha256": "3a7b2836e0a9a9452d818079962ce674f28cc81afa5637ca7a4edb75cb8518e6",
+    "authoritative_bar_sha256": "9b0d8e664502af4760deed92d656f24a1afbf287c864c2e928d5ec3db49fc273"
+  },
+  "owned_outputs": [
+    "closed public JSON schemas",
+    "mutation surface registry",
+    "pure proposal and experiment capsule constructors",
+    "trajectory and Trace v2.3 append-intent projections",
+    "no-apply CORDIS lifecycle and loadout plans",
+    "untrusted external decision normalization",
+    "deterministic source-safe fixtures and tests"
+  ],
+  "excluded_control_plane": [
+    "optimizer implementation",
+    "evaluator implementation",
+    "experiment execution",
+    "training",
+    "Pareto adjudication",
+    "causal value readback",
+    "promotion",
+    "Current Production internal implementation"
+  ],
+  "external_source_posture": {
+    "exo_repository": "https://github.com/exoharness/exo",
+    "state": "quarantined_evidence_only",
+    "implementation_authority": false,
+    "source_copied": false
+  },
+  "trace": {
+    "projection_only": true,
+    "append_attempted": false,
+    "append_authorized": false,
+    "blocker": "typed_blocker:trace_append_out_of_scope_source_only_component_rsi_seam"
+  },
+  "operation_state": {
+    "pnpm_executed": false,
+    "packages_installed": false,
+    "build_executed": false,
+    "service_started": false,
+    "model_executed": false,
+    "optimizer_executed": false,
+    "evaluator_executed": false,
+    "trace_appended": false,
+    "component_applied": false,
+    "promotion_executed": false,
+    "deployment_executed": false
+  },
+  "status": "source_candidate_unreviewed"
+}

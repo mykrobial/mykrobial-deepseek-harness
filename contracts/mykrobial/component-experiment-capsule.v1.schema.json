@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mykrobial.org/schemas/component-experiment-capsule.v1.schema.json",
+  "$ref": "./component-rsi-seam.v1.schema.json#/$defs/experimentCapsule"
+}
