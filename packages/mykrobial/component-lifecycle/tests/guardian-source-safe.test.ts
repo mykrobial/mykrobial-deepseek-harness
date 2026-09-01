@@ -100,6 +100,11 @@ test('proposal and activation facts form a causal hash chain that rehydrates exa
   assert.equal(snapshot.events[2]!.previous_event_sha256, snapshot.events[1]!.event_sha256)
   assert.equal(snapshot.events[2]!.kind, 'activation_committed')
   assert.equal(snapshot.candidate_attempts[0]!.attempt_count, 1)
+  assert.deepEqual(snapshot.proposal_bindings, [{
+    candidate_definition_sha256: digest('candidate-one'),
+    mutation_proposal_sha256: digest('proposal-one'),
+    attempt_count: 1,
+  }])
   assert.deepEqual(ComponentEvolutionGuardian.rehydrate(snapshot).snapshot(), snapshot)
 })
 
@@ -177,6 +182,9 @@ test('mutation and activation events must bind known state and one prior proposa
     /typed_blocker:component_guardian_activation_event_invalid/)
   guardian.append(event('mutation_proposed', 1))
   assert.throws(() => guardian.append(event('activation_committed', 2, {
+    mutation_proposal_sha256: digest('never-recorded-proposal'),
+  })), /typed_blocker:component_guardian_activation_event_invalid/)
+  assert.throws(() => guardian.append(event('activation_committed', 2, {
     candidate_definition_sha256: digest('never-proposed-candidate'),
   })), /typed_blocker:component_guardian_activation_event_invalid/)
 })
@@ -202,6 +210,14 @@ test('snapshot and command tampering fail deterministic readback', () => {
   const forgedSnapshot = structuredClone(snapshot)
   forgedSnapshot.events[1]!.previous_event_sha256 = digest('forged-previous')
   assert.throws(() => ComponentEvolutionGuardian.rehydrate(forgedSnapshot),
+    /typed_blocker:component_guardian_snapshot_mismatch/)
+  const forgedBinding = structuredClone(snapshot)
+  forgedBinding.proposal_bindings[0]!.mutation_proposal_sha256 = digest('forged-proposal')
+  forgedBinding.snapshot_sha256 = componentCanonicalSha256({
+    ...forgedBinding,
+    snapshot_sha256: '0'.repeat(64),
+  })
+  assert.throws(() => ComponentEvolutionGuardian.rehydrate(forgedBinding),
     /typed_blocker:component_guardian_snapshot_mismatch/)
 
   const command = guardian.prepareCommand({
@@ -230,6 +246,20 @@ test('snapshot and command tampering fail deterministic readback', () => {
   scalarAlias.command_sha256 = componentCanonicalSha256(scalarAlias)
   assert.throws(() => validateComponentGuardianCommand(scalarAlias),
     /typed_blocker:component_guardian_command_invalid/)
+  const overBudget = {
+    ...command,
+    history_event_count: 4097,
+  }
+  const {
+    command_id: _overBudgetCommandId,
+    command_sha256: _overBudgetCommandSha256,
+    ...overBudgetIdentity
+  } = overBudget
+  overBudget.command_id = `component-guardian-${componentCanonicalSha256(overBudgetIdentity).slice(0, 24)}`
+  overBudget.command_sha256 = '0'.repeat(64)
+  overBudget.command_sha256 = componentCanonicalSha256(overBudget)
+  assert.throws(() => validateComponentGuardianCommand(overBudget),
+    /typed_blocker:component_guardian_command_invalid/)
 })
 
 test('restart outcome is a new fact and cannot erase prior failed attempts', () => {
@@ -255,7 +285,7 @@ test('public guardian JSON validation closes every persisted object', () => {
     $defs: Record<string, { additionalProperties?: boolean; required?: string[]; properties?: Record<string, unknown> }>
     oneOf: Array<{ $ref: string }>
   }
-  for (const definition of ['event', 'candidateAttempt', 'snapshot', 'command']) {
+  for (const definition of ['event', 'candidateAttempt', 'proposalBinding', 'snapshot', 'command']) {
     assert.equal(schema.$defs[definition]!.additionalProperties, false)
   }
   assert.deepEqual(schema.oneOf.map(row => row.$ref), [

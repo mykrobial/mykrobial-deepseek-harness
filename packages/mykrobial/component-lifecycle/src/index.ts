@@ -270,6 +270,11 @@ export interface ComponentGuardianSnapshot {
   head_event_sha256: string
   known_snapshot_sha256s: string[]
   candidate_attempts: Array<{ candidate_definition_sha256: string; attempt_count: number }>
+  proposal_bindings: Array<{
+    candidate_definition_sha256: string
+    mutation_proposal_sha256: string
+    attempt_count: number
+  }>
   events: ComponentGuardianEvent[]
   snapshot_sha256: string
 }
@@ -961,6 +966,7 @@ const GUARDIAN_SNAPSHOT_KEYS = [
   'head_event_sha256',
   'known_snapshot_sha256s',
   'candidate_attempts',
+  'proposal_bindings',
   'events',
   'snapshot_sha256',
 ] as const
@@ -1106,6 +1112,7 @@ export class ComponentEvolutionGuardian {
   private readonly eventIds = new Set<string>()
   private readonly knownSnapshots = new Set<string>()
   private readonly candidateAttempts = new Map<string, number>()
+  private readonly proposalBindings = new Map<string, number>()
   private lastTimestamp: number
 
   /**
@@ -1265,6 +1272,11 @@ export class ComponentEvolutionGuardian {
         throw new Error('typed_blocker:component_guardian_candidate_attempt_budget_exhausted')
       }
       this.candidateAttempts.set(candidate, attemptCount)
+      const proposalBinding = `${candidate}:${proposal}`
+      this.proposalBindings.set(
+        proposalBinding,
+        (this.proposalBindings.get(proposalBinding) ?? 0) + 1,
+      )
     } else if (kind === 'snapshot_captured') {
       if (candidate !== null || proposal !== null || activation !== null) {
         throw new Error('typed_blocker:component_guardian_snapshot_event_invalid')
@@ -1274,7 +1286,7 @@ export class ComponentEvolutionGuardian {
         throw new Error('typed_blocker:component_guardian_restart_event_invalid')
       }
     } else if (candidate === null || proposal === null || activation === null
-      || !this.candidateAttempts.has(candidate)) {
+      || !this.proposalBindings.has(`${candidate}:${proposal}`)) {
       throw new Error('typed_blocker:component_guardian_activation_event_invalid')
     }
 
@@ -1321,6 +1333,16 @@ export class ComponentEvolutionGuardian {
         candidate_definition_sha256,
         attempt_count,
       }))
+    const proposalBindings = [...this.proposalBindings.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([binding, attempt_count]) => {
+        const [candidate_definition_sha256, mutation_proposal_sha256] = binding.split(':')
+        return {
+          candidate_definition_sha256: candidate_definition_sha256!,
+          mutation_proposal_sha256: mutation_proposal_sha256!,
+          attempt_count,
+        }
+      })
     return sealGuardianSnapshot({
       schema: 'mykrobial.component-guardian-snapshot.v1',
       guardian_id: this.config.guardian_id,
@@ -1334,6 +1356,7 @@ export class ComponentEvolutionGuardian {
       head_event_sha256: this.events[this.events.length - 1]!.event_sha256,
       known_snapshot_sha256s: [...this.knownSnapshots].sort(),
       candidate_attempts: candidateAttempts,
+      proposal_bindings: proposalBindings,
       events: structuredClone(this.events),
     })
   }
@@ -1434,6 +1457,7 @@ export function validateComponentGuardianCommand(
     || typeof value.loadout_id !== 'string' || !ID.test(value.loadout_id)
     || !Number.isSafeInteger(value.history_event_count)
     || value.history_event_count < 1
+    || value.history_event_count > 4096
     || typeof value.history_head_event_sha256 !== 'string' || !SHA.test(value.history_head_event_sha256)
     || typeof value.target_snapshot_sha256 !== 'string' || !SHA.test(value.target_snapshot_sha256)
     || typeof value.reconfiguration_plan_sha256 !== 'string' || !SHA.test(value.reconfiguration_plan_sha256)
