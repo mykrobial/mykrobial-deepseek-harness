@@ -6,7 +6,7 @@
   },
   "content_manifest": {
     "ref": "goalrun/component-rsi-seam-v1/SHA256SUMS",
-    "sha256": "36653b564e58c237a5414882fb70d95c91f1b2cb15cc85ae26e435df7bd0747a",
+    "sha256": "2c32e18ac05afcec1980902f4d6992bcce303da815d2139177f2513e7c1af289",
     "content_file_count": 20,
     "manifest_excludes": [
       "goalrun/component-rsi-seam-v1/SHA256SUMS",
@@ -17,7 +17,7 @@
     "node_executable": "/opt/homebrew/bin/node",
     "node_version": "v25.9.0",
     "test_command": "/opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts",
-    "tests_passed": 21,
+    "tests_passed": 22,
     "tests_failed": 0,
     "syntax_check_count": 3,
     "strict_json_check_count": 12,
@@ -30,6 +30,12 @@
     "critic_sha256": "4f27ef56d22b1404e794005ba0a5e9840fe936e9c261ff12f850d4e4ca9c9fd8",
     "finding": "typed_blocker:component_experiment_arm_loadout_binding_revalidation_missing",
     "repair": "public capsule validation now rechecks every BASE TRUE SHAM arm loadout against the frozen task loadout and permanently tests each single-arm plus all-arm resealed mutation"
+  },
+  "round_2_repair_basis": {
+    "critic_ref": "goalrun/component-rsi-seam-v1/ROUND-2-FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "102b2627587e48b1b0a4ec3f85eaddd45a8d703feb22cb49dfe22db18da583d8",
+    "finding": "typed_blocker:external_decision_exact_capsule_digest_binding_missing",
+    "repair": "external decisions now require and preserve the exact capsule_sha256; every plan revalidates decision capsule id plus digest and embeds both capsule_sha256 and decision_external_input_sha256; a permanent same-id cross-loadout cross-plane reseal regression rejects"
   },
   "mutation_surface_registry_sha256": "1ee9e6c81287939795d538f7b92eb2167429ca9ed3f53e55f74d0752ad4aa451",
   "evolution_plane_parity": {

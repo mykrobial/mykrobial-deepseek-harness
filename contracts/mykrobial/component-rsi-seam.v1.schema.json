@@ -739,6 +739,7 @@
         "schema",
         "decision_id",
         "capsule_id",
+        "capsule_sha256",
         "decision_kind",
         "disposition",
         "issuer_id",
@@ -765,6 +766,9 @@
         },
         "capsule_id": {
           "$ref": "#/$defs/identifier"
+        },
+        "capsule_sha256": {
+          "$ref": "#/$defs/sha256"
         },
         "decision_kind": {
           "enum": [
@@ -855,7 +859,9 @@
         "plan_id",
         "operation",
         "capsule_id",
+        "capsule_sha256",
         "decision_id",
+        "decision_external_input_sha256",
         "target_component_ids",
         "target_surface_ids",
         "component_lifecycle_contract",
@@ -893,8 +899,14 @@
         "capsule_id": {
           "$ref": "#/$defs/identifier"
         },
+        "capsule_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
         "decision_id": {
           "$ref": "#/$defs/identifier"
+        },
+        "decision_external_input_sha256": {
+          "$ref": "#/$defs/sha256"
         },
         "target_component_ids": {
           "type": "array",

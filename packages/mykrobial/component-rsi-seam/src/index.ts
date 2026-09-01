@@ -558,13 +558,15 @@ export function acceptExternalComponentDecision(
   capsule: ComponentExperimentCapsule,
 ): ExternalComponentDecision {
   const item = record(input, [
-    'decision_id', 'capsule_id', 'decision_kind', 'disposition', 'issuer_id',
+    'decision_id', 'capsule_id', 'capsule_sha256', 'decision_kind', 'disposition', 'issuer_id',
     'issuer_artifact_sha256', 'decision_payload_sha256', 'authority_receipt_sha256',
     'training_gate_receipt_sha256', 'issued_at',
   ], 'external_component_decision_input_invalid')
   const frozenCapsule = structuredClone(validateCapsule(capsule))
   const capsuleId = identifier(item.capsule_id, 'external_component_decision_capsule_invalid')
+  const capsuleSha256 = digest(item.capsule_sha256, 'external_component_decision_capsule_invalid')
   if (capsuleId !== frozenCapsule.capsule_id
+    || capsuleSha256 !== frozenCapsule.capsule_sha256
     || !['optimizer_recommendation', 'promotion_recommendation', 'rollback_recommendation'].includes(String(item.decision_kind))
     || !['accept_candidate', 'reject_candidate', 'revise_candidate', 'no_change', 'rollback'].includes(String(item.disposition))) {
     throw new Error('typed_blocker:external_component_decision_invalid')
@@ -577,6 +579,7 @@ export function acceptExternalComponentDecision(
     schema: 'mykrobial.harness.external-component-decision.v1' as const,
     decision_id: identifier(item.decision_id, 'external_component_decision_identity_invalid'),
     capsule_id: capsuleId,
+    capsule_sha256: capsuleSha256,
     decision_kind: item.decision_kind as ExternalComponentDecision['decision_kind'],
     disposition: item.disposition as ExternalComponentDecision['disposition'],
     issuer_id: identifier(item.issuer_id, 'external_component_decision_issuer_invalid'),
@@ -606,7 +609,7 @@ export function acceptExternalComponentDecision(
 
 function validateExternalDecision(value: ExternalComponentDecision): ExternalComponentDecision {
   record(value, [
-    'schema', 'decision_id', 'capsule_id', 'decision_kind', 'disposition', 'issuer_id',
+    'schema', 'decision_id', 'capsule_id', 'capsule_sha256', 'decision_kind', 'disposition', 'issuer_id',
     'issuer_artifact_sha256', 'decision_payload_sha256', 'authority_receipt_sha256',
     'training_gate_receipt_sha256', 'issued_at', 'trust_state', 'authority_verified',
     'training_gate_verified', 'apply_authorized', 'promotion_authorized', 'blockers',
@@ -614,6 +617,7 @@ function validateExternalDecision(value: ExternalComponentDecision): ExternalCom
   ], 'external_component_decision_closed_object_invalid')
   identifier(value.decision_id, 'external_component_decision_identity_invalid')
   identifier(value.capsule_id, 'external_component_decision_capsule_invalid')
+  digest(value.capsule_sha256, 'external_component_decision_capsule_invalid')
   identifier(value.issuer_id, 'external_component_decision_issuer_invalid')
   digest(value.issuer_artifact_sha256, 'external_component_decision_issuer_invalid')
   digest(value.decision_payload_sha256, 'external_component_decision_payload_invalid')
@@ -683,7 +687,8 @@ export function prepareComponentReconfigurationPlan(input: PrepareComponentPlanI
   const operation = item.operation as ComponentPlanOperation
   const capsule = structuredClone(validateCapsule(item.capsule as ComponentExperimentCapsule))
   const decision = structuredClone(validateExternalDecision(item.decision as ExternalComponentDecision))
-  if (decision.capsule_id !== capsule.capsule_id) {
+  if (decision.capsule_id !== capsule.capsule_id
+    || decision.capsule_sha256 !== capsule.capsule_sha256) {
     throw new Error('typed_blocker:component_reconfiguration_decision_invalid')
   }
   const currentLoadout = digest(item.current_loadout_manifest_sha256, 'component_reconfiguration_loadout_invalid')
@@ -706,7 +711,9 @@ export function prepareComponentReconfigurationPlan(input: PrepareComponentPlanI
     plan_id: `component-${operation}-${canonicalSha256({ capsule: capsule.capsule_sha256, decision: decision.external_input_sha256 }).slice(0, 24)}`,
     operation,
     capsule_id: capsule.capsule_id,
+    capsule_sha256: capsule.capsule_sha256,
     decision_id: decision.decision_id,
+    decision_external_input_sha256: decision.external_input_sha256,
     target_component_ids: [...capsule.target_component_ids],
     target_surface_ids: [...capsule.target_surface_ids],
     component_lifecycle_contract: 'mykrobial.component-snapshot.v1' as const,

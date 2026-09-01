@@ -179,6 +179,7 @@ export interface ComponentExperimentCapsule {
 export interface ExternalComponentDecisionInput {
   decision_id: string
   capsule_id: string
+  capsule_sha256: string
   decision_kind: 'optimizer_recommendation' | 'promotion_recommendation' | 'rollback_recommendation'
   disposition: 'accept_candidate' | 'reject_candidate' | 'revise_candidate' | 'no_change' | 'rollback'
   issuer_id: string
@@ -224,7 +225,9 @@ export interface ComponentReconfigurationPlan {
   plan_id: string
   operation: ComponentPlanOperation
   capsule_id: string
+  capsule_sha256: string
   decision_id: string
+  decision_external_input_sha256: string
   target_component_ids: string[]
   target_surface_ids: MutationSurfaceId[]
   component_lifecycle_contract: 'mykrobial.component-snapshot.v1'

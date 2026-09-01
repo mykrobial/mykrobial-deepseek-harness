@@ -199,7 +199,9 @@ test('capsule rejects non-finite or wholly zero experiment budgets', () => {
 })
 
 test('external optimizer input remains untrusted even when it names an authority receipt', () => {
-  const decision = acceptExternalComponentDecision(copy(single.decision_input), singleCapsule())
+  const capsule = singleCapsule()
+  const decision = acceptExternalComponentDecision(copy(single.decision_input), capsule)
+  assert.equal(decision.capsule_sha256, capsule.capsule_sha256)
   assert.equal(decision.authority_receipt_sha256, single.decision_input.authority_receipt_sha256)
   assert.equal(decision.authority_verified, false)
   assert.equal(decision.apply_authorized, false)
@@ -220,12 +222,37 @@ test('swap plan binds lifecycle and loadout contracts but never applies', () => 
   const capsule = singleCapsule()
   const decision = acceptExternalComponentDecision(copy(single.decision_input), capsule)
   const plan = prepareComponentReconfigurationPlan({ ...copy(single.plan_fields), capsule, decision })
+  assert.equal(plan.capsule_sha256, capsule.capsule_sha256)
+  assert.equal(plan.decision_external_input_sha256, decision.external_input_sha256)
   assert.equal(plan.component_lifecycle_contract, 'mykrobial.component-snapshot.v1')
   assert.equal(plan.loadout_contract, 'mykrobial.harness.loadout-manifest.v1')
   assert.equal(plan.apply_authorized, false)
   assert.equal(plan.trace_append_authorized, false)
   assert.ok(plan.steps.includes('rollback_on_identity_or_health_mismatch'))
   assert.ok(plan.blockers.includes('typed_blocker:external_decision_authority_unverified'))
+})
+
+test('decision and plan reject a same-id capsule rebound to a different digest', () => {
+  assert.ok(single.plan_fields)
+  const original = singleCapsule()
+  const decision = acceptExternalComponentDecision(copy(single.decision_input), original)
+  const rebound = copy(original)
+  const alternateLoadout = '0'.repeat(64)
+  rebound.task_binding.loadout_manifest_sha256 = alternateLoadout
+  for (const arm of rebound.arms) arm.loadout_manifest_sha256 = alternateLoadout
+  rebound.plane = 'frontier_builder_critic'
+  const { capsule_sha256: _old, ...body } = rebound
+  rebound.capsule_sha256 = canonicalSha256(body)
+  assert.notEqual(rebound.capsule_sha256, original.capsule_sha256)
+  assert.throws(
+    () => prepareComponentReconfigurationPlan({
+      ...copy(single.plan_fields),
+      current_loadout_manifest_sha256: alternateLoadout,
+      capsule: rebound,
+      decision,
+    }),
+    /typed_blocker:component_reconfiguration_decision_invalid/,
+  )
 })
 
 test('rollback and replay plans fail closed without their exact receipts', () => {

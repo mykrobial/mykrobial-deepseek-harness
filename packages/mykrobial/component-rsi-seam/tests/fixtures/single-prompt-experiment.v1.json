@@ -98,6 +98,7 @@
   "decision_input": {
     "decision_id": "decision-prompt-v1",
     "capsule_id": "capsule-prompt-v1",
+    "capsule_sha256": "7208b915b1e2cc096b71d79c4b16cb987814f3b111dedf155e9c98ae73c52552",
     "decision_kind": "optimizer_recommendation",
     "disposition": "accept_candidate",
     "issuer_id": "external-optimizer-v1",
