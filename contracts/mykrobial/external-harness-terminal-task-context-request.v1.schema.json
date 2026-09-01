@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mykrobial.org/schemas/external-harness-terminal-task-context-request.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "request_id",
+    "source_system",
+    "source_event_kind",
+    "source_event_projection_sha256",
+    "canonical_terminal_row_sha256",
+    "terminal_family",
+    "target_context_schema",
+    "target_binding_schema",
+    "namespace",
+    "operation",
+    "task_label_sha256",
+    "session_id_sha256",
+    "tenant_scope_sha256",
+    "domain",
+    "requested_receipt_ref",
+    "served_receipt_ref",
+    "source_generation",
+    "visible_generation_sha256",
+    "first_visible_event_id",
+    "last_visible_event_id",
+    "visible_event_count",
+    "created_at",
+    "state",
+    "distinct_context_signer_and_verifier_required",
+    "context_signature_authorized",
+    "terminal_binding_emission_authorized",
+    "trace_append_authorized",
+    "historical_relabel_authorized",
+    "task_inferred_from_message_or_event_order",
+    "terminal_content_persisted",
+    "non_claims",
+    "request_sha256"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mykrobial.external-harness.terminal-task-context-request.v1"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+=-]{0,255}$"
+    },
+    "source_system": {
+      "const": "exo"
+    },
+    "source_event_kind": {
+      "enum": [
+        "tool_requested",
+        "tool_result",
+        "sandbox_snapshotted",
+        "thread_forked",
+        "rebuild_and_restart_outcome",
+        "usage"
+      ]
+    },
+    "source_event_projection_sha256": {
+      "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256"
+    },
+    "canonical_terminal_row_sha256": {
+      "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256"
+    },
+    "terminal_family": {
+      "enum": [
+        "answer_commit",
+        "execution_timed_out"
+      ]
+    },
+    "target_context_schema": {
+      "const": "mykrobial.trace.terminal_task_context_receipt.v1"
+    },
+    "target_binding_schema": {
+      "const": "mykrobial.trace.terminal_task_binding.v1"
+    },
+    "namespace": {
+      "const": "mykrobial.trace.terminal-task-context.v37"
+    },
+    "operation": {
+      "const": "bind_terminal_row_to_visible_task_range"
+    },
+    "task_label_sha256": {
+      "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256"
+    },
+    "session_id_sha256": {
+      "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256"
+    },
+    "tenant_scope_sha256": {
+      "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256"
+    },
+    "domain": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+=-]{0,255}$"
+    },
+    "requested_receipt_ref": {
+      "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256"
+    },
+    "served_receipt_ref": {
+      "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256"
+    },
+    "source_generation": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+=-]{0,255}$"
+    },
+    "visible_generation_sha256": {
+      "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256"
+    },
+    "first_visible_event_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+=-]{0,255}$"
+    },
+    "last_visible_event_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+=-]{0,255}$"
+    },
+    "visible_event_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "created_at": {
+      "$ref": "./external-harness-event.v1.schema.json#/$defs/timestamp"
+    },
+    "state": {
+      "const": "context_request_only_unissued"
+    },
+    "distinct_context_signer_and_verifier_required": {
+      "const": true
+    },
+    "context_signature_authorized": {
+      "const": false
+    },
+    "terminal_binding_emission_authorized": {
+      "const": false
+    },
+    "trace_append_authorized": {
+      "const": false
+    },
+    "historical_relabel_authorized": {
+      "const": false
+    },
+    "task_inferred_from_message_or_event_order": {
+      "const": false
+    },
+    "terminal_content_persisted": {
+      "const": false
+    },
+    "non_claims": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "const": "not_terminal_row_validation"
+        },
+        {
+          "const": "not_task_inference_from_message_or_event_order"
+        },
+        {
+          "const": "not_context_signature_or_verification"
+        },
+        {
+          "const": "not_terminal_binding_emission"
+        },
+        {
+          "const": "not_historical_relabel"
+        },
+        {
+          "const": "not_trace_append"
+        },
+        {
+          "const": "not_projection_execution"
+        },
+        {
+          "const": "not_evaluation_promotion_or_deployment"
+        }
+      ],
+      "items": false,
+      "minItems": 8,
+      "maxItems": 8
+    },
+    "request_sha256": {
+      "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256"
+    }
+  }
+}
