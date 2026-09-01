@@ -1,0 +1,185 @@
+{
+  "schema": "mykrobial.goalrun.component-rsi-seam-round-2-fresh-critic-blocker.v1",
+  "review_id": "component-rsi-seam-v1-round-2-fresh-critic",
+  "generated_at": "2026-09-01T04:27:38Z",
+  "review_kind": "fresh_context_source_only_component_rsi_seam_review",
+  "verdict": "blocked",
+  "accepted": false,
+  "reviewed": false,
+  "execution_authorized": false,
+  "manifest_excluded": true,
+  "blocker": "typed_blocker:external_decision_exact_capsule_digest_binding_missing",
+  "cause": "ExternalComponentDecision records only capsule_id, not capsule_sha256. prepareComponentReconfigurationPlan consequently verifies only that decision.capsule_id equals capsule.capsule_id. A decision normalized from one exact capsule can therefore be paired with a materially different, canonically resealed capsule that reuses the same id, including a different frozen task/loadout basis and a different public evolution plane. The resulting plan remains no-apply, but its decision-to-capsule identity is not exact as the public seam claims.",
+  "candidate": {
+    "worktree": "/Users/kalcypher/Projects/_worktrees/mykrobial-deepseek-component-rsi-seam-v1",
+    "commit": "8f41e306b2d6d283c4b746cda38fe4c713ed80bc",
+    "tree": "e558523188a88546c1802818cb07191deb13ad8d",
+    "parent": "7f2735bb5d174af6cb3bb49224da14b87c56b87c",
+    "clean_before_review": true,
+    "candidate_source_changed_by_critic": false
+  },
+  "supplied_bindings": {
+    "repair_basis_ref": "goalrun/component-rsi-seam-v1/FRESH-CRITIC-BLOCKER.v1.json",
+    "repair_basis_sha256": "4f27ef56d22b1404e794005ba0a5e9840fe936e9c261ff12f850d4e4ca9c9fd8",
+    "content_manifest_ref": "goalrun/component-rsi-seam-v1/SHA256SUMS",
+    "content_manifest_sha256": "36653b564e58c237a5414882fb70d95c91f1b2cb15cc85ae26e435df7bd0747a",
+    "source_receipt_ref": "goalrun/component-rsi-seam-v1/SOURCE-RECEIPT.v1.json",
+    "source_receipt_sha256": "14c1c6fae6add535f1195b239a1035f8ca1e1b7337f4ab91f4e6028df377b627",
+    "state": "matched"
+  },
+  "declared_verification": {
+    "node_executable": "/opt/homebrew/bin/node",
+    "node_version": "v25.9.0",
+    "direct_node_tests": {
+      "command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts",
+      "passed": 21,
+      "failed": 0
+    },
+    "typescript_syntax_checks": {
+      "passed": 3,
+      "failed": 0,
+      "paths": [
+        "packages/mykrobial/component-rsi-seam/src/index.ts",
+        "packages/mykrobial/component-rsi-seam/src/types.ts",
+        "packages/mykrobial/component-rsi-seam/src/invariant.ts"
+      ]
+    },
+    "strict_authored_json_parses": {
+      "passed": 12,
+      "failed": 0,
+      "duplicate_keys_rejected": true,
+      "nonfinite_constants_rejected": true
+    },
+    "sha256_manifest": {
+      "command": "shasum -a 256 -c goalrun/component-rsi-seam-v1/SHA256SUMS",
+      "passed": 20,
+      "failed": 0
+    },
+    "git_diff_check": "passed",
+    "working_tree_clean_after_checks_before_blocker": true
+  },
+  "round_1_repair_readback": {
+    "prior_blocker": "typed_blocker:component_experiment_arm_loadout_binding_revalidation_missing",
+    "source_guard_ref": "packages/mykrobial/component-rsi-seam/src/index.ts:467",
+    "public_boundary": "acceptExternalComponentDecision",
+    "BASE_resealed_loadout_drift": "rejected_with_typed_blocker:component_experiment_controls_not_distinct",
+    "TRUE_resealed_loadout_drift": "rejected_with_typed_blocker:component_experiment_controls_not_distinct",
+    "SHAM_resealed_loadout_drift": "rejected_with_typed_blocker:component_experiment_controls_not_distinct",
+    "all_arms_resealed_loadout_drift": "rejected_with_typed_blocker:component_experiment_controls_not_distinct",
+    "partial_task_plus_BASE_rebind": "rejected_with_typed_blocker:component_experiment_controls_not_distinct",
+    "reordered_arms": "rejected_with_typed_blocker:component_experiment_controls_not_distinct",
+    "task_arm_disagreement": "rejected_with_typed_blocker:component_experiment_controls_not_distinct",
+    "repair_state": "specific_round_1_counterexample_closed"
+  },
+  "new_counterexample": {
+    "entrypoints": [
+      "acceptExternalComponentDecision",
+      "prepareComponentReconfigurationPlan"
+    ],
+    "starting_artifact": "valid single-prompt capsule and external decision returned from the public constructors",
+    "mutation": [
+      "retain capsule_id capsule-prompt-v1",
+      "replace task_binding.loadout_manifest_sha256 and all three arm loadout_manifest_sha256 values with the same different valid SHA-256",
+      "replace plane local_idle_compute with the distinct valid public plane frontier_builder_critic",
+      "recompute capsule_sha256 with canonicalSha256",
+      "pair the resealed capsule with the decision previously normalized from the original capsule"
+    ],
+    "original_capsule_sha256": "7208b915b1e2cc096b71d79c4b16cb987814f3b111dedf155e9c98ae73c52552",
+    "rebound_capsule_sha256": "fdcbdbe4fb0475e604825c113d0563ae3664336f4249127953f54a2bb237c646",
+    "capsule_id_reused": true,
+    "decision_carries_capsule_sha256": false,
+    "observed": "accepted_without_throw",
+    "returned_plan_state": "prepared_unexecuted",
+    "returned_plan_apply_authorized": false,
+    "expected": "reject because the existing decision is not bound to the exact resealed capsule digest",
+    "falsified_claim": "the external recommendation and resulting plan address the exact content-addressed capsule rather than any capsule sharing its reusable id"
+  },
+  "decisive_source": [
+    {
+      "path": "packages/mykrobial/component-rsi-seam/src/types.ts",
+      "lines": "178-202",
+      "finding": "ExternalComponentDecisionInput and ExternalComponentDecision carry capsule_id but no capsule_sha256."
+    },
+    {
+      "path": "packages/mykrobial/component-rsi-seam/src/index.ts",
+      "lines": "556-604",
+      "finding": "acceptExternalComponentDecision validates the supplied capsule but persists only its id into the normalized decision."
+    },
+    {
+      "path": "packages/mykrobial/component-rsi-seam/src/index.ts",
+      "lines": "674-687",
+      "finding": "prepareComponentReconfigurationPlan validates capsule and decision independently, then compares only decision.capsule_id with capsule.capsule_id."
+    }
+  ],
+  "otherwise_verified": {
+    "exact_evolution_plane_ids": [
+      "online_areal_actual_work",
+      "local_idle_compute",
+      "frontier_builder_critic",
+      "future_joint_model_harness"
+    ],
+    "current_production_plane_source_sha256": "724e1ab4df67bab9b9ab9538d549d6faa29088fc60db6272f8d692ef4a9e74a4",
+    "external_optimizer_is_strategy_adapter_not_plane": true,
+    "invalid_external_optimizer_plane": "rejected_with_typed_blocker:component_evolution_plane_invalid",
+    "closed_external_decision_strategy_expansion": "rejected_with_typed_blocker:external_component_decision_input_invalid",
+    "mutation_surface_count": 14,
+    "mutation_surface_registry_sha256": "1ee9e6c81287939795d538f7b92eb2167429ca9ed3f53e55f74d0752ad4aa451",
+    "source_only_seam_ownership_preserved": true,
+    "valid_external_recommendation_trust_state": "untrusted_external_input",
+    "component_application_authorized": false,
+    "trace_append_authorized": false,
+    "training_authorized": false,
+    "promotion_authorized": false,
+    "deployment_authorized": false
+  },
+  "required_repair": [
+    "Add an exact capsule_sha256 field to the external decision input and normalized decision contracts and require it to equal the validated capsule capsule_sha256.",
+    "Require prepareComponentReconfigurationPlan to compare decision.capsule_sha256 with capsule.capsule_sha256, and bind both capsule_sha256 and decision external_input_sha256 into the plan.",
+    "Update the closed TypeScript types, JSON schemas, fixtures, source receipt, and manifest hashes.",
+    "Permanently test same-id fully resealed loadout and cross-plane capsules against a decision produced for the original capsule, then request a new fresh critic."
+  ],
+  "operation_state": {
+    "candidate_source_edited": false,
+    "dependency_acquisition_executed": false,
+    "package_manager_executed": false,
+    "build_executed": false,
+    "runtime_or_service_executed": false,
+    "provider_or_model_executed": false,
+    "trace_executed": false,
+    "training_executed": false,
+    "component_application_executed": false,
+    "promotion_executed": false,
+    "deployment_executed": false
+  },
+  "route": {
+    "task_class": "engineering",
+    "agent_id": "agent:mykrobial-engineering",
+    "registry_sha256": "6da1ae96093f6e9310878d0e3f961461a68ebcfb2b869cbb9fcfc7934d54cb29",
+    "route_outcome": "typed_blocker",
+    "provider_execution_verified": false,
+    "runtime_execution_allowed": false
+  },
+  "rlm": {
+    "execution_mode": "rlm_shaped_workflow",
+    "runtime_receipt_ref": null,
+    "source_manifest_ref": "goalrun/component-rsi-seam-v1/SHA256SUMS",
+    "final_state_ref": "goalrun/component-rsi-seam-v1/ROUND-2-FRESH-CRITIC-BLOCKER.v1.json",
+    "verified_model_execution": false
+  },
+  "trace": {
+    "emitted": false,
+    "typed_blocker": "typed_blocker:trace_execution_forbidden_by_review_scope"
+  },
+  "non_claims": [
+    "not_human_or_founder_review",
+    "not_reviewed_true",
+    "not_execution_authorized",
+    "not_runtime_or_provider_execution",
+    "not_model_or_optimizer_execution",
+    "not_trace_append",
+    "not_training",
+    "not_component_application",
+    "not_promotion",
+    "not_deployment_or_fleet_rollout"
+  ]
+}
