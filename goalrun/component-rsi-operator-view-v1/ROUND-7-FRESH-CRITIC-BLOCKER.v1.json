@@ -1,0 +1,276 @@
+{
+  "schema": "mykrobial.goalrun.component-rsi-operator-view-round-7-fresh-critic-blocker.v1",
+  "review_id": "component-rsi-operator-view-v1-round-7-fresh-critic",
+  "generated_at": "2026-09-01T07:45:28Z",
+  "review_kind": "distinct_fresh_context_source_only_adversarial_review",
+  "verdict": "source_blocked",
+  "accepted": false,
+  "reviewed": false,
+  "execution_authorized": false,
+  "manifest_excluded": true,
+  "typed_blocker": "typed_blocker:component_evolution_operation_result_observation_basis_incomplete",
+  "largest_evidenced_gap": "The new operation result is not a complete content-addressed before-and-after observation. It contains only caller-selected post-operation component rows, permits a swap target with no parent, does not require observed component transaction or valid-from time to be no later than observed_at, and omits both receipt digests from basis_sha256 and result_id. The root projection then checks only that every supplied result row occurs in the root component list, not that the two lists are equal. These are one cause: the accepted result basis is not the exhaustive causal operation observation claimed by the source receipt.",
+  "candidate": {
+    "worktree": "/Users/kalcypher/Projects/_worktrees/mykrobial-deepseek-component-rsi-operator-view-v1",
+    "commit": "b78292e9a3cb8955f73de8f7d982659ba088304a",
+    "tree": "f8bfcac186f5058b7d22904fda7c2c1d1d1b06c5",
+    "clean_before_review": true,
+    "clean_after_checks_before_review_artifact": true,
+    "candidate_source_changed_by_critic": false
+  },
+  "supplied_bindings": {
+    "round_1_blocker_ref": "goalrun/component-rsi-operator-view-v1/FRESH-CRITIC-BLOCKER.v1.json",
+    "round_1_blocker_sha256": "1d3702f803c9133e55c0397aac71c99a4fe668eb66ef04d59c06600b108abdc9",
+    "round_2_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-2-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_2_blocker_sha256": "45daa0e5193e3d9a5703c1d625b7a0c77974fcbc84d2f64d68f37f00537a3388",
+    "round_3_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-3-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_3_blocker_sha256": "bc89ca36bd4da554356bfb6e320411132107411c4bcdb4294c6fea2c53685a85",
+    "round_4_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-4-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_4_blocker_sha256": "3e7b9ff3307901105102f2e715fae9bad5c6f651dc2297914b2a238f5940d205",
+    "round_5_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-5-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_5_blocker_sha256": "9abdc43b64a6ad104d0d5f23b316b164e941aec6931ec91e9d16a61298a449de",
+    "round_6_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-6-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_6_blocker_sha256": "e4688684d7e464812c558bffc3d181325ff782373996c5fe90d8ec8a11a3c756",
+    "content_manifest_ref": "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+    "content_manifest_sha256": "5049ed3e7df6f9323db024451eb9a9febc0b42c251439b3f11cad7c5b79c5943",
+    "content_file_count": 12,
+    "source_receipt_ref": "goalrun/component-rsi-operator-view-v1/SOURCE-RECEIPT.v1.json",
+    "source_receipt_sha256": "56c9126533e6508dc36f1965cff44df33f79ca255aa8dc95704f4596fbd64481",
+    "state": "matched"
+  },
+  "declared_verification": {
+    "node_executable": "/opt/homebrew/bin/node",
+    "node_version": "v25.9.0",
+    "integrated_node_tests": {
+      "command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts packages/mykrobial/operator-projections/tests/source-safe.test.ts",
+      "passed": 56,
+      "failed": 0,
+      "component_seam_passed": 25,
+      "operator_projection_passed": 31
+    },
+    "typescript_syntax_checks": {
+      "passed": 6,
+      "failed": 0
+    },
+    "strict_authored_json_parses": {
+      "passed": 3,
+      "failed": 0,
+      "duplicate_keys_rejected": true,
+      "nonfinite_constants_rejected": true
+    },
+    "sha256_manifest": {
+      "command": "shasum -a 256 -c goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+      "passed": 12,
+      "failed": 0
+    },
+    "adversarial_node_matrix": {
+      "command_shape": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --input-type=module -",
+      "status": "completed",
+      "candidate_files_written": 0
+    },
+    "git_diff_check": "pending_artifact_only_commit",
+    "working_tree_clean_after_checks_before_blocker": true
+  },
+  "preserved_prior_blockers": [
+    {
+      "round": 1,
+      "typed_blocker": "typed_blocker:component_evolution_semantic_cross_bindings_missing",
+      "artifact_sha256": "1d3702f803c9133e55c0397aac71c99a4fe668eb66ef04d59c06600b108abdc9",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 2,
+      "typed_blocker": "typed_blocker:component_evolution_year_00_99_chronology_alias",
+      "artifact_sha256": "45daa0e5193e3d9a5703c1d625b7a0c77974fcbc84d2f64d68f37f00537a3388",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 3,
+      "typed_blocker": "typed_blocker:component_evolution_exact_capsule_bindings_not_projected",
+      "artifact_sha256": "bc89ca36bd4da554356bfb6e320411132107411c4bcdb4294c6fea2c53685a85",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 4,
+      "typed_blocker": "typed_blocker:component_evolution_stale_artifact_digest_aliases_accepted",
+      "artifact_sha256": "3e7b9ff3307901105102f2e715fae9bad5c6f651dc2297914b2a238f5940d205",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 5,
+      "typed_blocker": "typed_blocker:component_evolution_accepted_artifact_execution_admission_missing",
+      "artifact_sha256": "9abdc43b64a6ad104d0d5f23b316b164e941aec6931ec91e9d16a61298a449de",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 6,
+      "typed_blocker": "typed_blocker:component_evolution_post_operation_component_readback_missing",
+      "artifact_sha256": "e4688684d7e464812c558bffc3d181325ff782373996c5fe90d8ec8a11a3c756",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected",
+      "residual_cause": "a readback artifact now exists, but its observation and content-addressing basis is incomplete"
+    }
+  ],
+  "prior_counterexample_replay": {
+    "round_1": "fractional valid-time reversal, reversed transaction timeline, cross-lineage parent, target-surface mismatch, receipt/proof overstatement, rollback receipt loss, and runtime/deployed floor cases rejected",
+    "round_2": "0099/0100 valid-time, parent-time, timeline, and exact public reseal reversals rejected",
+    "round_3": "BASE TRUE SHAM semantic swaps and stale capsule, decision, plan, target-set, and public reseal bindings rejected",
+    "round_4": "synchronized stale artifact IDs and digests, stale plan digest, disposition, plane, target, loadout, and standalone-plan aliases rejected",
+    "round_5": "unresolved replay, incompatible disposition, policy erasure, partial/full stale outer bindings, plan-ID alias, reversed artifact time, loadout mismatch, and blocked-replay public reseal rejected",
+    "round_6": "inactive swap target with still-active parent rejected for runtime, deployed, and public-revalidation variants"
+  },
+  "new_counterexamples": [
+    {
+      "name": "receipt_digest_changes_collide_on_result_id_and_basis",
+      "support_type": "executed",
+      "same_result_id": true,
+      "same_basis_sha256": true,
+      "different_result_sha256": true,
+      "result_id": "component-result-687e615e2df46838a8e65971",
+      "basis_sha256": "687e615e2df46838a8e659719a90f50276b34ae1c0ddbc89ce1b4fe1bdfb752e",
+      "first_result_sha256": "d6a3207d73adbcefaa4d2d53807e3c3f78590bb0274e7cfe25bc3abe92cd860f",
+      "second_result_sha256": "3866f561fe1c92a3fd62e074c9d20679b80bd427963734c5447cbefd791597b2"
+    },
+    {
+      "name": "parentless_swap_omits_replaced_generation_readback",
+      "support_type": "executed",
+      "accepted_by_public_operation_result_builder_and_validator": true,
+      "observed_component_count": 1,
+      "result_sha256": "d106515ad6a121ad934ebfe0ec7521f642883b0f7cce2169e6701f03263d6d6b"
+    },
+    {
+      "name": "future_dated_target_is_observed_before_its_transaction_and_valid_time",
+      "support_type": "executed",
+      "accepted_by_public_operation_result_builder_and_validator": true,
+      "observed_at": "2026-09-01T00:02:00Z",
+      "target_transaction_time": "9999-12-31T23:59:59Z",
+      "target_valid_from": "9999-12-31T23:59:59Z",
+      "result_sha256": "d6df58ed401062878c0e43e93ba3e99b37de3eaff3b953f0ef505c561e0dc891"
+    },
+    {
+      "name": "replay_nonactivation_is_asserted_without_before_component_rows",
+      "support_type": "executed",
+      "accepted_by_public_operation_result_builder_and_validator": true,
+      "activation_changed": false,
+      "observed_target_active": true,
+      "before_component_rows_projected": false,
+      "result_sha256": "c64d67fd5b2c8ae767d523375eeb76f06f33f8bb2e767d075a340a92c259f99a"
+    },
+    {
+      "name": "root_component_projection_may_strictly_superset_result_rows",
+      "support_type": "source_proven",
+      "cause": "The root join rejects an observed row absent or unequal in the root, but never rejects a root component absent from observed_components."
+    }
+  ],
+  "requested_attack_matrix": {
+    "stale_or_rehashed_plan_chain_ids": "stale and partially rebound chains rejected; fully rehashed chains remain distinct content-addressed artifacts and do not prove external acceptance",
+    "before_and_after_loadouts": "pre and post manifest digests are constrained, but no before-operation component-generation rows exist",
+    "component_rows": "target rows are required, but the result rows are a caller-selected subset rather than an exhaustive root-equal observation",
+    "swap_target_activation_and_parent_deactivation": "parentful target postconditions pass; parentless swap accepted with no replaced-generation row",
+    "rollback_restoration": "parentful rollback candidate deactivation and parent activation are checked",
+    "replay_nonactivation": "same loadout digest and activation_changed false are checked, but nonactivation is not derived from before versus after component rows",
+    "receipt_class_and_digests": "receipt class is operation-specific and result_sha256 binds the digests; basis_sha256 and result_id omit both receipt digests",
+    "causal_observation_time": "observed_at must follow plan.requested_at, but observed component transaction_time and valid_from need not precede observed_at",
+    "result_basis_hash_and_id": "failed because two receipt-distinct immutable results share one basis_sha256 and result_id",
+    "root_component_equality": "failed because the constructor implements observed_rows_subset_of_root rather than observed_rows_equal_root",
+    "runtime_deployed_and_public_revalidation": "failed at the source cause because both proof floors consume this result and the public revalidator rebuilds through the same incomplete join",
+    "extra_and_missing_observations": "unknown result rows are rejected; root rows missing from the result are accepted by the join",
+    "same_logical_identity_collisions": "root concurrent-active collisions are rejected, but parentless result construction removes the lineage proof that the operation deactivated the replaced generation",
+    "multi_target_and_parentless_cases": "each listed target must be active; the parent deactivation requirement is skipped independently for every parentless target",
+    "receipt_envelope_nonclaims": "issuer_authenticity_verified false and four nonclaims are exact, but raw receipt digests are not independently validated receipt envelopes bound to class, subject, issuer, expiry, or replay state",
+    "proposal_capsule_decision_plan_policy": "named policy, derivation, causal-order, blocker, and nonclaim regressions passed",
+    "operation_admission": "Round 5 admission bypasses are rejected, but admission now relies on the incomplete result basis",
+    "model_weight_gate": "model-weight plane and training-gate regressions passed",
+    "time": "four-digit UTC and prior chronology regressions passed; operation-observation causality failed",
+    "proof_lattice": "runtime and deployed floors are structurally closed but can consume an incompletely evidenced operation result",
+    "closure": "root and nested JSON key closure passed; semantic observation closure failed",
+    "authority_false": "all execution, application, Trace, training, promotion, deployment, review, and receipt-authenticity authority remains false"
+  },
+  "decisive_source": [
+    {
+      "path": "packages/mykrobial/operator-projections/src/component-evolution.ts",
+      "lines": "363-379",
+      "finding": "operationResultBasis omits verification_receipt_sha256 and operation_receipt_sha256 even though result_id and basis_sha256 derive from it."
+    },
+    {
+      "path": "packages/mykrobial/operator-projections/src/component-evolution.ts",
+      "lines": "441-477",
+      "finding": "Swap requires parent deactivation only when target.parent_component_id is non-null; replay has no before/after component comparison."
+    },
+    {
+      "path": "packages/mykrobial/operator-projections/src/component-evolution.ts",
+      "lines": "478-500",
+      "finding": "observed_at is compared with plan.requested_at, not with component transaction_time or valid_from."
+    },
+    {
+      "path": "packages/mykrobial/operator-projections/src/component-evolution.ts",
+      "lines": "994-1001",
+      "finding": "The root validates every result row against the root but never requires exhaustive equality."
+    },
+    {
+      "path": "contracts/mykrobial/omnigent-component-evolution-read-model.v1.schema.json",
+      "lines": "147-224",
+      "finding": "The public schema mirrors the incomplete one-sided observation and digest fields, so it cannot express before-row equality or causal component-time joins."
+    }
+  ],
+  "required_repair": [
+    "Project descriptor-closed before_components and after_components, or exact before and after component-snapshot digest refs, and require the operation result to equal the intended root snapshot rather than a caller-selected subset.",
+    "Define parentless swap semantics explicitly. If swap means replacement, require a same-logical-identity replaced generation and its postcondition for every target; otherwise use a separate insertion operation.",
+    "Require every observed component transaction_time, valid_from, and applicable valid_until to be causally compatible with observed_at.",
+    "Include verification and operation receipt envelopes in the operation-result basis, derive result_id from the complete immutable body, and reject same-ID receipt-distinct results. Preserve issuer authenticity and action authority as separate false/nonclaim fields.",
+    "Freeze these four executed hashes plus root-subset runtime, deployed, and public-revalidation variants as regressions, rebuild the exact 12-file manifest and source receipt, and request a distinct fresh critic."
+  ],
+  "route": {
+    "task_class": "component_system",
+    "agent_id": "agent:mykrobial-design",
+    "registry_sha256": "6da1ae96093f6e9310878d0e3f961461a68ebcfb2b869cbb9fcfc7934d54cb29",
+    "route_outcome": "resolved",
+    "provider_execution_verified": false,
+    "downstream_agent_invoked": false
+  },
+  "trace": {
+    "emitted": false,
+    "typed_blocker": "typed_blocker:trace_execution_forbidden_by_source_only_critic_scope"
+  },
+  "operation_state": {
+    "candidate_source_edits": 0,
+    "critic_artifact_files_written": 1,
+    "dependency_acquisition_executed": false,
+    "package_manager_executed": false,
+    "build_executed": false,
+    "runtime_or_service_executed": false,
+    "provider_or_model_executed": false,
+    "trace_executed": false,
+    "training_executed": false,
+    "optimizer_executed": false,
+    "component_application_executed": false,
+    "promotion_executed": false,
+    "deployment_executed": false
+  },
+  "output_predicate": {
+    "candidate_answer_buffered_before_release": true,
+    "canonical_names_checked": true,
+    "requested_vs_verified_boundaries_checked": true,
+    "hard_live_commentary_egress_verifier_available": false,
+    "mathematical_pre_release_enforcement_claimed": false
+  },
+  "non_claims": [
+    "not_human_or_founder_review",
+    "not_reviewed_true",
+    "not_execution_authorized",
+    "not_package_install_or_build",
+    "not_runtime_or_provider_execution",
+    "not_receipt_authenticity_or_issuer_verification",
+    "not_model_or_optimizer_execution",
+    "not_trace_append",
+    "not_training",
+    "not_component_application",
+    "not_promotion",
+    "not_deployment_or_fleet_rollout"
+  ]
+}
