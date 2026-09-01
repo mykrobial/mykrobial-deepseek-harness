@@ -1,0 +1,271 @@
+{
+  "schema": "mykrobial.goalrun.component-rsi-operator-view-round-8-fresh-critic-blocker.v1",
+  "review_id": "component-rsi-operator-view-v1-round-8-fresh-critic",
+  "generated_at": "2026-09-01T08:12:47Z",
+  "review_kind": "distinct_fresh_context_source_only_adversarial_review",
+  "verdict": "source_blocked",
+  "accepted": false,
+  "reviewed": false,
+  "execution_authorized": false,
+  "manifest_excluded": true,
+  "typed_blocker": "typed_blocker:component_evolution_receipt_lifecycle_causality_incomplete",
+  "largest_evidenced_gap": "The Round 7 observation rows and receipt-distinct hashes are closed, but receipt lifecycle is not joined to the observation or root-generation times. A verification receipt may expire before the before-operation observation, an operation receipt may be issued after the root projection was generated, and the verification and application envelopes may reuse one receipt ID, raw digest, and nonce while each hardcodes replay_state consumed. The resulting fully content-addressed operation result is still accepted as runtime_verified, deployed_verified, and by public revalidation. The view therefore authenticates contradictory receipt bytes without establishing that either receipt was live and non-replayed at the proof point claimed by the read model.",
+  "candidate": {
+    "worktree": "/Users/kalcypher/Projects/_worktrees/mykrobial-deepseek-component-rsi-operator-view-v1",
+    "commit": "15ef7bb98a5807432388e9b5579ea48b45434c5b",
+    "tree": "ff6a9fa2a9142753a0fdce08e1bfd84c30703cfd",
+    "clean_before_review": true,
+    "clean_after_checks_before_review_artifact": true,
+    "candidate_source_changed_by_critic": false
+  },
+  "supplied_bindings": {
+    "round_1_blocker_ref": "goalrun/component-rsi-operator-view-v1/FRESH-CRITIC-BLOCKER.v1.json",
+    "round_1_blocker_sha256": "1d3702f803c9133e55c0397aac71c99a4fe668eb66ef04d59c06600b108abdc9",
+    "round_2_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-2-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_2_blocker_sha256": "45daa0e5193e3d9a5703c1d625b7a0c77974fcbc84d2f64d68f37f00537a3388",
+    "round_3_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-3-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_3_blocker_sha256": "bc89ca36bd4da554356bfb6e320411132107411c4bcdb4294c6fea2c53685a85",
+    "round_4_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-4-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_4_blocker_sha256": "3e7b9ff3307901105102f2e715fae9bad5c6f651dc2297914b2a238f5940d205",
+    "round_5_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-5-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_5_blocker_sha256": "9abdc43b64a6ad104d0d5f23b316b164e941aec6931ec91e9d16a61298a449de",
+    "round_6_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-6-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_6_blocker_sha256": "e4688684d7e464812c558bffc3d181325ff782373996c5fe90d8ec8a11a3c756",
+    "round_7_blocker_ref": "goalrun/component-rsi-operator-view-v1/ROUND-7-FRESH-CRITIC-BLOCKER.v1.json",
+    "round_7_blocker_sha256": "bf31ba788b4c773662263a026b8921f18854c8b7bb0ef19f0eec78f35e944837",
+    "content_manifest_ref": "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+    "content_manifest_sha256": "1fa5124e0509ca8ce571fe9cbb8e1fc359198eb91c8b0630808937d7821d6323",
+    "content_file_count": 12,
+    "source_receipt_ref": "goalrun/component-rsi-operator-view-v1/SOURCE-RECEIPT.v1.json",
+    "source_receipt_sha256": "ba100d927b6b7c0e15dd9e1edb3c5147574719d6ff02b5513c388e16236b2346",
+    "state": "matched"
+  },
+  "declared_verification": {
+    "node_executable": "/opt/homebrew/bin/node",
+    "node_version": "v25.9.0",
+    "integrated_node_tests": {
+      "command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts packages/mykrobial/operator-projections/tests/source-safe.test.ts",
+      "passed": 57,
+      "failed": 0,
+      "component_seam_passed": 25,
+      "operator_projection_passed": 32
+    },
+    "typescript_syntax_checks": {
+      "passed": 6,
+      "failed": 0
+    },
+    "strict_authored_json_parses": {
+      "passed": 3,
+      "failed": 0,
+      "duplicate_keys_rejected": true,
+      "nonfinite_constants_rejected": true
+    },
+    "sha256_manifest": {
+      "command": "shasum -a 256 -c goalrun/component-rsi-operator-view-v1/SHA256SUMS",
+      "passed": 12,
+      "failed": 0
+    },
+    "adversarial_node_matrix": {
+      "command_shape": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --input-type=module -",
+      "status": "completed",
+      "candidate_files_written": 0
+    },
+    "git_diff_check": "pending_artifact_only_commit",
+    "working_tree_clean_after_checks_before_blocker": true
+  },
+  "preserved_prior_blockers": [
+    {
+      "round": 1,
+      "typed_blocker": "typed_blocker:component_evolution_semantic_cross_bindings_missing",
+      "artifact_sha256": "1d3702f803c9133e55c0397aac71c99a4fe668eb66ef04d59c06600b108abdc9",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 2,
+      "typed_blocker": "typed_blocker:component_evolution_year_00_99_chronology_alias",
+      "artifact_sha256": "45daa0e5193e3d9a5703c1d625b7a0c77974fcbc84d2f64d68f37f00537a3388",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 3,
+      "typed_blocker": "typed_blocker:component_evolution_exact_capsule_bindings_not_projected",
+      "artifact_sha256": "bc89ca36bd4da554356bfb6e320411132107411c4bcdb4294c6fea2c53685a85",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 4,
+      "typed_blocker": "typed_blocker:component_evolution_stale_artifact_digest_aliases_accepted",
+      "artifact_sha256": "3e7b9ff3307901105102f2e715fae9bad5c6f651dc2297914b2a238f5940d205",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 5,
+      "typed_blocker": "typed_blocker:component_evolution_accepted_artifact_execution_admission_missing",
+      "artifact_sha256": "9abdc43b64a6ad104d0d5f23b316b164e941aec6931ec91e9d16a61298a449de",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 6,
+      "typed_blocker": "typed_blocker:component_evolution_post_operation_component_readback_missing",
+      "artifact_sha256": "e4688684d7e464812c558bffc3d181325ff782373996c5fe90d8ec8a11a3c756",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected"
+    },
+    {
+      "round": 7,
+      "typed_blocker": "typed_blocker:component_evolution_operation_result_observation_basis_incomplete",
+      "artifact_sha256": "bf31ba788b4c773662263a026b8921f18854c8b7bb0ef19f0eec78f35e944837",
+      "historical_evidence_preserved": true,
+      "specific_counterexamples_at_candidate": "rejected",
+      "residual_cause": "the observation basis is now exhaustive and receipt-distinct, but receipt lifecycle and replay identity remain causally unjoined"
+    }
+  ],
+  "prior_counterexample_replay": {
+    "round_1": "fractional valid-time reversal, reversed transaction timeline, cross-lineage parent, target-surface mismatch, receipt/proof overstatement, rollback receipt loss, and runtime/deployed floor cases rejected",
+    "round_2": "0099/0100 valid-time, parent-time, timeline, and exact public reseal reversals rejected",
+    "round_3": "BASE TRUE SHAM semantic swaps and stale capsule, decision, plan, target-set, and public reseal bindings rejected",
+    "round_4": "synchronized stale artifact IDs and digests, stale plan digest, disposition, plane, target, loadout, and standalone-plan aliases rejected",
+    "round_5": "unresolved replay, incompatible disposition, policy erasure, partial and full stale outer bindings, plan-ID alias, reversed artifact time, loadout mismatch, and blocked-replay public reseal rejected",
+    "round_6": "inactive swap target with still-active parent rejected for runtime, deployed, and public-revalidation variants",
+    "round_7": "receipt-distinct result identity, parentless replacement, future-dated component rows, replay drift, root supersets, and their runtime, deployed, and public-revalidation variants rejected"
+  },
+  "new_counterexample": {
+    "name": "expired_verification_and_future_issued_application_receipts_alias_across_one_runtime_result",
+    "support_type": "executed",
+    "precondition": "The accepted swap has exhaustive root-equal before and after component snapshots, a parentful target, exact capsule decision and plan bindings, complete BASE TRUE SHAM results, exact observation basis and result hashes, and all prior proof floors.",
+    "receipt_state": {
+      "verification_issued_at": "2026-09-01T00:01:00Z",
+      "verification_expires_at": "2026-09-01T00:01:10Z",
+      "before_observed_at": "2026-09-01T00:01:30Z",
+      "observed_at": "2026-09-01T00:02:00Z",
+      "root_generated_at": "2026-09-01T00:03:00Z",
+      "operation_receipt_issued_at": "9999-01-01T00:00:00Z",
+      "operation_receipt_expires_at": "9999-01-02T00:00:00Z",
+      "same_receipt_id": true,
+      "same_receipt_sha256": true,
+      "same_nonce_sha256": true,
+      "both_replay_state": "consumed",
+      "issuer_authenticity_verified": false
+    },
+    "expected": "Reject because the verification receipt is expired before its evidence point, the operation receipt is issued after the projection that consumes it, and a one-use receipt identity and nonce are reused across verification and application classes without a replay-state authority readback.",
+    "observed": {
+      "operation_result_accepted": true,
+      "runtime_verified_accepted": true,
+      "runtime_public_revalidation_accepted": true,
+      "deployed_verified_accepted": true,
+      "deployed_public_revalidation_accepted": true,
+      "runtime_view_sha256": "5b75ff790ee9d8dc33c865346e86c125875978b71a8662a187c0c84422594a5c",
+      "deployed_view_sha256": "6d0b53037f8cd72792844e266aabec6e5acb6f0824e041c01ad8a5e2805c5153",
+      "result_id": "component-result-3a97634bc00900ca8f0deac9",
+      "observation_sha256": "dc59aab0cb249474b90e99f61db19d2a895ac8f2d0892d7396340b5b33841777",
+      "basis_sha256": "3a97634bc00900ca8f0deac9d175112291f035c2ed2468861b7a5ae1e17e8d6e",
+      "result_sha256": "3673c8463396df9080bdb872c91d9d0e6c03cd7b9e255185e35c9a9a55042c0c"
+    },
+    "cause": "validateComponentReceiptEnvelope checks only expires_at greater than issued_at and locally hardcodes replay_state consumed. validateComponentOperationResult bounds verification issuance but not verification expiry, lower-bounds operation issuance but does not upper-bound it, and has no cross-envelope receipt-ID, digest, or nonce uniqueness join. The root checks observed_at against generated_at but never checks receipt issuance or expiry against generated_at. Content hashes therefore preserve the contradiction instead of rejecting it.",
+    "falsified_claims": [
+      "classed_subject_expiry_replay_receipt_envelopes_exact",
+      "operation_specific_admission_exact",
+      "source_runtime_deployment_proof_lattice",
+      "public_revalidation_rejects_receipt_lifecycle_contradictions"
+    ]
+  },
+  "requested_attack_matrix": {
+    "exhaustive_before_after_snapshots": "Round 7 subset and replay-drift counterexamples are rejected; after_components equals the root exactly for applied and rolled-back rows.",
+    "immutable_component_identities": "before and after component IDs and the projected immutable identity fields are exact; no new identity substitution preceded the decisive receipt failure.",
+    "same_logical_identity_collisions": "concurrent active logical-identity collisions are rejected in both operation snapshots and the root.",
+    "parentful_multi_target_swap_and_rollback": "the source iterates every target and applies parentful lineage and lifecycle postconditions independently; parentless targets are rejected. This path was source-inspected, not separately provider or runtime executed.",
+    "replay_equality": "replay requires canonical byte equality of the complete before and after snapshots.",
+    "observation_causality": "component times and observation ordering are bounded, but receipt validity and issuance are not joined to before_observed_at, observed_at, or root generated_at; failed.",
+    "root_exact_equality": "the complete after snapshot must canonically equal the root component projection; prior root-superset variants are rejected.",
+    "receipt_class_subject_issuer": "class and subject are enforced and issuer authenticity remains explicitly false; one receipt ID and raw digest may still alias across verification and application classes.",
+    "receipt_expiry_nonce_replay_state": "failed because expiry is checked only against issuance, duplicate nonces are accepted across the two envelopes, and consumed is constructor-generated rather than joined to a replay-state authority readback.",
+    "receipt_distinct_basis_and_result_ids": "changes to envelope bytes alter basis_sha256, result_id, and result_sha256; the decisive failure is semantic receipt validity, not hash omission.",
+    "observation_basis_result_hashes": "observation, basis, result ID, result digest, runtime view digest, and deployed view digest all recompute exactly around the contradictory receipt lifecycle.",
+    "runtime_deployed_public_revalidation": "failed because all three consumers accept the executed counterexample.",
+    "proposal_capsule_decision_plan_policy": "prior policy, causal-chain, blocker-resolution, artifact-content, and nonclaim counterexamples remain rejected.",
+    "operation_admission_and_proof_joins": "prior operation-specific and proof-lattice bypasses remain rejected, but the admitted result can contain temporally impossible or replay-aliased receipts.",
+    "authority_false": "review, provider, issuer authenticity, component application, Trace, training, promotion, deployment, and fleet authority remain false."
+  },
+  "decisive_source": [
+    {
+      "path": "packages/mykrobial/operator-projections/src/component-evolution.ts",
+      "lines": "408-458",
+      "finding": "Receipt closure binds class, subject, issuer, digest, timestamps, nonce, local consumed state, nonclaims, and envelope hash, but expiry is compared only with issuance and consumed is hardcoded by the builder."
+    },
+    {
+      "path": "packages/mykrobial/operator-projections/src/component-evolution.ts",
+      "lines": "607-683",
+      "finding": "Operation-result validation bounds verification issuance and lower-bounds operation issuance but never requires verification validity at before_observed_at, operation issuance by root generation, receipt validity at proof consumption, or cross-envelope ID and nonce uniqueness."
+    },
+    {
+      "path": "packages/mykrobial/operator-projections/src/component-evolution.ts",
+      "lines": "1191-1195",
+      "finding": "The root bounds observed_at against generated_at and requires exact after-component equality, but it does not bound either receipt issuance or expiry against generated_at."
+    },
+    {
+      "path": "goalrun/component-rsi-operator-view-v1/SOURCE-RECEIPT.v1.json",
+      "lines": "37-57",
+      "finding": "The receipt declares classed subject expiry replay envelopes, exact operation admission, and an exact source-runtime-deployment proof lattice despite the executed contradiction."
+    }
+  ],
+  "required_repair": [
+    "Give receipt validation an explicit evidence-use time. Require the verification receipt to be issued no earlier than plan request and remain unexpired through before_observed_at; require the operation receipt to be issued no earlier than observed_at and no later than the root projection time, with an explicit validity rule at proof consumption.",
+    "Treat receipt_id and nonce_sha256 as one-use identities across the two result envelopes, or project and validate an authority-backed nonce reservation and consumption record. Do not synthesize replay_state consumed inside the source constructor as if that were replay-state proof.",
+    "Define whether one raw receipt digest may represent more than one class and subject. If not, reject cross-class aliasing; if yes, project the immutable multi-subject receipt body that justifies it instead of accepting repeated opaque bytes.",
+    "Preserve issuer_authenticity_verified false and all action-authority nonclaims unless separately receipted; lifecycle repair must not be generalized into issuer authenticity or application authority.",
+    "Freeze the exact runtime, deployed, public-revalidation, result, observation, and basis hashes above as regressions, rebuild the exact 12-file manifest and source receipt, and request another distinct fresh critic."
+  ],
+  "route": {
+    "task_class": "design",
+    "agent_id": "agent:mykrobial-design",
+    "registry_sha256": "6da1ae96093f6e9310878d0e3f961461a68ebcfb2b869cbb9fcfc7934d54cb29",
+    "route_outcome": "resolved",
+    "provider_execution_verified": false,
+    "downstream_agent_invoked": false
+  },
+  "trace": {
+    "emitted": false,
+    "typed_blocker": "typed_blocker:trace_execution_forbidden_by_source_only_critic_scope"
+  },
+  "operation_state": {
+    "candidate_source_edits": 0,
+    "critic_artifact_files_written": 1,
+    "dependency_acquisition_executed": false,
+    "package_manager_executed": false,
+    "build_executed": false,
+    "runtime_or_service_executed": false,
+    "provider_or_model_executed": false,
+    "trace_executed": false,
+    "training_executed": false,
+    "optimizer_executed": false,
+    "component_application_executed": false,
+    "promotion_executed": false,
+    "deployment_executed": false
+  },
+  "output_predicate": {
+    "candidate_answer_buffered_before_release": true,
+    "canonical_names_checked": true,
+    "requested_vs_verified_boundaries_checked": true,
+    "hard_live_commentary_egress_verifier_available": false,
+    "mathematical_pre_release_enforcement_claimed": false
+  },
+  "non_claims": [
+    "not_human_or_founder_review",
+    "not_reviewed_true",
+    "not_execution_authorized",
+    "not_package_install_or_build",
+    "not_runtime_or_provider_execution",
+    "not_receipt_authenticity_or_issuer_verification",
+    "not_model_or_optimizer_execution",
+    "not_trace_append",
+    "not_training",
+    "not_component_application",
+    "not_promotion",
+    "not_deployment_or_fleet_rollout"
+  ]
+}
