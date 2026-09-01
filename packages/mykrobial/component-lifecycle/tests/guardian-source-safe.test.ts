@@ -197,6 +197,12 @@ test('closed inputs reject getters, extras, and non-string digest aliases', () =
   Object.defineProperty(getterConfig, 'guardian_id', { enumerable: true, get: () => 'guardian-getter' })
   assert.throws(() => new ComponentEvolutionGuardian(getterConfig as unknown as ComponentGuardianConfig),
     /typed_blocker:component_guardian_config_invalid/)
+  const boxedTimestamp = {
+    ...config(),
+    created_at: new String('2030-01-01T00:00:00Z'),
+  } as unknown as ComponentGuardianConfig
+  assert.throws(() => new ComponentEvolutionGuardian(boxedTimestamp),
+    /typed_blocker:component_guardian_created_at_invalid/)
   const guardian = new ComponentEvolutionGuardian(config())
   assert.throws(() => guardian.append(event('snapshot_captured', 1, {
     evidence_sha256: true as unknown as string,
@@ -219,6 +225,20 @@ test('snapshot and command tampering fail deterministic readback', () => {
   })
   assert.throws(() => ComponentEvolutionGuardian.rehydrate(forgedBinding),
     /typed_blocker:component_guardian_snapshot_mismatch/)
+  const arrayProperty = structuredClone(snapshot)
+  Object.defineProperty(arrayProperty.events, 'apply_authorized', {
+    value: true,
+    enumerable: true,
+  })
+  assert.throws(() => ComponentEvolutionGuardian.rehydrate(arrayProperty),
+    /typed_blocker:component_guardian_events_invalid/)
+  const nestedArrayProperty = structuredClone(snapshot)
+  Object.defineProperty(nestedArrayProperty.events[0]!.non_claims, 'deployment_authorized', {
+    value: true,
+    enumerable: false,
+  })
+  assert.throws(() => ComponentEvolutionGuardian.rehydrate(nestedArrayProperty),
+    /typed_blocker:component_guardian_event_non_claims_invalid/)
 
   const command = guardian.prepareCommand({
     operation: 'rewind_component',
@@ -230,6 +250,14 @@ test('snapshot and command tampering fail deterministic readback', () => {
   const forgedCommand = { ...command, apply_authorized: true } as unknown as typeof command
   assert.throws(() => validateComponentGuardianCommand(forgedCommand),
     /typed_blocker:component_guardian_command_invalid/)
+  const arraySmuggledCommand = structuredClone(command)
+  Object.defineProperty(arraySmuggledCommand.blockers, 'apply_authorized', {
+    value: true,
+    enumerable: true,
+  })
+  assert.equal(arraySmuggledCommand.command_sha256, command.command_sha256)
+  assert.throws(() => validateComponentGuardianCommand(arraySmuggledCommand),
+    /typed_blocker:component_guardian_command_blockers_invalid/)
   const forgedIdentity = {
     ...command,
     command_id: 'component-guardian-forged',
