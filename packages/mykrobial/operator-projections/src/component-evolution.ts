@@ -200,16 +200,45 @@ export interface ComponentOperationResult {
   decision_external_input_sha256: string
   pre_loadout_manifest_sha256: string
   post_loadout_manifest_sha256: string
-  observed_components: ComponentGenerationViewInput[]
+  before_components: ComponentGenerationViewInput[]
+  after_components: ComponentGenerationViewInput[]
   activation_changed: boolean
-  receipt_class: 'application' | 'rollback' | 'replay'
-  verification_receipt_sha256: string
-  operation_receipt_sha256: string
+  verification_receipt: ComponentReceiptEnvelope
+  operation_receipt: ComponentReceiptEnvelope
+  before_observed_at: string
   observed_at: string
+  observation_sha256: string
   basis_sha256: string
   issuer_authenticity_verified: false
   non_claims: string[]
   result_sha256: string
+}
+
+export interface ComponentReceiptEnvelope {
+  schema: 'mykrobial.harness.component-receipt-envelope.v1'
+  receipt_id: string
+  receipt_class: 'verification' | 'application' | 'rollback' | 'replay'
+  receipt_sha256: string
+  subject_sha256: string
+  issuer_id: string
+  issued_at: string
+  expires_at: string
+  nonce_sha256: string
+  replay_state: 'consumed'
+  issuer_authenticity_verified: false
+  non_claims: string[]
+  envelope_sha256: string
+}
+
+export interface BuildComponentReceiptEnvelopeInput {
+  receipt_id: string
+  receipt_class: ComponentReceiptEnvelope['receipt_class']
+  receipt_sha256: string
+  subject_sha256: string
+  issuer_id: string
+  issued_at: string
+  expires_at: string
+  nonce_sha256: string
 }
 
 export interface BuildComponentOperationResultInput {
@@ -217,9 +246,11 @@ export interface BuildComponentOperationResultInput {
   decision: ExternalComponentDecision
   plan: ComponentReconfigurationPlan
   post_loadout_manifest_sha256: string
-  observed_components: ComponentGenerationViewInput[]
-  verification_receipt_sha256: string
-  operation_receipt_sha256: string
+  before_components: ComponentGenerationViewInput[]
+  after_components: ComponentGenerationViewInput[]
+  verification_receipt: Omit<BuildComponentReceiptEnvelopeInput, 'subject_sha256'>
+  operation_receipt: Omit<BuildComponentReceiptEnvelopeInput, 'subject_sha256'>
+  before_observed_at: string
   observed_at: string
 }
 
@@ -353,6 +384,12 @@ function componentRow(value: unknown): ComponentGenerationViewInput {
   return row
 }
 
+const RECEIPT_ENVELOPE_NON_CLAIMS = [
+  'not_issuer_authentication',
+  'not_action_authority',
+  'not_trace_append',
+].sort()
+
 const OPERATION_RESULT_NON_CLAIMS = [
   'not_receipt_issuer_authentication',
   'not_component_application_authority',
@@ -360,7 +397,97 @@ const OPERATION_RESULT_NON_CLAIMS = [
   'not_deployment_authority',
 ].sort()
 
-function operationResultBasis(value: ComponentOperationResult): unknown {
+/** Revalidate one classed, subject-bound, expiry- and replay-bound receipt envelope. */
+export function validateComponentReceiptEnvelope(
+  value: ComponentReceiptEnvelope,
+  expectedClass?: ComponentReceiptEnvelope['receipt_class'],
+  expectedSubjectSha256?: string,
+): ComponentReceiptEnvelope {
+  exact(value, [
+    'schema', 'receipt_id', 'receipt_class', 'receipt_sha256', 'subject_sha256',
+    'issuer_id', 'issued_at', 'expires_at', 'nonce_sha256', 'replay_state',
+    'issuer_authenticity_verified', 'non_claims', 'envelope_sha256',
+  ], 'component_receipt_envelope_closure_invalid')
+  const row = structuredClone(value)
+  row.receipt_id = identifier(row.receipt_id, 'component_receipt_envelope_identity_invalid')
+  row.receipt_class = oneOf(
+    row.receipt_class, ['verification', 'application', 'rollback', 'replay'] as const,
+    'component_receipt_envelope_class_invalid',
+  )
+  row.receipt_sha256 = digest(row.receipt_sha256, 'component_receipt_envelope_digest_invalid')
+  row.subject_sha256 = digest(row.subject_sha256, 'component_receipt_envelope_subject_invalid')
+  row.issuer_id = identifier(row.issuer_id, 'component_receipt_envelope_issuer_invalid')
+  row.issued_at = timestamp(row.issued_at, 'component_receipt_envelope_timestamp_invalid')
+  row.expires_at = timestamp(row.expires_at, 'component_receipt_envelope_timestamp_invalid')
+  row.nonce_sha256 = digest(row.nonce_sha256, 'component_receipt_envelope_nonce_invalid')
+  row.non_claims = nonClaims(row.non_claims)
+  const { envelope_sha256: _envelopeSha256, ...body } = row
+  if (row.schema !== 'mykrobial.harness.component-receipt-envelope.v1'
+    || (expectedClass !== undefined && row.receipt_class !== expectedClass)
+    || (expectedSubjectSha256 !== undefined && row.subject_sha256 !== expectedSubjectSha256)
+    || timestampOrdinal(row.expires_at) <= timestampOrdinal(row.issued_at)
+    || row.replay_state !== 'consumed' || row.issuer_authenticity_verified !== false
+    || row.non_claims.join('\u0000') !== RECEIPT_ENVELOPE_NON_CLAIMS.join('\u0000')
+    || row.envelope_sha256 !== sha(body)) {
+    throw new Error('typed_blocker:component_receipt_envelope_invalid')
+  }
+  return row
+}
+
+/** Build a content-addressed receipt envelope without claiming issuer authenticity. */
+export function buildComponentReceiptEnvelope(
+  input: BuildComponentReceiptEnvelopeInput,
+): ComponentReceiptEnvelope {
+  const body = {
+    schema: 'mykrobial.harness.component-receipt-envelope.v1' as const,
+    receipt_id: identifier(input.receipt_id, 'component_receipt_envelope_identity_invalid'),
+    receipt_class: oneOf(
+      input.receipt_class, ['verification', 'application', 'rollback', 'replay'] as const,
+      'component_receipt_envelope_class_invalid',
+    ),
+    receipt_sha256: digest(input.receipt_sha256, 'component_receipt_envelope_digest_invalid'),
+    subject_sha256: digest(input.subject_sha256, 'component_receipt_envelope_subject_invalid'),
+    issuer_id: identifier(input.issuer_id, 'component_receipt_envelope_issuer_invalid'),
+    issued_at: timestamp(input.issued_at, 'component_receipt_envelope_timestamp_invalid'),
+    expires_at: timestamp(input.expires_at, 'component_receipt_envelope_timestamp_invalid'),
+    nonce_sha256: digest(input.nonce_sha256, 'component_receipt_envelope_nonce_invalid'),
+    replay_state: 'consumed' as const,
+    issuer_authenticity_verified: false as const,
+    non_claims: [...RECEIPT_ENVELOPE_NON_CLAIMS],
+  }
+  return validateComponentReceiptEnvelope({ ...body, envelope_sha256: sha(body) })
+}
+
+function normalizeOperationComponents(
+  value: unknown,
+  blocker: string,
+): ComponentGenerationViewInput[] {
+  if (!Array.isArray(value) || value.length === 0 || value.length > 32) {
+    throw new Error(`typed_blocker:${blocker}`)
+  }
+  const rows = value.map(componentRow).sort((left, right) =>
+    left.component_id.localeCompare(right.component_id))
+  if (new Set(rows.map(row => row.component_id)).size !== rows.length) {
+    throw new Error(`typed_blocker:${blocker}`)
+  }
+  const byId = new Map(rows.map(row => [row.component_id, row]))
+  for (const row of rows) {
+    if (row.parent_component_id === null) continue
+    const parent = byId.get(row.parent_component_id)
+    if (parent === undefined || parent.logical_identity !== row.logical_identity
+      || parent.surface_id !== row.surface_id || parent.generation >= row.generation
+      || timestampOrdinal(parent.transaction_time) > timestampOrdinal(row.transaction_time)) {
+      throw new Error(`typed_blocker:${blocker}`)
+    }
+  }
+  const activeLogical = rows.filter(row => row.active).map(row => row.logical_identity)
+  if (new Set(activeLogical).size !== activeLogical.length) {
+    throw new Error(`typed_blocker:${blocker}`)
+  }
+  return rows
+}
+
+function operationObservation(value: ComponentOperationResult): unknown {
   return {
     operation: value.operation,
     plan_id: value.plan_id,
@@ -371,14 +498,49 @@ function operationResultBasis(value: ComponentOperationResult): unknown {
     decision_external_input_sha256: value.decision_external_input_sha256,
     pre_loadout_manifest_sha256: value.pre_loadout_manifest_sha256,
     post_loadout_manifest_sha256: value.post_loadout_manifest_sha256,
-    observed_components: value.observed_components,
+    before_components: value.before_components,
+    after_components: value.after_components,
     activation_changed: value.activation_changed,
-    receipt_class: value.receipt_class,
+    before_observed_at: value.before_observed_at,
     observed_at: value.observed_at,
   }
 }
 
-/** Revalidate an immutable operation-result readback against its accepted artifact chain. */
+function componentImmutableIdentity(value: ComponentGenerationViewInput): unknown {
+  return {
+    component_id: value.component_id,
+    logical_identity: value.logical_identity,
+    surface_id: value.surface_id,
+    generation: value.generation,
+    source_sha256: value.source_sha256,
+    configuration_sha256: value.configuration_sha256,
+    dependency_ids: value.dependency_ids,
+    branch_id: value.branch_id,
+    parent_component_id: value.parent_component_id,
+    experiment_id: value.experiment_id,
+    rollback_available: value.rollback_available,
+  }
+}
+
+function operationResultBasis(value: ComponentOperationResult): unknown {
+  const {
+    schema: _schema, result_id: _resultId, basis_sha256: _basisSha256,
+    result_sha256: _resultSha256, ...basis
+  } = value
+  return basis
+}
+
+function componentsCausalAt(
+  components: ComponentGenerationViewInput[],
+  observedAt: string,
+): boolean {
+  const ordinal = timestampOrdinal(observedAt)
+  return components.every(component => timestampOrdinal(component.transaction_time) <= ordinal
+    && (component.valid_from === null || timestampOrdinal(component.valid_from) <= ordinal)
+    && (component.valid_until === null || timestampOrdinal(component.valid_until) <= ordinal))
+}
+
+/** Revalidate an exhaustive before/after operation result against its accepted chain. */
 export function validateComponentOperationResult(
   value: ComponentOperationResult,
   capsuleInput: ComponentExperimentCapsule,
@@ -389,9 +551,10 @@ export function validateComponentOperationResult(
     'schema', 'result_id', 'operation', 'plan_id', 'plan_sha256', 'capsule_id',
     'capsule_sha256', 'decision_id', 'decision_external_input_sha256',
     'pre_loadout_manifest_sha256', 'post_loadout_manifest_sha256',
-    'observed_components', 'activation_changed', 'receipt_class',
-    'verification_receipt_sha256', 'operation_receipt_sha256', 'observed_at',
-    'basis_sha256', 'issuer_authenticity_verified', 'non_claims', 'result_sha256',
+    'before_components', 'after_components', 'activation_changed',
+    'verification_receipt', 'operation_receipt', 'before_observed_at', 'observed_at',
+    'observation_sha256', 'basis_sha256', 'issuer_authenticity_verified',
+    'non_claims', 'result_sha256',
   ], 'component_operation_result_closure_invalid')
   const capsule = validateComponentExperimentCapsule(capsuleInput)
   const decision = validateExternalComponentDecision(decisionInput, capsule)
@@ -413,72 +576,85 @@ export function validateComponentOperationResult(
   row.post_loadout_manifest_sha256 = digest(
     row.post_loadout_manifest_sha256, 'component_operation_result_loadout_invalid',
   )
-  if (!Array.isArray(row.observed_components) || row.observed_components.length === 0
-    || row.observed_components.length > 32 || typeof row.activation_changed !== 'boolean') {
+  row.before_components = normalizeOperationComponents(
+    row.before_components, 'component_operation_result_before_components_invalid',
+  )
+  row.after_components = normalizeOperationComponents(
+    row.after_components, 'component_operation_result_after_components_invalid',
+  )
+  if (row.before_components.map(component => component.component_id).join('\u0000')
+    !== row.after_components.map(component => component.component_id).join('\u0000')
+    || row.before_components.some((component, index) =>
+      JSON.stringify(canonical(componentImmutableIdentity(component)))
+      !== JSON.stringify(canonical(componentImmutableIdentity(row.after_components[index]!))))
+    || typeof row.activation_changed !== 'boolean') {
     throw new Error('typed_blocker:component_operation_result_components_invalid')
   }
-  row.observed_components = row.observed_components.map(componentRow).sort(
-    (left, right) => left.component_id.localeCompare(right.component_id),
-  )
-  if (new Set(row.observed_components.map(component => component.component_id)).size
-    !== row.observed_components.length) {
-    throw new Error('typed_blocker:component_operation_result_components_invalid')
-  }
-  row.receipt_class = oneOf(
-    row.receipt_class, ['application', 'rollback', 'replay'] as const,
-    'component_operation_result_receipt_class_invalid',
-  )
-  row.verification_receipt_sha256 = digest(
-    row.verification_receipt_sha256, 'component_operation_result_receipt_invalid',
-  )
-  row.operation_receipt_sha256 = digest(
-    row.operation_receipt_sha256, 'component_operation_result_receipt_invalid',
+  row.before_observed_at = timestamp(
+    row.before_observed_at, 'component_operation_result_timestamp_invalid',
   )
   row.observed_at = timestamp(row.observed_at, 'component_operation_result_timestamp_invalid')
+  row.observation_sha256 = digest(
+    row.observation_sha256, 'component_operation_result_observation_invalid',
+  )
   row.basis_sha256 = digest(row.basis_sha256, 'component_operation_result_basis_invalid')
   row.result_sha256 = digest(row.result_sha256, 'component_operation_result_digest_invalid')
   row.non_claims = nonClaims(row.non_claims)
-  const targetRows = capsule.target_component_ids.map(id =>
-    row.observed_components.find(component => component.component_id === id))
-  if (targetRows.some(component => component === undefined)) {
+  const expectedObservation = sha(operationObservation(row))
+  const expectedOperationClass = (
+    row.operation === 'swap' ? 'application' : row.operation
+  ) as ComponentReceiptEnvelope['receipt_class']
+  row.verification_receipt = validateComponentReceiptEnvelope(
+    row.verification_receipt, 'verification', plan.plan_sha256,
+  )
+  row.operation_receipt = validateComponentReceiptEnvelope(
+    row.operation_receipt, expectedOperationClass, expectedObservation,
+  )
+  const beforeById = new Map(row.before_components.map(component => [component.component_id, component]))
+  const afterById = new Map(row.after_components.map(component => [component.component_id, component]))
+  const targets = capsule.target_component_ids.map(id => ({
+    before: beforeById.get(id), after: afterById.get(id),
+  }))
+  if (targets.some(target => target.before === undefined || target.after === undefined)) {
     throw new Error('typed_blocker:component_operation_result_target_readback_missing')
   }
-  if (row.operation === 'swap') {
-    for (const target of targetRows as ComponentGenerationViewInput[]) {
-      if (!target.active || target.lifecycle_state !== 'active' || target.valid_until !== null) {
-        throw new Error('typed_blocker:component_operation_result_swap_postcondition_invalid')
-      }
-      if (target.parent_component_id !== null) {
-        const parent = row.observed_components.find(
-          component => component.component_id === target.parent_component_id,
-        )
-        if (parent === undefined || parent.active
-          || !['inactive', 'disposed'].includes(parent.lifecycle_state)
-          || parent.logical_identity !== target.logical_identity
-          || parent.surface_id !== target.surface_id || parent.generation >= target.generation
-          || parent.valid_until === null
-          || timestampOrdinal(parent.valid_until) > timestampOrdinal(row.observed_at)) {
-          throw new Error('typed_blocker:component_operation_result_swap_postcondition_invalid')
-        }
-      }
+  for (const target of targets as Array<{
+    before: ComponentGenerationViewInput; after: ComponentGenerationViewInput
+  }>) {
+    if (row.operation === 'replay') continue
+    if (target.after.parent_component_id === null) {
+      throw new Error('typed_blocker:component_operation_result_parentless_swap_or_rollback_invalid')
     }
-  }
-  if (row.operation === 'rollback') {
-    for (const candidate of targetRows as ComponentGenerationViewInput[]) {
-      const parent = candidate.parent_component_id === null ? undefined
-        : row.observed_components.find(component => component.component_id === candidate.parent_component_id)
-      if (candidate.active || !['inactive', 'disposed'].includes(candidate.lifecycle_state)
-        || parent === undefined || !parent.active || parent.lifecycle_state !== 'active'
-        || parent.valid_until !== null || parent.logical_identity !== candidate.logical_identity
-        || parent.surface_id !== candidate.surface_id || parent.generation >= candidate.generation) {
-        throw new Error('typed_blocker:component_operation_result_rollback_postcondition_invalid')
-      }
+    const parentBefore = beforeById.get(target.after.parent_component_id)
+    const parentAfter = afterById.get(target.after.parent_component_id)
+    if (parentBefore === undefined || parentAfter === undefined
+      || parentAfter.logical_identity !== target.after.logical_identity
+      || parentAfter.surface_id !== target.after.surface_id
+      || parentAfter.generation >= target.after.generation) {
+      throw new Error('typed_blocker:component_operation_result_lineage_invalid')
     }
+    if (row.operation === 'swap' && (
+      target.before.active || !['registered', 'inactive'].includes(target.before.lifecycle_state)
+      || !parentBefore.active || parentBefore.lifecycle_state !== 'active'
+      || !target.after.active || target.after.lifecycle_state !== 'active'
+      || target.after.valid_until !== null || parentAfter.active
+      || !['inactive', 'disposed'].includes(parentAfter.lifecycle_state)
+      || parentAfter.valid_until === null
+    )) throw new Error('typed_blocker:component_operation_result_swap_postcondition_invalid')
+    if (row.operation === 'rollback' && (
+      !target.before.active || target.before.lifecycle_state !== 'active'
+      || parentBefore.active || !['inactive', 'disposed'].includes(parentBefore.lifecycle_state)
+      || target.after.active || !['inactive', 'disposed'].includes(target.after.lifecycle_state)
+      || !parentAfter.active || parentAfter.lifecycle_state !== 'active'
+      || parentAfter.valid_until !== null
+    )) throw new Error('typed_blocker:component_operation_result_rollback_postcondition_invalid')
   }
-  const expectedReceiptClass = row.operation === 'swap' ? 'application' : row.operation
+  if (row.operation === 'replay'
+    && JSON.stringify(canonical(row.before_components)) !== JSON.stringify(canonical(row.after_components))) {
+    throw new Error('typed_blocker:component_operation_result_replay_changed_state')
+  }
   const expectedBasis = sha(operationResultBasis(row))
   const { result_sha256: _resultSha256, ...resultBody } = row
-  const expectedResultSha256 = sha(resultBody)
   if (row.schema !== 'mykrobial.harness.component-operation-result.v1'
     || row.operation !== plan.operation || row.plan_id !== plan.plan_id
     || row.plan_sha256 !== plan.plan_sha256 || row.capsule_id !== capsule.capsule_id
@@ -486,32 +662,44 @@ export function validateComponentOperationResult(
     || row.decision_id !== decision.decision_id
     || row.decision_external_input_sha256 !== decision.external_input_sha256
     || row.pre_loadout_manifest_sha256 !== plan.current_loadout_manifest_sha256
-    || row.receipt_class !== expectedReceiptClass
     || row.activation_changed !== (row.operation !== 'replay')
     || (row.operation === 'swap'
       ? row.post_loadout_manifest_sha256 === row.pre_loadout_manifest_sha256
       : row.post_loadout_manifest_sha256 !== row.pre_loadout_manifest_sha256)
-    || timestampOrdinal(row.observed_at) < timestampOrdinal(plan.requested_at)
+    || timestampOrdinal(row.before_observed_at) < timestampOrdinal(plan.requested_at)
+    || timestampOrdinal(row.observed_at) < timestampOrdinal(row.before_observed_at)
+    || !componentsCausalAt(row.before_components, row.before_observed_at)
+    || !componentsCausalAt(row.after_components, row.observed_at)
+    || timestampOrdinal(row.verification_receipt.issued_at)
+      < timestampOrdinal(plan.requested_at)
+    || timestampOrdinal(row.verification_receipt.issued_at)
+      > timestampOrdinal(row.before_observed_at)
+    || timestampOrdinal(row.operation_receipt.issued_at) < timestampOrdinal(row.observed_at)
+    || row.observation_sha256 !== expectedObservation
     || row.basis_sha256 !== expectedBasis
     || row.result_id !== `component-result-${expectedBasis.slice(0, 24)}`
     || row.issuer_authenticity_verified !== false
     || row.non_claims.join('\u0000') !== OPERATION_RESULT_NON_CLAIMS.join('\u0000')
-    || row.result_sha256 !== expectedResultSha256) {
+    || row.result_sha256 !== sha(resultBody)) {
     throw new Error('typed_blocker:component_operation_result_invalid')
   }
   return row
 }
 
-/** Build a content-addressed, issuer-unverified component operation readback. */
+/** Build an exhaustive, content-addressed, issuer-unverified operation readback. */
 export function buildComponentOperationResult(
   input: BuildComponentOperationResultInput,
 ): ComponentOperationResult {
   const capsule = validateComponentExperimentCapsule(input.capsule)
   const decision = validateExternalComponentDecision(input.decision, capsule)
   const plan = validateComponentReconfigurationPlan(input.plan, capsule, decision)
-  const core = {
-    schema: 'mykrobial.harness.component-operation-result.v1' as const,
-    result_id: '',
+  const beforeComponents = normalizeOperationComponents(
+    input.before_components, 'component_operation_result_before_components_invalid',
+  )
+  const afterComponents = normalizeOperationComponents(
+    input.after_components, 'component_operation_result_after_components_invalid',
+  )
+  const observationBody = {
     operation: plan.operation,
     plan_id: plan.plan_id,
     plan_sha256: plan.plan_sha256,
@@ -523,29 +711,38 @@ export function buildComponentOperationResult(
     post_loadout_manifest_sha256: digest(
       input.post_loadout_manifest_sha256, 'component_operation_result_loadout_invalid',
     ),
-    observed_components: structuredClone(input.observed_components),
+    before_components: beforeComponents,
+    after_components: afterComponents,
     activation_changed: plan.operation !== 'replay',
-    receipt_class: (plan.operation === 'swap' ? 'application' : plan.operation) as ComponentOperationResult['receipt_class'],
-    verification_receipt_sha256: digest(
-      input.verification_receipt_sha256, 'component_operation_result_receipt_invalid',
-    ),
-    operation_receipt_sha256: digest(
-      input.operation_receipt_sha256, 'component_operation_result_receipt_invalid',
+    before_observed_at: timestamp(
+      input.before_observed_at, 'component_operation_result_timestamp_invalid',
     ),
     observed_at: timestamp(input.observed_at, 'component_operation_result_timestamp_invalid'),
+  }
+  const observationSha256 = sha(observationBody)
+  const verificationReceipt = buildComponentReceiptEnvelope({
+    ...input.verification_receipt,
+    subject_sha256: plan.plan_sha256,
+  })
+  const operationReceipt = buildComponentReceiptEnvelope({
+    ...input.operation_receipt,
+    subject_sha256: observationSha256,
+  })
+  const core = {
+    schema: 'mykrobial.harness.component-operation-result.v1' as const,
+    result_id: '',
+    ...observationBody,
+    verification_receipt: verificationReceipt,
+    operation_receipt: operationReceipt,
+    observation_sha256: observationSha256,
     basis_sha256: '',
     issuer_authenticity_verified: false as const,
     non_claims: [...OPERATION_RESULT_NON_CLAIMS],
   }
-  const normalizedComponents = core.observed_components.map(componentRow).sort(
-    (left, right) => left.component_id.localeCompare(right.component_id),
-  )
-  const basisInput = { ...core, observed_components: normalizedComponents } as ComponentOperationResult
-  const basisSha256 = sha(operationResultBasis(basisInput))
+  const basisSha256 = sha(operationResultBasis(core as ComponentOperationResult))
   const body = {
     ...core,
     result_id: `component-result-${basisSha256.slice(0, 24)}`,
-    observed_components: normalizedComponents,
     basis_sha256: basisSha256,
   }
   return validateComponentOperationResult(
@@ -810,8 +1007,8 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
       if (row.plan.post_loadout_manifest_sha256
           !== row.plan.operation_result.post_loadout_manifest_sha256
         || row.plan.verification_receipt_sha256
-          !== row.plan.operation_result.verification_receipt_sha256
-        || operationReceipt !== row.plan.operation_result.operation_receipt_sha256) {
+          !== row.plan.operation_result.verification_receipt.receipt_sha256
+        || operationReceipt !== row.plan.operation_result.operation_receipt.receipt_sha256) {
         throw new Error('typed_blocker:component_view_operation_result_receipt_mismatch')
       }
     }
@@ -993,11 +1190,8 @@ export function buildOmniGentComponentEvolutionView(
       }
       const result = experiment.plan.operation_result
       if (result === null || timestampOrdinal(result.observed_at) > timestampOrdinal(input.generated_at)
-        || result.observed_components.some(observed => {
-          const projected = componentById.get(observed.component_id)
-          return projected === undefined
-            || JSON.stringify(canonical(projected)) !== JSON.stringify(canonical(observed))
-        })) {
+        || JSON.stringify(canonical(result.after_components))
+          !== JSON.stringify(canonical(input.components))) {
         throw new Error('typed_blocker:component_view_post_operation_readback_invalid')
       }
     } else if (taskLoadout.loadout_manifest_sha256 !== input.active_loadout.manifest_sha256) {

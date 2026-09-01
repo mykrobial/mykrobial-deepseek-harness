@@ -17,6 +17,9 @@ operation-specific replay or rollback evidence, compatible disposition, and
 post-operation active-loadout readback. Applied swaps additionally require a
 content-addressed operation result showing the exact target generation active
 and its replaced parent inactive; rollback requires the inverse, while replay
-is explicitly non-activating. It projects backend facts only;
+is explicitly non-activating. Results contain exhaustive before/after component
+snapshots and classed, subject-bound, expiring, replay-consumed receipt
+envelopes; the complete receipt-distinct basis determines the result ID. It
+projects backend facts only;
 it cannot run an optimizer, apply a component, append Trace, train, promote, or
 deploy.

@@ -10,6 +10,7 @@ import {
 import {
   buildFactoryHandoff,
   buildComponentOperationResult,
+  buildComponentReceiptEnvelope,
   buildOmniGentComponentEvolutionView,
   buildOmniGentHarnessView,
   validateOmniGentComponentEvolutionView,
@@ -19,6 +20,25 @@ import {
 } from '../src/index.ts'
 
 const digest = (letter: string): string => letter.repeat(64)
+
+function receiptInput(
+  receiptClass: 'verification' | 'application' | 'rollback' | 'replay',
+  receiptSha256: string,
+  receiptId: string,
+  issuedAt: string,
+): any {
+  return {
+    receipt_id: receiptId,
+    receipt_class: receiptClass,
+    receipt_sha256: receiptSha256,
+    issuer_id: 'backend-evidence-issuer',
+    issued_at: issuedAt,
+    expires_at: '2026-09-02T00:00:00Z',
+    nonce_sha256: digest({
+      verification: 'a', application: 'b', rollback: 'c', replay: 'd',
+    }[receiptClass]),
+  }
+}
 
 const componentSeamFixture: any = JSON.parse(readFileSync(
   new URL('../../component-rsi-seam/tests/fixtures/single-prompt-experiment.v1.json', import.meta.url),
@@ -877,6 +897,7 @@ function withComponentRuntimeEvidence(
     authority_receipt_sha256: digest('1'),
     training_gate_receipt_sha256: null,
   }
+  const beforeComponents = structuredClone(input.components)
   const observedAt = '2026-09-01T00:02:00Z'
   const parent = input.components.find(component => component.component_id === 'prompt-v1')!
   parent.active = false
@@ -892,9 +913,15 @@ function withComponentRuntimeEvidence(
     decision: experiment.decision.artifact!,
     plan: experiment.plan.artifact!,
     post_loadout_manifest_sha256: digest('b'),
-    observed_components: [parent, candidate],
-    verification_receipt_sha256: digest('6'),
-    operation_receipt_sha256: digest('2'),
+    before_components: beforeComponents,
+    after_components: input.components,
+    verification_receipt: receiptInput(
+      'verification', digest('6'), 'receipt-plan-verification', '2026-09-01T00:01:30Z',
+    ),
+    operation_receipt: receiptInput(
+      'application', digest('2'), 'receipt-component-application', observedAt,
+    ),
+    before_observed_at: '2026-09-01T00:01:30Z',
     observed_at: observedAt,
   })
   experiment.plan = {
@@ -976,6 +1003,17 @@ test('component evolution view closes root and every nested object', () => {
   )
   runtimeOutput.experiments[0].plan.operation_result.extra = true
   assert.notDeepEqual(schemaErrors(runtimeOutput, schema, schema), [])
+  const receiptInputExtra: any = withComponentRuntimeEvidence(componentEvolutionView())
+  receiptInputExtra.experiments[0].plan.operation_result.verification_receipt.extra = true
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(receiptInputExtra),
+    /component_receipt_envelope_closure_invalid/,
+  )
+  const receiptOutputExtra: any = buildOmniGentComponentEvolutionView(
+    withComponentRuntimeEvidence(componentEvolutionView()),
+  )
+  receiptOutputExtra.experiments[0].plan.operation_result.operation_receipt.extra = true
+  assert.notDeepEqual(schemaErrors(receiptOutputExtra, schema, schema), [])
 })
 
 test('component identity, active generation, and timeline references fail closed', () => {
@@ -1199,7 +1237,7 @@ test('runtime proof requires structurally admitted operation artifacts and exact
     = replayExperiment.capsule_artifact.task_binding.loadout_manifest_sha256
   assert.throws(
     () => buildOmniGentComponentEvolutionView(replayCandidate),
-    /typed_blocker:(component_view_plan_execution_admission_invalid|component_operation_result_invalid)/,
+    /typed_blocker:(component_view_plan_execution_admission_invalid|component_operation_result_invalid|component_receipt_envelope_invalid)/,
   )
 
   const dispositionCandidate = withComponentRuntimeEvidence(componentEvolutionView())
@@ -1244,7 +1282,7 @@ test('runtime proof requires structurally admitted operation artifacts and exact
   }
   assert.throws(
     () => buildOmniGentComponentEvolutionView(dispositionCandidate),
-    /typed_blocker:(component_view_plan_execution_admission_invalid|component_operation_result_invalid)/,
+    /typed_blocker:(component_view_plan_execution_admission_invalid|component_operation_result_invalid|component_receipt_envelope_invalid)/,
   )
 
   const wrongLoadout = withComponentRuntimeEvidence(componentEvolutionView())
@@ -1309,14 +1347,48 @@ test('operation results preserve non-activating replay and parent-restoring roll
     decision: experiment.decision.artifact!,
     plan: replayPlan,
     post_loadout_manifest_sha256: replayPlan.current_loadout_manifest_sha256,
-    observed_components: source.components,
-    verification_receipt_sha256: digest('6'),
-    operation_receipt_sha256: digest('e'),
+    before_components: source.components,
+    after_components: source.components,
+    verification_receipt: receiptInput(
+      'verification', digest('6'), 'receipt-replay-verification', '2026-09-01T00:01:30Z',
+    ),
+    operation_receipt: receiptInput(
+      'replay', digest('e'), 'receipt-component-replay', '2026-09-01T00:02:00Z',
+    ),
+    before_observed_at: '2026-09-01T00:01:30Z',
     observed_at: '2026-09-01T00:02:00Z',
   })
-  assert.equal(replayResult.receipt_class, 'replay')
+  assert.equal(replayResult.operation_receipt.receipt_class, 'replay')
   assert.equal(replayResult.activation_changed, false)
   assert.equal(replayResult.pre_loadout_manifest_sha256, replayResult.post_loadout_manifest_sha256)
+  const changedReplayAfter = structuredClone(source.components)
+  const changedReplayParent = changedReplayAfter.find(component => component.component_id === 'prompt-v1')!
+  changedReplayParent.active = false
+  changedReplayParent.lifecycle_state = 'inactive'
+  changedReplayParent.valid_until = '2026-09-01T00:02:00Z'
+  const changedReplayCandidate = changedReplayAfter.find(component => component.component_id === 'prompt-v2')!
+  changedReplayCandidate.active = true
+  changedReplayCandidate.lifecycle_state = 'active'
+  changedReplayCandidate.valid_from = '2026-09-01T00:02:00Z'
+  assert.throws(
+    () => buildComponentOperationResult({
+      capsule: experiment.capsule_artifact,
+      decision: experiment.decision.artifact!,
+      plan: replayPlan,
+      post_loadout_manifest_sha256: replayPlan.current_loadout_manifest_sha256,
+      before_components: source.components,
+      after_components: changedReplayAfter,
+      verification_receipt: receiptInput(
+        'verification', digest('6'), 'receipt-replay-change-verification', '2026-09-01T00:01:30Z',
+      ),
+      operation_receipt: receiptInput(
+        'replay', digest('e'), 'receipt-replay-change-operation', '2026-09-01T00:02:00Z',
+      ),
+      before_observed_at: '2026-09-01T00:01:30Z',
+      observed_at: '2026-09-01T00:02:00Z',
+    }),
+    /typed_blocker:component_operation_result_replay_changed_state/,
+  )
 
   const rollbackInput = structuredClone(componentSeamFixture.decision_input)
   rollbackInput.decision_id = 'decision-rollback-result'
@@ -1335,19 +1407,135 @@ test('operation results preserve non-activating replay and parent-restoring roll
   const rollbackPlan = prepareComponentReconfigurationPlan({
     ...rollbackFields, capsule: experiment.capsule_artifact, decision: rollbackDecision,
   })
+  const rollbackBefore = structuredClone(source.components)
+  const rollbackBeforeParent = rollbackBefore.find(component => component.component_id === 'prompt-v1')!
+  rollbackBeforeParent.active = false
+  rollbackBeforeParent.lifecycle_state = 'inactive'
+  rollbackBeforeParent.valid_until = '2026-09-01T00:01:00Z'
+  const rollbackBeforeCandidate = rollbackBefore.find(component => component.component_id === 'prompt-v2')!
+  rollbackBeforeCandidate.active = true
+  rollbackBeforeCandidate.lifecycle_state = 'active'
+  rollbackBeforeCandidate.valid_from = '2026-09-01T00:01:00Z'
   const rollbackResult = buildComponentOperationResult({
     capsule: experiment.capsule_artifact,
     decision: rollbackDecision,
     plan: rollbackPlan,
     post_loadout_manifest_sha256: rollbackPlan.current_loadout_manifest_sha256,
-    observed_components: source.components,
-    verification_receipt_sha256: digest('6'),
-    operation_receipt_sha256: digest('f'),
+    before_components: rollbackBefore,
+    after_components: source.components,
+    verification_receipt: receiptInput(
+      'verification', digest('6'), 'receipt-rollback-verification', '2026-09-01T00:01:30Z',
+    ),
+    operation_receipt: receiptInput(
+      'rollback', digest('f'), 'receipt-component-rollback', '2026-09-01T00:02:00Z',
+    ),
+    before_observed_at: '2026-09-01T00:01:30Z',
     observed_at: '2026-09-01T00:02:00Z',
   })
-  assert.equal(rollbackResult.receipt_class, 'rollback')
+  assert.equal(rollbackResult.operation_receipt.receipt_class, 'rollback')
   assert.equal(rollbackResult.activation_changed, true)
   assert.equal(rollbackResult.pre_loadout_manifest_sha256, rollbackResult.post_loadout_manifest_sha256)
+})
+
+test('operation-result basis is receipt-distinct exhaustive causal and lineage-complete', () => {
+  const runtime = withComponentRuntimeEvidence(componentEvolutionView())
+  const experiment = runtime.experiments[0]!
+  const first = experiment.plan.operation_result!
+  const receiptDistinct = buildComponentOperationResult({
+    capsule: experiment.capsule_artifact,
+    decision: experiment.decision.artifact!,
+    plan: experiment.plan.artifact!,
+    post_loadout_manifest_sha256: first.post_loadout_manifest_sha256,
+    before_components: first.before_components,
+    after_components: first.after_components,
+    verification_receipt: receiptInput(
+      'verification', digest('6'), 'receipt-plan-verification', '2026-09-01T00:01:30Z',
+    ),
+    operation_receipt: receiptInput(
+      'application', digest('3'), 'receipt-component-application-two', '2026-09-01T00:02:00Z',
+    ),
+    before_observed_at: first.before_observed_at,
+    observed_at: first.observed_at,
+  })
+  assert.notEqual(receiptDistinct.result_id, first.result_id)
+  assert.notEqual(receiptDistinct.basis_sha256, first.basis_sha256)
+  assert.throws(
+    () => buildComponentReceiptEnvelope({
+      receipt_id: 'expired-receipt', receipt_class: 'verification',
+      receipt_sha256: digest('6'), subject_sha256: experiment.plan.artifact!.plan_sha256,
+      issuer_id: 'backend-evidence-issuer', issued_at: '2026-09-02T00:00:00Z',
+      expires_at: '2026-09-01T00:00:00Z', nonce_sha256: digest('a'),
+    }),
+    /typed_blocker:component_receipt_envelope_invalid/,
+  )
+  const staleReplayState = withComponentRuntimeEvidence(componentEvolutionView()) as any
+  staleReplayState.experiments[0].plan.operation_result.operation_receipt.replay_state = 'reserved'
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(staleReplayState),
+    /typed_blocker:component_receipt_envelope_invalid/,
+  )
+
+  const parentlessBefore = structuredClone(first.before_components)
+  parentlessBefore.find(component => component.component_id === 'prompt-v2')!.parent_component_id = null
+  const parentlessAfter = structuredClone(first.after_components)
+  parentlessAfter.find(component => component.component_id === 'prompt-v2')!.parent_component_id = null
+  assert.throws(
+    () => buildComponentOperationResult({
+      capsule: experiment.capsule_artifact,
+      decision: experiment.decision.artifact!,
+      plan: experiment.plan.artifact!,
+      post_loadout_manifest_sha256: first.post_loadout_manifest_sha256,
+      before_components: parentlessBefore,
+      after_components: parentlessAfter,
+      verification_receipt: receiptInput(
+        'verification', digest('6'), 'receipt-parentless-verification', '2026-09-01T00:01:30Z',
+      ),
+      operation_receipt: receiptInput(
+        'application', digest('2'), 'receipt-parentless-application', '2026-09-01T00:02:00Z',
+      ),
+      before_observed_at: first.before_observed_at,
+      observed_at: first.observed_at,
+    }),
+    /typed_blocker:(component_operation_result_parentless_swap_or_rollback_invalid|component_operation_result_components_invalid)/,
+  )
+
+  const futureAfter = structuredClone(first.after_components)
+  const futureTarget = futureAfter.find(component => component.component_id === 'prompt-v2')!
+  futureTarget.transaction_time = '9999-12-31T23:59:59Z'
+  futureTarget.valid_from = '9999-12-31T23:59:59Z'
+  assert.throws(
+    () => buildComponentOperationResult({
+      capsule: experiment.capsule_artifact,
+      decision: experiment.decision.artifact!,
+      plan: experiment.plan.artifact!,
+      post_loadout_manifest_sha256: first.post_loadout_manifest_sha256,
+      before_components: first.before_components,
+      after_components: futureAfter,
+      verification_receipt: receiptInput(
+        'verification', digest('6'), 'receipt-future-verification', '2026-09-01T00:01:30Z',
+      ),
+      operation_receipt: receiptInput(
+        'application', digest('2'), 'receipt-future-application', '2026-09-01T00:02:00Z',
+      ),
+      before_observed_at: first.before_observed_at,
+      observed_at: first.observed_at,
+    }),
+    /typed_blocker:component_operation_result_invalid/,
+  )
+
+  const rootSuperset = withComponentRuntimeEvidence(componentEvolutionView())
+  rootSuperset.components.push({
+    component_id: 'router-v1', logical_identity: 'router', surface_id: 'router',
+    generation: 1, lifecycle_state: 'inactive', source_sha256: digest('a'),
+    configuration_sha256: digest('b'), dependency_ids: [], branch_id: 'branch-main',
+    parent_component_id: null, transaction_time: '2026-09-01T00:00:00Z',
+    valid_from: null, valid_until: null, experiment_id: null, active: false,
+    rollback_available: false,
+  })
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(rootSuperset),
+    /typed_blocker:component_view_post_operation_readback_invalid/,
+  )
 })
 
 test('component runtime and deployment proof levels require the complete floor', () => {
@@ -1547,7 +1735,7 @@ test('public component projection revalidation rejects semantic reseals', () => 
   blockedReplayReseal.view_sha256 = '7356f3edd788a5aec3b0d3cd1e4150f498753742d1f727c0999c29d2e4fe59ff'
   assert.throws(
     () => validateOmniGentComponentEvolutionView(blockedReplayReseal),
-    /typed_blocker:(component_view_plan_execution_admission_invalid|component_operation_result_invalid)/,
+    /typed_blocker:(component_view_plan_execution_admission_invalid|component_operation_result_invalid|component_receipt_envelope_invalid)/,
   )
   const inactiveTargetReseal: any = buildOmniGentComponentEvolutionView(
     withComponentRuntimeEvidence(componentEvolutionView()),

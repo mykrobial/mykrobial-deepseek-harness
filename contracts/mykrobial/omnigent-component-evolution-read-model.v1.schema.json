@@ -144,6 +144,41 @@
         "receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" }
       }
     },
+    "receiptEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "receipt_id", "receipt_class", "receipt_sha256",
+        "subject_sha256", "issuer_id", "issued_at", "expires_at",
+        "nonce_sha256", "replay_state", "issuer_authenticity_verified",
+        "non_claims", "envelope_sha256"
+      ],
+      "properties": {
+        "schema": { "const": "mykrobial.harness.component-receipt-envelope.v1" },
+        "receipt_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+        "receipt_class": { "enum": ["verification", "application", "rollback", "replay"] },
+        "receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        "subject_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        "issuer_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
+        "issued_at": { "$ref": "harness-parity.v1.schema.json#/$defs/timestamp" },
+        "expires_at": { "$ref": "harness-parity.v1.schema.json#/$defs/timestamp" },
+        "nonce_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        "replay_state": { "const": "consumed" },
+        "issuer_authenticity_verified": { "const": false },
+        "non_claims": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "not_action_authority" },
+            { "const": "not_issuer_authentication" },
+            { "const": "not_trace_append" }
+          ],
+          "items": false,
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "envelope_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" }
+      }
+    },
     "operationResult": {
       "type": "object",
       "additionalProperties": false,
@@ -151,9 +186,10 @@
         "schema", "result_id", "operation", "plan_id", "plan_sha256",
         "capsule_id", "capsule_sha256", "decision_id",
         "decision_external_input_sha256", "pre_loadout_manifest_sha256",
-        "post_loadout_manifest_sha256", "observed_components", "activation_changed",
-        "receipt_class", "verification_receipt_sha256", "operation_receipt_sha256",
-        "observed_at", "basis_sha256", "issuer_authenticity_verified",
+        "post_loadout_manifest_sha256", "before_components", "after_components",
+        "activation_changed", "verification_receipt", "operation_receipt",
+        "before_observed_at", "observed_at", "observation_sha256",
+        "basis_sha256", "issuer_authenticity_verified",
         "non_claims", "result_sha256"
       ],
       "properties": {
@@ -168,15 +204,20 @@
         "decision_external_input_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
         "pre_loadout_manifest_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
         "post_loadout_manifest_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
-        "observed_components": {
+        "before_components": {
+          "type": "array", "minItems": 1, "maxItems": 32, "uniqueItems": true,
+          "items": { "$ref": "#/$defs/component" }
+        },
+        "after_components": {
           "type": "array", "minItems": 1, "maxItems": 32, "uniqueItems": true,
           "items": { "$ref": "#/$defs/component" }
         },
         "activation_changed": { "type": "boolean" },
-        "receipt_class": { "enum": ["application", "rollback", "replay"] },
-        "verification_receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
-        "operation_receipt_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        "verification_receipt": { "$ref": "#/$defs/receiptEnvelope" },
+        "operation_receipt": { "$ref": "#/$defs/receiptEnvelope" },
+        "before_observed_at": { "$ref": "harness-parity.v1.schema.json#/$defs/timestamp" },
         "observed_at": { "$ref": "harness-parity.v1.schema.json#/$defs/timestamp" },
+        "observation_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
         "basis_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
         "issuer_authenticity_verified": { "const": false },
         "non_claims": {
@@ -198,8 +239,9 @@
           "if": { "properties": { "operation": { "const": "swap" } }, "required": ["operation"] },
           "then": {
             "properties": {
-              "receipt_class": { "const": "application" },
-              "activation_changed": { "const": true }
+              "activation_changed": { "const": true },
+              "verification_receipt": { "properties": { "receipt_class": { "const": "verification" } } },
+              "operation_receipt": { "properties": { "receipt_class": { "const": "application" } } }
             }
           }
         },
@@ -207,8 +249,9 @@
           "if": { "properties": { "operation": { "const": "rollback" } }, "required": ["operation"] },
           "then": {
             "properties": {
-              "receipt_class": { "const": "rollback" },
-              "activation_changed": { "const": true }
+              "activation_changed": { "const": true },
+              "verification_receipt": { "properties": { "receipt_class": { "const": "verification" } } },
+              "operation_receipt": { "properties": { "receipt_class": { "const": "rollback" } } }
             }
           }
         },
@@ -216,8 +259,9 @@
           "if": { "properties": { "operation": { "const": "replay" } }, "required": ["operation"] },
           "then": {
             "properties": {
-              "receipt_class": { "const": "replay" },
-              "activation_changed": { "const": false }
+              "activation_changed": { "const": false },
+              "verification_receipt": { "properties": { "receipt_class": { "const": "verification" } } },
+              "operation_receipt": { "properties": { "receipt_class": { "const": "replay" } } }
             }
           }
         }
