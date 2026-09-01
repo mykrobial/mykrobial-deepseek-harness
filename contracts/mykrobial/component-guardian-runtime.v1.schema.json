@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mykrobial.org/schemas/component-guardian-runtime.v1.schema.json",
+  "title": "Mykrobial component evolution guardian records",
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nullableSha256": {
+      "anyOf": [
+        { "$ref": "#/$defs/sha256" },
+        { "type": "null" }
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+    },
+    "eventNonClaims": {
+      "type": "array",
+      "prefixItems": [
+        { "const": "not_optimizer_execution" },
+        { "const": "not_component_application" },
+        { "const": "not_history_rewrite" },
+        { "const": "not_trace_append" },
+        { "const": "not_deployment" }
+      ],
+      "minItems": 5,
+      "maxItems": 5
+    },
+    "commandNonClaims": {
+      "type": "array",
+      "prefixItems": [
+        { "const": "not_component_rewind" },
+        { "const": "not_component_restart" },
+        { "const": "not_external_state_rollback" },
+        { "const": "not_authority_verification" },
+        { "const": "not_trace_append" },
+        { "const": "not_deployment" }
+      ],
+      "minItems": 6,
+      "maxItems": 6
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "guardian_id",
+        "event_id",
+        "sequence",
+        "previous_event_sha256",
+        "occurred_at",
+        "component_id",
+        "task_capsule_id",
+        "loadout_id",
+        "kind",
+        "component_snapshot_sha256",
+        "candidate_definition_sha256",
+        "mutation_proposal_sha256",
+        "activation_receipt_sha256",
+        "trajectory_event_sha256",
+        "trace_v23_intent_sha256",
+        "evidence_sha256",
+        "history_rewrite_authorized",
+        "component_application_authorized",
+        "trace_append_authorized",
+        "deployment_authorized",
+        "non_claims",
+        "event_sha256"
+      ],
+      "properties": {
+        "schema": { "const": "mykrobial.component-guardian-event.v1" },
+        "guardian_id": { "$ref": "#/$defs/identifier" },
+        "event_id": { "$ref": "#/$defs/identifier" },
+        "sequence": { "type": "integer", "minimum": 0, "maximum": 4095 },
+        "previous_event_sha256": { "$ref": "#/$defs/sha256" },
+        "occurred_at": { "$ref": "#/$defs/timestamp" },
+        "component_id": { "$ref": "#/$defs/identifier" },
+        "task_capsule_id": { "$ref": "#/$defs/identifier" },
+        "loadout_id": { "$ref": "#/$defs/identifier" },
+        "kind": {
+          "enum": [
+            "baseline_registered",
+            "mutation_proposed",
+            "snapshot_captured",
+            "activation_committed",
+            "activation_rolled_back",
+            "activation_contaminated",
+            "restart_observed"
+          ]
+        },
+        "component_snapshot_sha256": { "$ref": "#/$defs/sha256" },
+        "candidate_definition_sha256": { "$ref": "#/$defs/nullableSha256" },
+        "mutation_proposal_sha256": { "$ref": "#/$defs/nullableSha256" },
+        "activation_receipt_sha256": { "$ref": "#/$defs/nullableSha256" },
+        "trajectory_event_sha256": { "$ref": "#/$defs/sha256" },
+        "trace_v23_intent_sha256": { "$ref": "#/$defs/sha256" },
+        "evidence_sha256": { "$ref": "#/$defs/sha256" },
+        "history_rewrite_authorized": { "const": false },
+        "component_application_authorized": { "const": false },
+        "trace_append_authorized": { "const": false },
+        "deployment_authorized": { "const": false },
+        "non_claims": { "$ref": "#/$defs/eventNonClaims" },
+        "event_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "candidateAttempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate_definition_sha256", "attempt_count"],
+      "properties": {
+        "candidate_definition_sha256": { "$ref": "#/$defs/sha256" },
+        "attempt_count": { "type": "integer", "minimum": 1, "maximum": 32 }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "guardian_id",
+        "component_id",
+        "task_capsule_id",
+        "loadout_id",
+        "baseline_definition_sha256",
+        "created_at",
+        "max_events",
+        "max_candidate_attempts",
+        "head_event_sha256",
+        "known_snapshot_sha256s",
+        "candidate_attempts",
+        "events",
+        "snapshot_sha256"
+      ],
+      "properties": {
+        "schema": { "const": "mykrobial.component-guardian-snapshot.v1" },
+        "guardian_id": { "$ref": "#/$defs/identifier" },
+        "component_id": { "$ref": "#/$defs/identifier" },
+        "task_capsule_id": { "$ref": "#/$defs/identifier" },
+        "loadout_id": { "$ref": "#/$defs/identifier" },
+        "baseline_definition_sha256": { "$ref": "#/$defs/sha256" },
+        "created_at": { "$ref": "#/$defs/timestamp" },
+        "max_events": { "type": "integer", "minimum": 2, "maximum": 4096 },
+        "max_candidate_attempts": { "type": "integer", "minimum": 1, "maximum": 32 },
+        "head_event_sha256": { "$ref": "#/$defs/sha256" },
+        "known_snapshot_sha256s": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sha256" },
+          "minItems": 1,
+          "maxItems": 4096,
+          "uniqueItems": true
+        },
+        "candidate_attempts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/candidateAttempt" },
+          "maxItems": 4096
+        },
+        "events": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/event" },
+          "minItems": 1,
+          "maxItems": 4096
+        },
+        "snapshot_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "command_id",
+        "operation",
+        "guardian_id",
+        "component_id",
+        "task_capsule_id",
+        "loadout_id",
+        "history_event_count",
+        "history_head_event_sha256",
+        "target_snapshot_sha256",
+        "reconfiguration_plan_sha256",
+        "external_state_rollback_receipt_sha256",
+        "external_state_rollback_verified",
+        "required_authority_profile_id",
+        "state",
+        "blockers",
+        "apply_authorized",
+        "restart_authorized",
+        "history_rewrite_authorized",
+        "trace_append_authorized",
+        "deployment_authorized",
+        "requested_at",
+        "non_claims",
+        "command_sha256"
+      ],
+      "properties": {
+        "schema": { "const": "mykrobial.component-guardian-command.v1" },
+        "command_id": { "$ref": "#/$defs/identifier" },
+        "operation": { "enum": ["rewind_component", "rebuild_and_restart_component"] },
+        "guardian_id": { "$ref": "#/$defs/identifier" },
+        "component_id": { "$ref": "#/$defs/identifier" },
+        "task_capsule_id": { "$ref": "#/$defs/identifier" },
+        "loadout_id": { "$ref": "#/$defs/identifier" },
+        "history_event_count": { "type": "integer", "minimum": 1, "maximum": 4096 },
+        "history_head_event_sha256": { "$ref": "#/$defs/sha256" },
+        "target_snapshot_sha256": { "$ref": "#/$defs/sha256" },
+        "reconfiguration_plan_sha256": { "$ref": "#/$defs/sha256" },
+        "external_state_rollback_receipt_sha256": { "$ref": "#/$defs/nullableSha256" },
+        "external_state_rollback_verified": { "const": false },
+        "required_authority_profile_id": { "const": "profile:component-reconfiguration:v1" },
+        "state": { "const": "prepared_unexecuted" },
+        "blockers": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^typed_blocker:[a-z0-9_:-]+$" },
+          "minItems": 3,
+          "maxItems": 4,
+          "uniqueItems": true
+        },
+        "apply_authorized": { "const": false },
+        "restart_authorized": { "const": false },
+        "history_rewrite_authorized": { "const": false },
+        "trace_append_authorized": { "const": false },
+        "deployment_authorized": { "const": false },
+        "requested_at": { "$ref": "#/$defs/timestamp" },
+        "non_claims": { "$ref": "#/$defs/commandNonClaims" },
+        "command_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/event" },
+    { "$ref": "#/$defs/snapshot" },
+    { "$ref": "#/$defs/command" }
+  ]
+}
