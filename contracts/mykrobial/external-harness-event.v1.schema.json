@@ -1,0 +1,395 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mykrobial.org/schemas/external-harness-event.v1.schema.json",
+  "title": "Mykrobial loss-accounted external harness event contracts",
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+    },
+    "sourceKind": {
+      "enum": [
+        "message",
+        "tool_requested",
+        "tool_result",
+        "sandbox_snapshotted",
+        "thread_forked",
+        "rebuild_and_restart_outcome",
+        "usage"
+      ]
+    },
+    "trajectoryKind": {
+      "enum": [
+        "observation",
+        "result",
+        "action_expectation",
+        "action_result",
+        "checkpoint",
+        "experiment",
+        "cost"
+      ]
+    },
+    "artifactRef": {
+      "$ref": "./harness-parity.v1.schema.json#/$defs/artifactRef"
+    },
+    "usage": {
+      "$ref": "./harness-parity.v1.schema.json#/$defs/cost"
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "source_system",
+        "source_event_id",
+        "source_event_kind",
+        "source_sequence",
+        "occurred_at",
+        "source_artifact",
+        "source_event_sha256",
+        "run_id",
+        "task_capsule_id",
+        "loadout_id",
+        "component_ids",
+        "primary_component_id",
+        "branch_id",
+        "component_generation",
+        "previous_trajectory_event_sha256",
+        "direction",
+        "execution_outcome",
+        "usage",
+        "source_payload_contains_hidden_reasoning",
+        "source_trust"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.external-harness-event.v1"
+        },
+        "source_system": {
+          "const": "exo"
+        },
+        "source_event_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "source_event_kind": {
+          "$ref": "#/$defs/sourceKind"
+        },
+        "source_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "source_artifact": {
+          "$ref": "#/$defs/artifactRef"
+        },
+        "source_event_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "run_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "task_capsule_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "loadout_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "component_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "minItems": 1,
+          "maxItems": 128,
+          "uniqueItems": true
+        },
+        "primary_component_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "branch_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "component_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "previous_trajectory_event_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "direction": {
+          "enum": [
+            "inbound",
+            "outbound",
+            "internal",
+            null
+          ]
+        },
+        "execution_outcome": {
+          "enum": [
+            "succeeded",
+            "failed",
+            "unknown",
+            null
+          ]
+        },
+        "usage": {
+          "$ref": "#/$defs/usage"
+        },
+        "source_payload_contains_hidden_reasoning": {
+          "const": false
+        },
+        "source_trust": {
+          "const": "untrusted_external_source"
+        }
+      }
+    },
+    "traceIntent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "target_schema",
+        "target_schema_version",
+        "trace_id",
+        "session_id",
+        "source_event_sha256",
+        "source_event_sequence",
+        "source_event_kind",
+        "scope",
+        "phase",
+        "content_mode",
+        "status",
+        "blocker",
+        "non_claims"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.deepseek.trace-v2.3-intent.v1"
+        },
+        "target_schema": {
+          "const": "mykrobial.trace.v2.3.event.v1"
+        },
+        "target_schema_version": {
+          "const": "2.3.0"
+        },
+        "trace_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "session_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "source_event_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "source_event_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_event_kind": {
+          "$ref": "#/$defs/trajectoryKind"
+        },
+        "scope": {
+          "const": "root_run"
+        },
+        "phase": {
+          "const": "progress"
+        },
+        "content_mode": {
+          "const": "metadata_only"
+        },
+        "status": {
+          "const": "candidate_report_only"
+        },
+        "blocker": {
+          "const": "typed_blocker:mykrobial_trace_v2_3_schema_and_append_authority_unadmitted"
+        },
+        "non_claims": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "const": "not_trace_append"
+            },
+            {
+              "const": "not_hidden_chain_of_thought_access"
+            },
+            {
+              "const": "not_provider_execution"
+            },
+            {
+              "const": "not_external_state_rollback"
+            },
+            {
+              "const": "not_deployment"
+            }
+          ],
+          "items": false,
+          "minItems": 5,
+          "maxItems": 5
+        }
+      }
+    },
+    "lossAccounting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mapping",
+        "mapped_fields",
+        "unavailable_fields",
+        "dropped_fields",
+        "metadata_projection_lossy",
+        "raw_event_content_addressed",
+        "hidden_reasoning_accessed",
+        "external_state_rollback_covered",
+        "loss_accounting_sha256"
+      ],
+      "properties": {
+        "mapping": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "mapped_fields": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true
+        },
+        "unavailable_fields": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true
+        },
+        "dropped_fields": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true
+        },
+        "metadata_projection_lossy": {
+          "const": true
+        },
+        "raw_event_content_addressed": {
+          "const": true
+        },
+        "hidden_reasoning_accessed": {
+          "const": false
+        },
+        "external_state_rollback_covered": {
+          "const": false
+        },
+        "loss_accounting_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "source_system",
+        "source_event_kind",
+        "trajectory_event",
+        "trace_v2_3_intent",
+        "loss_accounting",
+        "trajectory_append_authorized",
+        "trace_append_authorized",
+        "optimizer_execution_authorized",
+        "component_application_authorized",
+        "non_claims",
+        "projection_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mykrobial.external-harness-event-projection.v1"
+        },
+        "source_system": {
+          "const": "exo"
+        },
+        "source_event_kind": {
+          "$ref": "#/$defs/sourceKind"
+        },
+        "trajectory_event": {
+          "$ref": "./harness-parity.v1.schema.json#/$defs/trajectoryEvent"
+        },
+        "trace_v2_3_intent": {
+          "$ref": "#/$defs/traceIntent"
+        },
+        "loss_accounting": {
+          "$ref": "#/$defs/lossAccounting"
+        },
+        "trajectory_append_authorized": {
+          "const": false
+        },
+        "trace_append_authorized": {
+          "const": false
+        },
+        "optimizer_execution_authorized": {
+          "const": false
+        },
+        "component_application_authorized": {
+          "const": false
+        },
+        "non_claims": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "const": "not_external_harness_execution"
+            },
+            {
+              "const": "not_optimizer_execution"
+            },
+            {
+              "const": "not_component_application"
+            },
+            {
+              "const": "not_external_state_rollback"
+            },
+            {
+              "const": "not_trace_append"
+            },
+            {
+              "const": "not_promotion"
+            },
+            {
+              "const": "not_deployment"
+            }
+          ],
+          "items": false,
+          "minItems": 7,
+          "maxItems": 7
+        },
+        "projection_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    }
+  }
+}
