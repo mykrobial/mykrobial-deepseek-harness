@@ -7,6 +7,8 @@
     "tree": "5bd82cac86bb5c3d51387ae0e164f7712dd0128f",
     "cross_lane_ownership_ref": "/Users/kalcypher/Projects/_goalruns/deepseek-cordis-retrodict-mykrobial-20260830/CROSS-LANE-OWNERSHIP.v2.md",
     "cross_lane_ownership_sha256": "0390b197f6caab76d1fa54c0a7d01066c32fc2796044b50fef48e16af241d269",
+    "current_production_evolution_plane_contract_ref": "/Users/kalcypher/Projects/_worktrees/mykrobial-deepseek-harness-program-audit-v11/contracts/evolution-plane-registry.v1.json",
+    "current_production_evolution_plane_contract_sha256": "724e1ab4df67bab9b9ab9538d549d6faa29088fc60db6272f8d692ef4a9e74a4",
     "request_specific_meta_prompt_sha256": "3a7b2836e0a9a9452d818079962ce674f28cc81afa5637ca7a4edb75cb8518e6",
     "authoritative_bar_sha256": "9b0d8e664502af4760deed92d656f24a1afbf287c864c2e928d5ec3db49fc273"
   },
@@ -18,6 +20,12 @@
     "no-apply CORDIS lifecycle and loadout plans",
     "untrusted external decision normalization",
     "deterministic source-safe fixtures and tests"
+  ],
+  "exact_evolution_plane_ids": [
+    "online_areal_actual_work",
+    "local_idle_compute",
+    "frontier_builder_critic",
+    "future_joint_model_harness"
   ],
   "excluded_control_plane": [
     "optimizer implementation",

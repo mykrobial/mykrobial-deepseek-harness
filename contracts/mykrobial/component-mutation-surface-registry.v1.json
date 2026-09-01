@@ -7,7 +7,7 @@
       "independently_versioned": true,
       "independently_swappable": true,
       "per_task_experiment_allowed": true,
-      "allowed_planes": ["online", "local_idle", "frontier", "future_joint"],
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
       "training_gate_required": false,
       "runtime_application_authority_required": true,
       "trace_projection_required": true
@@ -17,7 +17,7 @@
       "independently_versioned": true,
       "independently_swappable": true,
       "per_task_experiment_allowed": true,
-      "allowed_planes": ["online", "local_idle", "frontier", "future_joint"],
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
       "training_gate_required": false,
       "runtime_application_authority_required": true,
       "trace_projection_required": true
@@ -27,7 +27,7 @@
       "independently_versioned": true,
       "independently_swappable": true,
       "per_task_experiment_allowed": true,
-      "allowed_planes": ["online", "local_idle", "frontier", "future_joint"],
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
       "training_gate_required": false,
       "runtime_application_authority_required": true,
       "trace_projection_required": true
@@ -37,7 +37,7 @@
       "independently_versioned": true,
       "independently_swappable": true,
       "per_task_experiment_allowed": true,
-      "allowed_planes": ["online", "local_idle", "frontier", "future_joint"],
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
       "training_gate_required": false,
       "runtime_application_authority_required": true,
       "trace_projection_required": true
@@ -47,7 +47,7 @@
       "independently_versioned": true,
       "independently_swappable": true,
       "per_task_experiment_allowed": true,
-      "allowed_planes": ["online", "local_idle", "frontier", "future_joint"],
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
       "training_gate_required": false,
       "runtime_application_authority_required": true,
       "trace_projection_required": true
@@ -57,7 +57,7 @@
       "independently_versioned": true,
       "independently_swappable": true,
       "per_task_experiment_allowed": true,
-      "allowed_planes": ["online", "local_idle", "frontier", "future_joint"],
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
       "training_gate_required": false,
       "runtime_application_authority_required": true,
       "trace_projection_required": true
@@ -67,7 +67,7 @@
       "independently_versioned": true,
       "independently_swappable": true,
       "per_task_experiment_allowed": true,
-      "allowed_planes": ["online", "local_idle", "frontier", "future_joint"],
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
       "training_gate_required": false,
       "runtime_application_authority_required": true,
       "trace_projection_required": true
@@ -77,7 +77,7 @@
       "independently_versioned": true,
       "independently_swappable": true,
       "per_task_experiment_allowed": true,
-      "allowed_planes": ["online", "local_idle", "frontier", "future_joint"],
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
       "training_gate_required": false,
       "runtime_application_authority_required": true,
       "trace_projection_required": true
@@ -87,7 +87,7 @@
       "independently_versioned": true,
       "independently_swappable": true,
       "per_task_experiment_allowed": true,
-      "allowed_planes": ["online", "local_idle", "frontier", "future_joint"],
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
       "training_gate_required": false,
       "runtime_application_authority_required": true,
       "trace_projection_required": true
@@ -97,7 +97,7 @@
       "independently_versioned": true,
       "independently_swappable": true,
       "per_task_experiment_allowed": true,
-      "allowed_planes": ["future_joint"],
+      "allowed_planes": ["future_joint_model_harness"],
       "training_gate_required": true,
       "runtime_application_authority_required": true,
       "trace_projection_required": true
@@ -107,7 +107,7 @@
       "independently_versioned": true,
       "independently_swappable": true,
       "per_task_experiment_allowed": true,
-      "allowed_planes": ["online", "local_idle", "frontier", "future_joint"],
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
       "training_gate_required": false,
       "runtime_application_authority_required": true,
       "trace_projection_required": true
@@ -117,7 +117,7 @@
       "independently_versioned": true,
       "independently_swappable": true,
       "per_task_experiment_allowed": true,
-      "allowed_planes": ["online", "local_idle", "frontier", "future_joint"],
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
       "training_gate_required": false,
       "runtime_application_authority_required": true,
       "trace_projection_required": true
@@ -127,7 +127,7 @@
       "independently_versioned": true,
       "independently_swappable": true,
       "per_task_experiment_allowed": true,
-      "allowed_planes": ["online", "local_idle", "frontier", "future_joint"],
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
       "training_gate_required": false,
       "runtime_application_authority_required": true,
       "trace_projection_required": true
@@ -137,11 +137,11 @@
       "independently_versioned": true,
       "independently_swappable": true,
       "per_task_experiment_allowed": true,
-      "allowed_planes": ["online", "local_idle", "frontier", "future_joint"],
+      "allowed_planes": ["online_areal_actual_work", "local_idle_compute", "frontier_builder_critic", "future_joint_model_harness"],
       "training_gate_required": false,
       "runtime_application_authority_required": true,
       "trace_projection_required": true
     }
   ],
-  "registry_sha256": "72a658e1b222eac80b954e5efd75d72e549afac32b47cc81d649d80fc37704b6"
+  "registry_sha256": "1ee9e6c81287939795d538f7b92eb2167429ca9ed3f53e55f74d0752ad4aa451"
 }

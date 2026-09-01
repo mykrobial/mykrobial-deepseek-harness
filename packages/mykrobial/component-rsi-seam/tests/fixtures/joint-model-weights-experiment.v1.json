@@ -2,7 +2,7 @@
   "schema": "mykrobial.component-rsi-seam-test-fixture.v1",
   "proposal_input": {
     "proposal_id": "proposal-joint-v1",
-    "plane": "future_joint",
+    "plane": "future_joint_model_harness",
     "task_capsule_id": "task-capsule-joint",
     "loadout_id": "retrodict-future-joint-v1",
     "source": {

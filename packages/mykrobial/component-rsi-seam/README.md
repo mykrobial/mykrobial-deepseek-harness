@@ -2,7 +2,7 @@
 
 This pure package makes every registered harness component independently addressable by experiment and replacement plans. It freezes component mutation proposals, matched `BASE`/`TRUE`/`SHAM` experiment capsules, untrusted external optimizer or promotion inputs, shared trajectory/Trace v2.3 intents, and CORDIS-shaped swap, replay, and rollback plans. It never executes an optimizer, evaluator, model, tool, lifecycle effect, replay, rollback, Trace append, training run, promotion, or deployment.
 
-The mutation registry covers prompts, skill cards, ontology edges or functions, routers, workflows, memory, tools, model routes, model adapters, model weights, harness code, guardrails, UI projections, and loadouts. Each surface is independently versioned and swappable per task. `model_weights` is restricted to the `future_joint` plane and always retains a separate unverified training gate.
+The mutation registry covers prompts, skill cards, ontology edges or functions, routers, workflows, memory, tools, model routes, model adapters, model weights, harness code, guardrails, UI projections, and loadouts. Each surface is independently versioned and swappable per task. `model_weights` is restricted to the `future_joint_model_harness` plane and always retains a separate unverified training gate.
 
 ## Data flow
 

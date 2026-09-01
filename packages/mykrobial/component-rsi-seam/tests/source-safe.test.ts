@@ -73,11 +73,11 @@ test('registry covers every independently mutable runtime surface exactly once',
     && row.runtime_application_authority_required && row.trace_projection_required), true)
 })
 
-test('model weights are restricted to future_joint and require a training gate', () => {
+test('model weights are restricted to future_joint_model_harness and require a training gate', () => {
   const row = buildMutationSurfaceRegistry().surfaces.find(item => item.surface_id === 'model_weights')
-  assert.deepEqual(row?.allowed_planes, ['future_joint'])
+  assert.deepEqual(row?.allowed_planes, ['future_joint_model_harness'])
   assert.equal(row?.training_gate_required, true)
-  assert.deepEqual(EVOLUTION_PLANES, ['online', 'local_idle', 'frontier', 'future_joint'])
+  assert.deepEqual(EVOLUTION_PLANES, ['online_areal_actual_work', 'local_idle_compute', 'frontier_builder_critic', 'future_joint_model_harness'])
 })
 
 test('checked-in mutation registry is byte-independent and content-identical to runtime registry', () => {
@@ -105,8 +105,8 @@ test('declared joint proposal canonicalizes target order and binds both componen
   assert.equal(proposal.target_set_sha256, joint.expected_target_set_sha256)
 })
 
-test('model-weight proposal rejects every plane except future_joint', () => {
-  for (const invalidPlane of ['online', 'local_idle', 'frontier'] as const) {
+test('model-weight proposal rejects every plane except future_joint_model_harness', () => {
+  for (const invalidPlane of ['online_areal_actual_work', 'local_idle_compute', 'frontier_builder_critic'] as const) {
     const input = copy(joint.proposal_input)
     input.plane = invalidPlane
     assert.throws(

@@ -6,8 +6,8 @@
   },
   "content_manifest": {
     "ref": "goalrun/component-rsi-seam-v1/SHA256SUMS",
-    "sha256": "616d8c301b2b3c5d83caeca68fa6410a88ce76c5af3feb346c2b8c9c9023325e",
-    "content_file_count": 19,
+    "sha256": "e6a78860ee3f507c853ca717ae0feb54b0d3e8fba31108cb32587ace35deda5b",
+    "content_file_count": 20,
     "manifest_excludes": [
       "goalrun/component-rsi-seam-v1/SHA256SUMS",
       "goalrun/component-rsi-seam-v1/SOURCE-RECEIPT.v1.json"
@@ -20,11 +20,23 @@
     "tests_passed": 20,
     "tests_failed": 0,
     "syntax_check_count": 3,
-    "strict_json_check_count": 11,
-    "sha256_manifest_check_count": 19,
+    "strict_json_check_count": 12,
+    "sha256_manifest_check_count": 20,
     "git_diff_check": "passed"
   },
   "surface_count": 14,
+  "mutation_surface_registry_sha256": "1ee9e6c81287939795d538f7b92eb2167429ca9ed3f53e55f74d0752ad4aa451",
+  "evolution_plane_parity": {
+    "contract_ref": "contracts/mykrobial/evidence/evolution-plane-registry.binding.v1.json",
+    "source_contract_sha256": "724e1ab4df67bab9b9ab9538d549d6faa29088fc60db6272f8d692ef4a9e74a4",
+    "exact_plane_ids": [
+      "online_areal_actual_work",
+      "local_idle_compute",
+      "frontier_builder_critic",
+      "future_joint_model_harness"
+    ],
+    "external_optimizer_is_strategy_adapter_not_plane": true
+  },
   "trace": {
     "intent_projection_tested": true,
     "append_attempted": false,

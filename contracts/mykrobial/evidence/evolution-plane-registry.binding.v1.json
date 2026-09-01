@@ -1,0 +1,17 @@
+{
+  "schema": "mykrobial.next-deepseek-cordis.evolution-plane-registry-binding.v1",
+  "source_generation": "current_production",
+  "source_ref": "/Users/kalcypher/Projects/_worktrees/mykrobial-deepseek-harness-program-audit-v11/contracts/evolution-plane-registry.v1.json",
+  "source_sha256": "724e1ab4df67bab9b9ab9538d549d6faa29088fc60db6272f8d692ef4a9e74a4",
+  "exact_plane_ids": [
+    "online_areal_actual_work",
+    "local_idle_compute",
+    "frontier_builder_critic",
+    "future_joint_model_harness"
+  ],
+  "model_weights_plane": "future_joint_model_harness",
+  "external_optimizer_is_strategy_adapter_not_plane": true,
+  "ownership_boundary": "The Next-Generation harness exposes the runtime-facing plane identifiers and component experiment seam. The Current Production RSI lane owns optimizer implementations, evaluation, training, Pareto adjudication, causal value readback, promotion, and control-plane policy.",
+  "reviewed": false,
+  "execution_authorized": false
+}

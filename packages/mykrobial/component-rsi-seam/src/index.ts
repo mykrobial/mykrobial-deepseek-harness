@@ -55,10 +55,10 @@ export const MUTATION_SURFACE_IDS: readonly MutationSurfaceId[] = [
 
 /** Canonical evolution-plane identifiers; the planes are implemented elsewhere. */
 export const EVOLUTION_PLANES: readonly EvolutionPlane[] = [
-  'online',
-  'local_idle',
-  'frontier',
-  'future_joint',
+  'online_areal_actual_work',
+  'local_idle_compute',
+  'frontier_builder_critic',
+  'future_joint_model_harness',
 ]
 
 const SURFACES = new Set<string>(MUTATION_SURFACE_IDS)
@@ -195,7 +195,7 @@ function target(value: unknown): MutationTarget {
 }
 
 function allowedPlanes(surfaceId: MutationSurfaceId): EvolutionPlane[] {
-  return surfaceId === 'model_weights' ? ['future_joint'] : [...EVOLUTION_PLANES]
+  return surfaceId === 'model_weights' ? ['future_joint_model_harness'] : [...EVOLUTION_PLANES]
 }
 
 function surfaceRows(): MutationSurfacePolicy[] {

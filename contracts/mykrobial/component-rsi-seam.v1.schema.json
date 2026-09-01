@@ -40,10 +40,10 @@
     },
     "plane": {
       "enum": [
-        "online",
-        "local_idle",
-        "frontier",
-        "future_joint"
+        "online_areal_actual_work",
+        "local_idle_compute",
+        "frontier_builder_critic",
+        "future_joint_model_harness"
       ]
     },
     "nonClaims": {
@@ -151,7 +151,7 @@
             "properties": {
               "allowed_planes": {
                 "const": [
-                  "future_joint"
+                  "future_joint_model_harness"
                 ]
               },
               "training_gate_required": {
@@ -388,7 +388,7 @@
           "then": {
             "properties": {
               "plane": {
-                "const": "future_joint"
+                "const": "future_joint_model_harness"
               }
             }
           }
@@ -722,7 +722,7 @@
           "then": {
             "properties": {
               "plane": {
-                "const": "future_joint"
+                "const": "future_joint_model_harness"
               },
               "training_authorized": {
                 "const": false

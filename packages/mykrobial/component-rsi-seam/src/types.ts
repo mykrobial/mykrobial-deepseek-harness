@@ -18,7 +18,7 @@ export type MutationSurfaceId =
   | 'loadout'
 
 /** Proposal-producing plane; this package does not implement any plane. */
-export type EvolutionPlane = 'online' | 'local_idle' | 'frontier' | 'future_joint'
+export type EvolutionPlane = 'online_areal_actual_work' | 'local_idle_compute' | 'frontier_builder_critic' | 'future_joint_model_harness'
 
 /** Exact source identity shared with the public Harness parity schemas. */
 export interface SourceIdentity {
