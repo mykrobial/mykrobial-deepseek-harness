@@ -484,6 +484,13 @@ function validateCapsule(value: ComponentExperimentCapsule): ComponentExperiment
   return value
 }
 
+/** Revalidate an untrusted serialized component experiment capsule. */
+export function validateComponentExperimentCapsule(
+  value: ComponentExperimentCapsule,
+): ComponentExperimentCapsule {
+  return structuredClone(validateCapsule(value))
+}
+
 /**
  * Freeze a matched BASE/TRUE/SHAM capsule without running the experiment.
  * @param input - Proposal plus immutable task, source, evaluator, budget, and arm facts.
@@ -644,6 +651,13 @@ function validateExternalDecision(value: ExternalComponentDecision): ExternalCom
   return value
 }
 
+/** Revalidate an untrusted serialized external component decision. */
+export function validateExternalComponentDecision(
+  value: ExternalComponentDecision,
+): ExternalComponentDecision {
+  return structuredClone(validateExternalDecision(value))
+}
+
 function operationSteps(operation: ComponentPlanOperation): string[] {
   if (operation === 'swap') return [
     'verify_component_snapshot',
@@ -744,6 +758,73 @@ export function prepareComponentReconfigurationPlan(input: PrepareComponentPlanI
     ],
   }
   return { ...body, plan_sha256: canonicalSha256(body) }
+}
+
+/** Revalidate an untrusted serialized no-apply component reconfiguration plan. */
+export function validateComponentReconfigurationPlan(
+  value: ComponentReconfigurationPlan,
+): ComponentReconfigurationPlan {
+  record(value, [
+    'schema', 'plan_id', 'operation', 'capsule_id', 'capsule_sha256', 'decision_id',
+    'decision_external_input_sha256', 'target_component_ids', 'target_surface_ids',
+    'component_lifecycle_contract', 'loadout_contract',
+    'component_lifecycle_contract_sha256', 'loadout_contract_sha256',
+    'current_component_snapshot_sha256', 'current_loadout_manifest_sha256',
+    'dependency_closure_sha256', 'replay_receipt_sha256', 'rollback_receipt_sha256',
+    'steps', 'blockers', 'requested_at', 'state', 'apply_authorized',
+    'trace_append_authorized', 'non_claims', 'plan_sha256',
+  ], 'component_reconfiguration_plan_closed_object_invalid')
+  if (!['swap', 'rollback', 'replay'].includes(value.operation)) {
+    throw new Error('typed_blocker:component_reconfiguration_operation_invalid')
+  }
+  identifier(value.plan_id, 'component_reconfiguration_plan_identity_invalid')
+  identifier(value.capsule_id, 'component_reconfiguration_capsule_identity_invalid')
+  digest(value.capsule_sha256, 'component_reconfiguration_capsule_identity_invalid')
+  identifier(value.decision_id, 'component_reconfiguration_decision_identity_invalid')
+  digest(value.decision_external_input_sha256, 'component_reconfiguration_decision_identity_invalid')
+  if (!Array.isArray(value.target_component_ids) || value.target_component_ids.length === 0
+    || value.target_component_ids.length > 16
+    || value.target_component_ids.some(item => !IDENTIFIER.test(item))
+    || new Set(value.target_component_ids).size !== value.target_component_ids.length
+    || value.target_component_ids.join('\u0000') !== [...value.target_component_ids].sort().join('\u0000')
+    || !Array.isArray(value.target_surface_ids) || value.target_surface_ids.length === 0
+    || value.target_surface_ids.length > 16
+    || value.target_surface_ids.some(item => !SURFACES.has(item))
+    || new Set(value.target_surface_ids).size !== value.target_surface_ids.length
+    || value.target_surface_ids.join('\u0000') !== [...value.target_surface_ids].sort().join('\u0000')) {
+    throw new Error('typed_blocker:component_reconfiguration_targets_invalid')
+  }
+  digest(value.component_lifecycle_contract_sha256, 'component_reconfiguration_contract_invalid')
+  digest(value.loadout_contract_sha256, 'component_reconfiguration_contract_invalid')
+  digest(value.current_component_snapshot_sha256, 'component_reconfiguration_snapshot_invalid')
+  digest(value.current_loadout_manifest_sha256, 'component_reconfiguration_loadout_invalid')
+  digest(value.dependency_closure_sha256, 'component_reconfiguration_dependency_closure_invalid')
+  optionalDigest(value.replay_receipt_sha256, 'component_reconfiguration_replay_receipt_invalid')
+  optionalDigest(value.rollback_receipt_sha256, 'component_reconfiguration_rollback_receipt_invalid')
+  const blockers = stringList(value.blockers, 'component_reconfiguration_blockers_invalid')
+  if (blockers.length === 0 || blockers.length > 16
+    || blockers.some(blocker => !blocker.startsWith('typed_blocker:'))) {
+    throw new Error('typed_blocker:component_reconfiguration_blockers_invalid')
+  }
+  stringList(value.non_claims, 'component_reconfiguration_non_claims_invalid')
+  timestamp(value.requested_at, 'component_reconfiguration_timestamp_invalid')
+  const expectedPlanId = `component-${value.operation}-${canonicalSha256({
+    capsule: value.capsule_sha256,
+    decision: value.decision_external_input_sha256,
+  }).slice(0, 24)}`
+  const expectedSha256 = canonicalSha256(
+    Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'plan_sha256')),
+  )
+  if (value.schema !== 'mykrobial.harness.component-reconfiguration-plan.v1'
+    || value.plan_id !== expectedPlanId
+    || value.component_lifecycle_contract !== 'mykrobial.component-snapshot.v1'
+    || value.loadout_contract !== 'mykrobial.harness.loadout-manifest.v1'
+    || value.steps.join('\u0000') !== operationSteps(value.operation).join('\u0000')
+    || value.state !== 'prepared_unexecuted' || value.apply_authorized !== false
+    || value.trace_append_authorized !== false || value.plan_sha256 !== expectedSha256) {
+    throw new Error('typed_blocker:component_reconfiguration_plan_invalid')
+  }
+  return structuredClone(value)
 }
 
 function artifactRef(value: unknown): ArtifactRef {

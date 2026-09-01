@@ -6,22 +6,29 @@
   },
   "content_manifest": {
     "ref": "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
-    "sha256": "949c9400fbf056923893cf9955dde5b168125f14f0c639a4b8ac68c535b2d544",
-    "content_file_count": 6,
+    "sha256": "384c1ff04491b14b5303d63b89887fd8488d1cce5656f95d6c208e8ab7683225",
+    "content_file_count": 11,
     "manifest_excludes": [
       "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
-      "goalrun/component-rsi-operator-view-v1/SOURCE-RECEIPT.v1.json"
+      "goalrun/component-rsi-operator-view-v1/SOURCE-RECEIPT.v1.json",
+      "goalrun/component-rsi-operator-view-v1/FRESH-CRITIC-BLOCKER.v1.json",
+      "goalrun/component-rsi-operator-view-v1/ROUND-2-FRESH-CRITIC-BLOCKER.v1.json",
+      "goalrun/component-rsi-operator-view-v1/ROUND-3-FRESH-CRITIC-BLOCKER.v1.json",
+      "goalrun/component-rsi-operator-view-v1/ROUND-4-FRESH-CRITIC-BLOCKER.v1.json"
     ]
   },
   "verification": {
     "node_executable": "/opt/homebrew/bin/node",
     "node_version": "v25.9.0",
     "test_command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/operator-projections/tests/source-safe.test.ts",
-    "tests_passed": 27,
+    "component_seam_test_command": "env NODE_DISABLE_COMPILE_CACHE=1 /opt/homebrew/bin/node --experimental-strip-types --test packages/mykrobial/component-rsi-seam/tests/source-safe.test.ts",
+    "tests_passed": 52,
     "tests_failed": 0,
-    "typescript_syntax_checks": 3,
-    "strict_authored_json_checks": 2,
-    "content_hash_checks": 6,
+    "operator_projection_tests_passed": 28,
+    "component_seam_tests_passed": 24,
+    "typescript_syntax_checks": 6,
+    "strict_authored_json_checks": 3,
+    "content_hash_checks": 11,
     "git_diff_check": "passed"
   },
   "view_contract": {
@@ -30,6 +37,8 @@
     "base_true_sham_exact": true,
     "target_set_binding_exact": true,
     "capsule_decision_plan_binding_exact": true,
+    "accepted_artifact_content_identity_revalidated": true,
+    "immutable_plan_artifact_separate_from_execution_state": true,
     "transaction_and_valid_time": true,
     "optimizer_ports_proposal_only": true,
     "trace_replay_rollback_readback": true,
@@ -76,6 +85,19 @@
       "project plan capsule and decision identities",
       "enforce capsule to decision to plan equality before any proof claim",
       "reject both exact prior content-hashed public projection counterexamples"
+    ]
+  },
+  "round_4_repair_basis": {
+    "critic_ref": "goalrun/component-rsi-operator-view-v1/ROUND-4-FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "3e7b9ff3307901105102f2e715fae9bad5c6f651dc2297914b2a238f5940d205",
+    "finding": "typed_blocker:component_evolution_stale_artifact_digest_aliases_accepted",
+    "repairs": [
+      "add public validators for complete accepted capsule decision and plan artifacts",
+      "project each complete immutable artifact alongside its operator summary",
+      "recompute capsule decision and plan content identities before proof projection",
+      "separate immutable plan content from mutable verification application and rollback state",
+      "reject synchronized identity semantic loadout target and digest substitutions",
+      "revalidate the same artifacts at every public consumer boundary"
     ]
   },
   "authority": {

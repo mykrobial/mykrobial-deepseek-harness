@@ -2,6 +2,12 @@ import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 import test from 'node:test'
 import {
+  acceptExternalComponentDecision,
+  prepareComponentExperimentCapsule,
+  prepareComponentMutationProposal,
+  prepareComponentReconfigurationPlan,
+} from '../../component-rsi-seam/src/index.ts'
+import {
   buildFactoryHandoff,
   buildOmniGentComponentEvolutionView,
   buildOmniGentHarnessView,
@@ -12,6 +18,42 @@ import {
 } from '../src/index.ts'
 
 const digest = (letter: string): string => letter.repeat(64)
+
+const componentSeamFixture: any = JSON.parse(readFileSync(
+  new URL('../../component-rsi-seam/tests/fixtures/single-prompt-experiment.v1.json', import.meta.url),
+  'utf8',
+))
+
+function acceptedComponentArtifacts(): {
+  capsule: ReturnType<typeof prepareComponentExperimentCapsule>
+  decision: ReturnType<typeof acceptExternalComponentDecision>
+  plan: ReturnType<typeof prepareComponentReconfigurationPlan>
+} {
+  const proposalInput = structuredClone(componentSeamFixture.proposal_input)
+  proposalInput.proposal_id = 'proposal-prompt'
+  proposalInput.task_capsule_id = 'capsule-component-view'
+  proposalInput.loadout_id = 'retrodict-default-v1'
+  proposalInput.targets[0].component_id = 'prompt-v2'
+  const proposal = prepareComponentMutationProposal(proposalInput)
+  const capsuleFields = structuredClone(componentSeamFixture.capsule_fields)
+  capsuleFields.capsule_id = 'capsule-prompt'
+  capsuleFields.experiment_id = 'experiment-prompt'
+  capsuleFields.task_binding.task_capsule_id = proposal.task_capsule_id
+  capsuleFields.task_binding.loadout_id = proposal.loadout_id
+  capsuleFields.task_binding.loadout_manifest_sha256 = digest('a')
+  for (const arm of capsuleFields.arms) arm.loadout_manifest_sha256 = digest('a')
+  capsuleFields.arms[1].applied_delta_sha256 = proposal.target_set_sha256
+  const capsule = prepareComponentExperimentCapsule({ ...capsuleFields, proposal })
+  const decisionInput = structuredClone(componentSeamFixture.decision_input)
+  decisionInput.decision_id = 'decision-prompt'
+  decisionInput.capsule_id = capsule.capsule_id
+  decisionInput.capsule_sha256 = capsule.capsule_sha256
+  const decision = acceptExternalComponentDecision(decisionInput, capsule)
+  const planFields = structuredClone(componentSeamFixture.plan_fields)
+  planFields.current_loadout_manifest_sha256 = digest('a')
+  const plan = prepareComponentReconfigurationPlan({ ...planFields, capsule, decision })
+  return { capsule, decision, plan }
+}
 
 type JsonSchema = Record<string, any>
 const SOURCE_CONTRACTS = new URL('../../../../contracts/', import.meta.url)
@@ -655,6 +697,7 @@ test('runtime and deployed verified states require and accept complete exact rec
 })
 
 function componentEvolutionView(): OmniGentComponentEvolutionViewInput {
+  const artifacts = acceptedComponentArtifacts()
   return {
     generated_at: '2026-09-01T00:00:00Z',
     task_capsule_id: 'capsule-component-view',
@@ -704,46 +747,38 @@ function componentEvolutionView(): OmniGentComponentEvolutionViewInput {
     experiments: [
       {
         experiment_id: 'experiment-prompt',
-        capsule_id: 'capsule-prompt',
-        capsule_sha256: digest('2'),
-        plane: 'local_idle_compute',
-        target_component_ids: ['prompt-v2'],
-        target_surface_ids: ['prompt'],
-        target_set_sha256: digest('6'),
-        arms: [
-          {
-            role: 'BASE', control_strategy: 'unchanged_baseline',
-            loadout_manifest_sha256: digest('a'),
-            component_set_sha256: digest('3'), applied_delta_sha256: digest('4'),
-            execution_state: 'planned', result_receipt_sha256: null,
-          },
-          {
-            role: 'TRUE', control_strategy: 'candidate_delta',
-            loadout_manifest_sha256: digest('a'),
-            component_set_sha256: digest('5'), applied_delta_sha256: digest('6'),
-            execution_state: 'planned', result_receipt_sha256: null,
-          },
-          {
-            role: 'SHAM', control_strategy: 'placebo_delta',
-            loadout_manifest_sha256: digest('a'),
-            component_set_sha256: digest('7'), applied_delta_sha256: digest('8'),
-            execution_state: 'planned', result_receipt_sha256: null,
-          },
-        ],
+        capsule_id: artifacts.capsule.capsule_id,
+        capsule_sha256: artifacts.capsule.capsule_sha256,
+        plane: artifacts.capsule.plane,
+        target_component_ids: [...artifacts.capsule.target_component_ids],
+        target_surface_ids: [...artifacts.capsule.target_surface_ids],
+        target_set_sha256: artifacts.capsule.target_set_sha256,
+        capsule_artifact: artifacts.capsule,
+        arms: artifacts.capsule.arms.map(arm => ({
+          ...arm,
+          execution_state: 'planned' as const,
+          result_receipt_sha256: null,
+        })) as OmniGentComponentEvolutionViewInput['experiments'][number]['arms'],
         decision: {
-          state: 'untrusted', decision_id: 'decision-prompt',
-          capsule_id: 'capsule-prompt',
-          external_input_sha256: digest('9'), capsule_sha256: digest('2'),
-          disposition: 'accept_candidate',
+          state: 'untrusted', decision_id: artifacts.decision.decision_id,
+          capsule_id: artifacts.decision.capsule_id,
+          external_input_sha256: artifacts.decision.external_input_sha256,
+          capsule_sha256: artifacts.decision.capsule_sha256,
+          disposition: artifacts.decision.disposition,
           authority_receipt_sha256: null,
+          artifact: artifacts.decision,
         },
         plan: {
-          state: 'prepared_unexecuted', plan_id: 'plan-prompt',
-          capsule_id: 'capsule-prompt', decision_id: 'decision-prompt',
-          plan_sha256: digest('0'), capsule_sha256: digest('2'),
-          decision_external_input_sha256: digest('9'), verification_receipt_sha256: null,
+          state: 'prepared_unexecuted', operation: artifacts.plan.operation,
+          plan_id: artifacts.plan.plan_id,
+          capsule_id: artifacts.plan.capsule_id, decision_id: artifacts.plan.decision_id,
+          plan_sha256: artifacts.plan.plan_sha256,
+          capsule_sha256: artifacts.plan.capsule_sha256,
+          decision_external_input_sha256: artifacts.plan.decision_external_input_sha256,
+          verification_receipt_sha256: null,
           applied_receipt_sha256: null,
           replay_receipt_sha256: null, rollback_receipt_sha256: null,
+          artifact: artifacts.plan,
         },
         proof_level: 'source_verified',
       },
@@ -832,16 +867,13 @@ function withComponentRuntimeEvidence(
   }
   experiment.proof_level = 'runtime_verified'
   experiment.decision = {
-    state: 'verified', decision_id: 'decision-prompt',
-    capsule_id: 'capsule-prompt',
-    external_input_sha256: digest('9'), capsule_sha256: digest('2'),
-    disposition: 'accept_candidate',
+    ...experiment.decision,
+    state: 'verified',
     authority_receipt_sha256: digest('1'),
   }
   experiment.plan = {
-    state: 'applied', plan_id: 'plan-prompt', plan_sha256: digest('0'),
-    capsule_id: 'capsule-prompt', decision_id: 'decision-prompt',
-    capsule_sha256: digest('2'), decision_external_input_sha256: digest('9'),
+    ...experiment.plan,
+    state: 'applied',
     verification_receipt_sha256: digest('6'), applied_receipt_sha256: digest('2'),
     replay_receipt_sha256: null,
     rollback_receipt_sha256: null,
@@ -875,9 +907,12 @@ test('component evolution view closes root and every nested object', () => {
     candidate => { candidate.active_loadout.extra = true },
     candidate => { candidate.components[0].extra = true },
     candidate => { candidate.experiments[0].extra = true },
+    candidate => { candidate.experiments[0].capsule_artifact.extra = true },
     candidate => { candidate.experiments[0].arms[0].extra = true },
     candidate => { candidate.experiments[0].decision.extra = true },
+    candidate => { candidate.experiments[0].decision.artifact.extra = true },
     candidate => { candidate.experiments[0].plan.extra = true },
+    candidate => { candidate.experiments[0].plan.artifact.extra = true },
     candidate => { candidate.optimizer_ports[0].extra = true },
     candidate => { candidate.timeline[0].extra = true },
     candidate => { candidate.trace.extra = true },
@@ -888,7 +923,10 @@ test('component evolution view closes root and every nested object', () => {
   for (const mutate of mutations) {
     const input: any = componentEvolutionView()
     mutate(input)
-    assert.throws(() => buildOmniGentComponentEvolutionView(input), /closure_invalid/)
+    assert.throws(
+      () => buildOmniGentComponentEvolutionView(input),
+      /(closure_invalid|closed_object_invalid)/,
+    )
     const output: any = buildOmniGentComponentEvolutionView(componentEvolutionView())
     mutate(output)
     assert.notDeepEqual(schemaErrors(output, schema, schema), [])
@@ -906,7 +944,7 @@ test('component identity, active generation, and timeline references fail closed
   assert.throws(() => buildOmniGentComponentEvolutionView(activeCollision), /active_identity_collision/)
   const unknownTarget = componentEvolutionView()
   unknownTarget.experiments[0]!.target_component_ids = ['missing-component']
-  assert.throws(() => buildOmniGentComponentEvolutionView(unknownTarget), /experiment_identity_invalid/)
+  assert.throws(() => buildOmniGentComponentEvolutionView(unknownTarget), /capsule_artifact_mismatch/)
   const unknownParent = componentEvolutionView()
   unknownParent.components[1]!.parent_component_id = 'missing-parent'
   assert.throws(() => buildOmniGentComponentEvolutionView(unknownParent), /parent_identity_invalid/)
@@ -954,7 +992,7 @@ test('component experiments require exact BASE TRUE SHAM controls and planes', (
   assert.throws(() => buildOmniGentComponentEvolutionView(modelWeights), /model_weights_plane_invalid/)
   const targetSurfaceMismatch = componentEvolutionView()
   targetSurfaceMismatch.experiments[0]!.target_surface_ids = ['router']
-  assert.throws(() => buildOmniGentComponentEvolutionView(targetSurfaceMismatch), /experiment_target_mismatch/)
+  assert.throws(() => buildOmniGentComponentEvolutionView(targetSurfaceMismatch), /capsule_artifact_mismatch/)
   const completedWithoutReceipt = componentEvolutionView()
   completedWithoutReceipt.experiments[0]!.arms[0]!.execution_state = 'completed'
   assert.throws(() => buildOmniGentComponentEvolutionView(completedWithoutReceipt), /arm_receipt_missing/)
@@ -969,7 +1007,7 @@ test('component decision and plan states cannot overstate receipts', () => {
   assert.throws(() => buildOmniGentComponentEvolutionView(verifiedWithoutAuthority), /decision_state_invalid/)
   const resealedCapsule = withComponentRuntimeEvidence(componentEvolutionView())
   resealedCapsule.experiments[0]!.capsule_sha256 = digest('f')
-  assert.throws(() => buildOmniGentComponentEvolutionView(resealedCapsule), /decision_state_invalid/)
+  assert.throws(() => buildOmniGentComponentEvolutionView(resealedCapsule), /capsule_artifact_mismatch/)
   const stalePlanCapsule = componentEvolutionView()
   stalePlanCapsule.experiments[0]!.plan.capsule_sha256 = digest('f')
   assert.throws(() => buildOmniGentComponentEvolutionView(stalePlanCapsule), /plan_state_invalid/)
@@ -1003,6 +1041,83 @@ test('component decision and plan states cannot overstate receipts', () => {
   rollbackWithoutApplication.experiments[0]!.plan.applied_receipt_sha256 = null
   rollbackWithoutApplication.experiments[0]!.plan.rollback_receipt_sha256 = digest('5')
   assert.throws(() => buildOmniGentComponentEvolutionView(rollbackWithoutApplication), /plan_state_invalid/)
+})
+
+test('accepted seam artifacts reject synchronized stale-digest substitutions', () => {
+  const capsuleAlias = withComponentRuntimeEvidence(componentEvolutionView())
+  const capsuleRow = capsuleAlias.experiments[0]!
+  capsuleRow.capsule_id = 'synchronized-capsule-alias'
+  capsuleRow.decision.capsule_id = 'synchronized-capsule-alias'
+  capsuleRow.plan.capsule_id = 'synchronized-capsule-alias'
+  capsuleRow.capsule_artifact.capsule_id = 'synchronized-capsule-alias'
+  capsuleRow.decision.artifact!.capsule_id = 'synchronized-capsule-alias'
+  capsuleRow.plan.artifact!.capsule_id = 'synchronized-capsule-alias'
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(capsuleAlias),
+    /component_experiment_capsule_invalid/,
+  )
+
+  const decisionAlias = withComponentRuntimeEvidence(componentEvolutionView())
+  const decisionRow = decisionAlias.experiments[0]!
+  decisionRow.decision.decision_id = 'synchronized-decision-alias'
+  decisionRow.plan.decision_id = 'synchronized-decision-alias'
+  decisionRow.decision.artifact!.decision_id = 'synchronized-decision-alias'
+  decisionRow.plan.artifact!.decision_id = 'synchronized-decision-alias'
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(decisionAlias),
+    /external_component_decision_invalid/,
+  )
+
+  const planAlias = withComponentRuntimeEvidence(componentEvolutionView())
+  planAlias.experiments[0]!.plan.plan_id = 'synchronized-plan-alias'
+  planAlias.experiments[0]!.plan.artifact!.plan_id = 'synchronized-plan-alias'
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(planAlias),
+    /component_reconfiguration_plan_invalid/,
+  )
+
+  const dispositionAlias = withComponentRuntimeEvidence(componentEvolutionView())
+  dispositionAlias.experiments[0]!.decision.disposition = 'rollback'
+  dispositionAlias.experiments[0]!.decision.artifact!.disposition = 'rollback'
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(dispositionAlias),
+    /external_component_decision_invalid/,
+  )
+
+  const planeAlias = withComponentRuntimeEvidence(componentEvolutionView())
+  planeAlias.experiments[0]!.plane = 'frontier_builder_critic'
+  planeAlias.experiments[0]!.capsule_artifact.plane = 'frontier_builder_critic'
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(planeAlias),
+    /component_experiment_capsule_invalid/,
+  )
+
+  const targetAlias = withComponentRuntimeEvidence(componentEvolutionView())
+  targetAlias.experiments[0]!.target_component_ids = ['prompt-v1']
+  targetAlias.experiments[0]!.capsule_artifact.target_component_ids = ['prompt-v1']
+  targetAlias.experiments[0]!.plan.artifact!.target_component_ids = ['prompt-v1']
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(targetAlias),
+    /component_experiment_capsule_invalid/,
+  )
+
+  const loadoutAlias = withComponentRuntimeEvidence(componentEvolutionView())
+  for (const arm of loadoutAlias.experiments[0]!.arms) arm.loadout_manifest_sha256 = digest('f')
+  for (const arm of loadoutAlias.experiments[0]!.capsule_artifact.arms) {
+    arm.loadout_manifest_sha256 = digest('f')
+  }
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(loadoutAlias),
+    /component_experiment_controls_not_distinct/,
+  )
+
+  const planDigestAlias = withComponentRuntimeEvidence(componentEvolutionView())
+  planDigestAlias.experiments[0]!.plan.plan_sha256 = digest('f')
+  planDigestAlias.experiments[0]!.plan.artifact!.plan_sha256 = digest('f')
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(planDigestAlias),
+    /component_reconfiguration_plan_invalid/,
+  )
 })
 
 test('component runtime and deployment proof levels require the complete floor', () => {
@@ -1153,7 +1268,22 @@ test('public component projection revalidation rejects semantic reseals', () => 
   staleCapsuleReseal.view_sha256 = '716ae3df84961b631d78180f407ffbb956ce25a5da8d1a89ab2ff812612059d8'
   assert.throws(
     () => validateOmniGentComponentEvolutionView(staleCapsuleReseal),
-    /decision_state_invalid/,
+    /capsule_artifact_mismatch/,
+  )
+  const synchronizedCapsuleReseal: any = buildOmniGentComponentEvolutionView(
+    withComponentRuntimeEvidence(componentEvolutionView()),
+  )
+  const synchronizedRow = synchronizedCapsuleReseal.experiments[0]
+  synchronizedRow.capsule_id = 'synchronized-capsule-alias'
+  synchronizedRow.decision.capsule_id = 'synchronized-capsule-alias'
+  synchronizedRow.plan.capsule_id = 'synchronized-capsule-alias'
+  synchronizedRow.capsule_artifact.capsule_id = 'synchronized-capsule-alias'
+  synchronizedRow.decision.artifact.capsule_id = 'synchronized-capsule-alias'
+  synchronizedRow.plan.artifact.capsule_id = 'synchronized-capsule-alias'
+  synchronizedCapsuleReseal.view_sha256 = '51d57de8f48dc877de5a8fe0814f84f0871bc2825a9ef4c1f1965c9bceff99d3'
+  assert.throws(
+    () => validateOmniGentComponentEvolutionView(synchronizedCapsuleReseal),
+    /component_experiment_capsule_invalid/,
   )
   const wrongViewHash: any = structuredClone(source)
   wrongViewHash.view_sha256 = digest('f')

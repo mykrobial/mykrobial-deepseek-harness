@@ -11,6 +11,9 @@ import {
   prepareComponentMutationProposal,
   prepareComponentReconfigurationPlan,
   projectComponentExperimentLifecycle,
+  validateComponentExperimentCapsule,
+  validateComponentReconfigurationPlan,
+  validateExternalComponentDecision,
   type ComponentExperimentCapsule,
   type ComponentMutationProposal,
   type ExternalComponentDecisionInput,
@@ -245,6 +248,41 @@ test('swap plan binds lifecycle and loadout contracts but never applies', () => 
   assert.equal(plan.trace_append_authorized, false)
   assert.ok(plan.steps.includes('rollback_on_identity_or_health_mismatch'))
   assert.ok(plan.blockers.includes('typed_blocker:external_decision_authority_unverified'))
+})
+
+test('public artifact validators recheck exact capsule decision and plan content identities', () => {
+  assert.ok(single.plan_fields)
+  const capsule = singleCapsule()
+  const decision = acceptExternalComponentDecision(copy(single.decision_input), capsule)
+  const plan = prepareComponentReconfigurationPlan({ ...copy(single.plan_fields), capsule, decision })
+  assert.deepEqual(validateComponentExperimentCapsule(copy(capsule)), capsule)
+  assert.deepEqual(validateExternalComponentDecision(copy(decision)), decision)
+  assert.deepEqual(validateComponentReconfigurationPlan(copy(plan)), plan)
+
+  const capsuleAlias = copy(capsule)
+  capsuleAlias.capsule_id = 'synchronized-capsule-alias'
+  assert.throws(
+    () => validateComponentExperimentCapsule(capsuleAlias),
+    /typed_blocker:component_experiment_capsule_invalid/,
+  )
+  const decisionAlias = copy(decision)
+  decisionAlias.decision_id = 'synchronized-decision-alias'
+  assert.throws(
+    () => validateExternalComponentDecision(decisionAlias),
+    /typed_blocker:external_component_decision_invalid/,
+  )
+  const planAlias = copy(plan)
+  planAlias.plan_id = 'synchronized-plan-alias'
+  assert.throws(
+    () => validateComponentReconfigurationPlan(planAlias),
+    /typed_blocker:component_reconfiguration_plan_invalid/,
+  )
+  const planDigestAlias = copy(plan)
+  planDigestAlias.plan_sha256 = '0'.repeat(64)
+  assert.throws(
+    () => validateComponentReconfigurationPlan(planDigestAlias),
+    /typed_blocker:component_reconfiguration_plan_invalid/,
+  )
 })
 
 test('decision and plan reject a same-id capsule rebound to a different digest', () => {

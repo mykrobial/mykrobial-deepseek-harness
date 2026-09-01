@@ -183,10 +183,11 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "role", "control_strategy", "loadout_manifest_sha256", "component_set_sha256",
+        "arm_id", "role", "control_strategy", "loadout_manifest_sha256", "component_set_sha256",
         "applied_delta_sha256", "execution_state", "result_receipt_sha256"
       ],
       "properties": {
+        "arm_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
         "role": { "enum": ["BASE", "TRUE", "SHAM"] },
         "control_strategy": { "enum": ["unchanged_baseline", "candidate_delta", "placebo_delta"] },
         "loadout_manifest_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
@@ -210,7 +211,7 @@
       "additionalProperties": false,
       "required": [
         "state", "decision_id", "capsule_id", "external_input_sha256", "capsule_sha256",
-        "disposition", "authority_receipt_sha256"
+        "disposition", "authority_receipt_sha256", "artifact"
       ],
       "properties": {
         "state": { "enum": ["none", "untrusted", "verified", "blocked"] },
@@ -222,7 +223,13 @@
           "type": ["string", "null"],
           "enum": ["accept_candidate", "reject_candidate", "revise_candidate", "no_change", "rollback", null]
         },
-        "authority_receipt_sha256": { "$ref": "#/$defs/nullableSha" }
+        "authority_receipt_sha256": { "$ref": "#/$defs/nullableSha" },
+        "artifact": {
+          "anyOf": [
+            { "$ref": "component-rsi-seam.v1.schema.json#/$defs/externalDecision" },
+            { "type": "null" }
+          ]
+        }
       },
       "allOf": [
         {
@@ -234,7 +241,8 @@
               "external_input_sha256": { "const": null },
               "capsule_sha256": { "const": null },
               "disposition": { "const": null },
-              "authority_receipt_sha256": { "const": null }
+              "authority_receipt_sha256": { "const": null },
+              "artifact": { "const": null }
             }
           },
           "else": {
@@ -243,7 +251,8 @@
               "capsule_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
               "external_input_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
               "capsule_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
-              "disposition": { "enum": ["accept_candidate", "reject_candidate", "revise_candidate", "no_change", "rollback"] }
+              "disposition": { "enum": ["accept_candidate", "reject_candidate", "revise_candidate", "no_change", "rollback"] },
+              "artifact": { "$ref": "component-rsi-seam.v1.schema.json#/$defs/externalDecision" }
             }
           }
         },
@@ -260,13 +269,14 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "state", "plan_id", "capsule_id", "decision_id", "plan_sha256",
+        "state", "operation", "plan_id", "capsule_id", "decision_id", "plan_sha256",
         "capsule_sha256", "decision_external_input_sha256",
         "verification_receipt_sha256", "applied_receipt_sha256",
-        "replay_receipt_sha256", "rollback_receipt_sha256"
+        "replay_receipt_sha256", "rollback_receipt_sha256", "artifact"
       ],
       "properties": {
         "state": { "enum": ["none", "prepared_unexecuted", "verified_unapplied", "applied", "rolled_back", "blocked"] },
+        "operation": { "type": ["string", "null"], "enum": ["swap", "rollback", "replay", null] },
         "plan_id": { "$ref": "#/$defs/nullableId" },
         "capsule_id": { "$ref": "#/$defs/nullableId" },
         "decision_id": { "$ref": "#/$defs/nullableId" },
@@ -276,13 +286,20 @@
         "verification_receipt_sha256": { "$ref": "#/$defs/nullableSha" },
         "applied_receipt_sha256": { "$ref": "#/$defs/nullableSha" },
         "replay_receipt_sha256": { "$ref": "#/$defs/nullableSha" },
-        "rollback_receipt_sha256": { "$ref": "#/$defs/nullableSha" }
+        "rollback_receipt_sha256": { "$ref": "#/$defs/nullableSha" },
+        "artifact": {
+          "anyOf": [
+            { "$ref": "component-rsi-seam.v1.schema.json#/$defs/reconfigurationPlan" },
+            { "type": "null" }
+          ]
+        }
       },
       "allOf": [
         {
           "if": { "properties": { "state": { "const": "none" } }, "required": ["state"] },
           "then": {
             "properties": {
+              "operation": { "const": null },
               "plan_id": { "const": null },
               "capsule_id": { "const": null },
               "decision_id": { "const": null },
@@ -292,17 +309,20 @@
               "verification_receipt_sha256": { "const": null },
               "applied_receipt_sha256": { "const": null },
               "replay_receipt_sha256": { "const": null },
-              "rollback_receipt_sha256": { "const": null }
+              "rollback_receipt_sha256": { "const": null },
+              "artifact": { "const": null }
             }
           },
           "else": {
             "properties": {
+              "operation": { "enum": ["swap", "rollback", "replay"] },
               "plan_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
               "capsule_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
               "decision_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
               "plan_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
               "capsule_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
-              "decision_external_input_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" }
+              "decision_external_input_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+              "artifact": { "$ref": "component-rsi-seam.v1.schema.json#/$defs/reconfigurationPlan" }
             }
           }
         },
@@ -341,7 +361,7 @@
       "required": [
         "experiment_id", "capsule_id", "capsule_sha256", "plane",
         "target_component_ids", "target_surface_ids", "target_set_sha256",
-        "arms", "decision", "plan", "proof_level"
+        "capsule_artifact", "arms", "decision", "plan", "proof_level"
       ],
       "properties": {
         "experiment_id": { "$ref": "harness-parity.v1.schema.json#/$defs/identifier" },
@@ -357,6 +377,7 @@
           "items": { "$ref": "#/$defs/surface" }
         },
         "target_set_sha256": { "$ref": "harness-parity.v1.schema.json#/$defs/sha256" },
+        "capsule_artifact": { "$ref": "component-rsi-seam.v1.schema.json#/$defs/experimentCapsule" },
         "arms": {
           "type": "array",
           "prefixItems": [

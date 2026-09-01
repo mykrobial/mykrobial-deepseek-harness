@@ -14,6 +14,8 @@
     "pure deterministic read-model constructor",
     "active component generation and lineage projection",
     "BASE TRUE SHAM experiment projection",
+    "complete accepted capsule decision and plan artifact revalidation",
+    "mutable execution-state separation from immutable no-apply plan artifacts",
     "four-plane proposal-only optimizer port projection",
     "transaction-time and valid-time timeline projection",
     "Trace replay rollback and proof-level readback",

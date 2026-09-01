@@ -1,5 +1,15 @@
 /** Pure, closed OmniGent read model for component-scoped evolution. */
 import { createHash } from 'node:crypto'
+import {
+  validateComponentExperimentCapsule,
+  validateComponentReconfigurationPlan,
+  validateExternalComponentDecision,
+} from '../../component-rsi-seam/src/index.ts'
+import type {
+  ComponentExperimentCapsule,
+  ComponentReconfigurationPlan,
+  ExternalComponentDecision,
+} from '../../component-rsi-seam/src/types.ts'
 
 export type EvolutionSurfaceId =
   | 'prompt' | 'skill_card' | 'ontology_edge_or_function' | 'router'
@@ -168,6 +178,7 @@ export interface ComponentGenerationViewInput {
 }
 
 export interface ExperimentArmViewInput {
+  arm_id: string
   role: 'BASE' | 'TRUE' | 'SHAM'
   control_strategy: 'unchanged_baseline' | 'candidate_delta' | 'placebo_delta'
   loadout_manifest_sha256: string
@@ -185,6 +196,7 @@ export interface ComponentExperimentViewInput {
   target_component_ids: string[]
   target_surface_ids: EvolutionSurfaceId[]
   target_set_sha256: string
+  capsule_artifact: ComponentExperimentCapsule
   arms: [ExperimentArmViewInput, ExperimentArmViewInput, ExperimentArmViewInput]
   decision: {
     state: 'none' | 'untrusted' | 'verified' | 'blocked'
@@ -194,9 +206,11 @@ export interface ComponentExperimentViewInput {
     capsule_sha256: string | null
     disposition: 'accept_candidate' | 'reject_candidate' | 'revise_candidate' | 'no_change' | 'rollback' | null
     authority_receipt_sha256: string | null
+    artifact: ExternalComponentDecision | null
   }
   plan: {
     state: 'none' | 'prepared_unexecuted' | 'verified_unapplied' | 'applied' | 'rolled_back' | 'blocked'
+    operation: 'swap' | 'rollback' | 'replay' | null
     plan_id: string | null
     capsule_id: string | null
     decision_id: string | null
@@ -207,6 +221,7 @@ export interface ComponentExperimentViewInput {
     applied_receipt_sha256: string | null
     replay_receipt_sha256: string | null
     rollback_receipt_sha256: string | null
+    artifact: ComponentReconfigurationPlan | null
   }
   proof_level: EvolutionProofLevel
 }
@@ -301,10 +316,11 @@ function componentRow(value: unknown): ComponentGenerationViewInput {
 
 function experimentArm(value: unknown): ExperimentArmViewInput {
   exact(value, [
-    'role', 'control_strategy', 'loadout_manifest_sha256', 'component_set_sha256',
+    'arm_id', 'role', 'control_strategy', 'loadout_manifest_sha256', 'component_set_sha256',
     'applied_delta_sha256', 'execution_state', 'result_receipt_sha256',
   ], 'component_view_arm_closure_invalid')
   const row = structuredClone(value) as unknown as ExperimentArmViewInput
+  row.arm_id = identifier(row.arm_id, 'component_view_arm_invalid')
   row.role = oneOf(row.role, ['BASE', 'TRUE', 'SHAM'] as const, 'component_view_arm_invalid')
   row.control_strategy = oneOf(row.control_strategy, [
     'unchanged_baseline', 'candidate_delta', 'placebo_delta',
@@ -326,7 +342,8 @@ function experimentArm(value: unknown): ExperimentArmViewInput {
 function experimentRow(value: unknown): ComponentExperimentViewInput {
   exact(value, [
     'experiment_id', 'capsule_id', 'capsule_sha256', 'plane',
-    'target_component_ids', 'target_surface_ids', 'target_set_sha256', 'arms', 'decision', 'plan',
+    'target_component_ids', 'target_surface_ids', 'target_set_sha256',
+    'capsule_artifact', 'arms', 'decision', 'plan',
     'proof_level',
   ], 'component_view_experiment_closure_invalid')
   const row = structuredClone(value) as unknown as ComponentExperimentViewInput
@@ -341,6 +358,7 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
   row.target_surface_ids = row.target_surface_ids.map(surface => oneOf(surface, SURFACES, 'component_view_surface_invalid')).sort()
   if (new Set(row.target_surface_ids).size !== row.target_surface_ids.length) throw new Error('typed_blocker:component_view_target_invalid')
   row.target_set_sha256 = digest(row.target_set_sha256, 'component_view_target_set_invalid')
+  row.capsule_artifact = validateComponentExperimentCapsule(row.capsule_artifact)
   if (row.target_surface_ids.includes('model_weights') && row.plane !== 'future_joint_model_harness') {
     throw new Error('typed_blocker:component_view_model_weights_plane_invalid')
   }
@@ -356,9 +374,28 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
     || new Set(row.arms.map(arm => arm.loadout_manifest_sha256)).size !== 1) {
     throw new Error('typed_blocker:component_view_arms_invalid')
   }
+  const capsule = row.capsule_artifact
+  if (capsule.experiment_id !== row.experiment_id
+    || capsule.capsule_id !== row.capsule_id
+    || capsule.capsule_sha256 !== row.capsule_sha256
+    || capsule.plane !== row.plane
+    || capsule.target_component_ids.join('\u0000') !== row.target_component_ids.join('\u0000')
+    || capsule.target_surface_ids.join('\u0000') !== row.target_surface_ids.join('\u0000')
+    || capsule.target_set_sha256 !== row.target_set_sha256
+    || capsule.arms.length !== row.arms.length
+    || capsule.arms.some((arm, index) => {
+      const projected = row.arms[index]
+      return projected === undefined || arm.arm_id !== projected.arm_id
+        || arm.role !== projected.role || arm.control_strategy !== projected.control_strategy
+        || arm.loadout_manifest_sha256 !== projected.loadout_manifest_sha256
+        || arm.component_set_sha256 !== projected.component_set_sha256
+        || arm.applied_delta_sha256 !== projected.applied_delta_sha256
+    })) {
+    throw new Error('typed_blocker:component_view_capsule_artifact_mismatch')
+  }
   exact(row.decision, [
     'state', 'decision_id', 'capsule_id', 'external_input_sha256', 'capsule_sha256', 'disposition',
-    'authority_receipt_sha256',
+    'authority_receipt_sha256', 'artifact',
   ], 'component_view_decision_closure_invalid')
   row.decision.state = oneOf(row.decision.state, ['none', 'untrusted', 'verified', 'blocked'] as const, 'component_view_decision_state_invalid')
   row.decision.decision_id = row.decision.decision_id === null ? null : identifier(row.decision.decision_id)
@@ -385,15 +422,35 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
     || (row.decision.state !== 'verified' && row.decision.authority_receipt_sha256 !== null)) {
     throw new Error('typed_blocker:component_view_decision_state_invalid')
   }
+  if (row.decision.state === 'none') {
+    if (row.decision.artifact !== null) {
+      throw new Error('typed_blocker:component_view_decision_state_invalid')
+    }
+  } else {
+    if (row.decision.artifact === null) {
+      throw new Error('typed_blocker:component_view_decision_state_invalid')
+    }
+    row.decision.artifact = validateExternalComponentDecision(row.decision.artifact)
+    if (row.decision.artifact.decision_id !== row.decision.decision_id
+      || row.decision.artifact.capsule_id !== row.decision.capsule_id
+      || row.decision.artifact.capsule_sha256 !== row.decision.capsule_sha256
+      || row.decision.artifact.external_input_sha256 !== row.decision.external_input_sha256
+      || row.decision.artifact.disposition !== row.decision.disposition) {
+      throw new Error('typed_blocker:component_view_decision_artifact_mismatch')
+    }
+  }
   exact(row.plan, [
-    'state', 'plan_id', 'capsule_id', 'decision_id', 'plan_sha256',
+    'state', 'operation', 'plan_id', 'capsule_id', 'decision_id', 'plan_sha256',
     'capsule_sha256', 'decision_external_input_sha256',
     'verification_receipt_sha256', 'applied_receipt_sha256',
-    'replay_receipt_sha256', 'rollback_receipt_sha256',
+    'replay_receipt_sha256', 'rollback_receipt_sha256', 'artifact',
   ], 'component_view_plan_closure_invalid')
   row.plan.state = oneOf(row.plan.state, [
     'none', 'prepared_unexecuted', 'verified_unapplied', 'applied', 'rolled_back', 'blocked',
   ] as const, 'component_view_plan_state_invalid')
+  row.plan.operation = row.plan.operation === null ? null : oneOf(
+    row.plan.operation, ['swap', 'rollback', 'replay'] as const, 'component_view_plan_operation_invalid',
+  )
   row.plan.plan_id = row.plan.plan_id === null ? null : identifier(row.plan.plan_id)
   row.plan.capsule_id = row.plan.capsule_id === null ? null : identifier(row.plan.capsule_id)
   row.plan.decision_id = row.plan.decision_id === null ? null : identifier(row.plan.decision_id)
@@ -407,7 +464,7 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
   row.plan.replay_receipt_sha256 = optionalDigest(row.plan.replay_receipt_sha256, 'component_view_plan_receipt_invalid')
   row.plan.rollback_receipt_sha256 = optionalDigest(row.plan.rollback_receipt_sha256, 'component_view_plan_receipt_invalid')
   const planCore = [
-    row.plan.plan_id, row.plan.capsule_id, row.plan.decision_id,
+    row.plan.operation, row.plan.plan_id, row.plan.capsule_id, row.plan.decision_id,
     row.plan.plan_sha256, row.plan.capsule_sha256,
     row.plan.decision_external_input_sha256,
   ]
@@ -429,6 +486,27 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
     || (!['applied', 'rolled_back'].includes(row.plan.state) && row.plan.applied_receipt_sha256 !== null)
     || (row.plan.state !== 'rolled_back' && row.plan.rollback_receipt_sha256 !== null)) {
     throw new Error('typed_blocker:component_view_plan_state_invalid')
+  }
+  if (row.plan.state === 'none') {
+    if (row.plan.artifact !== null) {
+      throw new Error('typed_blocker:component_view_plan_state_invalid')
+    }
+  } else {
+    if (row.plan.artifact === null) {
+      throw new Error('typed_blocker:component_view_plan_state_invalid')
+    }
+    row.plan.artifact = validateComponentReconfigurationPlan(row.plan.artifact)
+    if (row.plan.artifact.operation !== row.plan.operation
+      || row.plan.artifact.plan_id !== row.plan.plan_id
+      || row.plan.artifact.plan_sha256 !== row.plan.plan_sha256
+      || row.plan.artifact.capsule_id !== row.plan.capsule_id
+      || row.plan.artifact.capsule_sha256 !== row.plan.capsule_sha256
+      || row.plan.artifact.decision_id !== row.plan.decision_id
+      || row.plan.artifact.decision_external_input_sha256 !== row.plan.decision_external_input_sha256
+      || row.plan.artifact.target_component_ids.join('\u0000') !== row.target_component_ids.join('\u0000')
+      || row.plan.artifact.target_surface_ids.join('\u0000') !== row.target_surface_ids.join('\u0000')) {
+      throw new Error('typed_blocker:component_view_plan_artifact_mismatch')
+    }
   }
   row.proof_level = oneOf(row.proof_level, PROOF_LEVELS, 'component_view_proof_level_invalid')
   if (['runtime_verified', 'deployed_verified'].includes(row.proof_level)
