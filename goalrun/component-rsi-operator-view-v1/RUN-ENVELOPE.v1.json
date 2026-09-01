@@ -22,6 +22,7 @@
     "exhaustive before-after component snapshots and receipt-distinct result identity",
     "classed subject-bound expiring replay-consumed receipt envelopes",
     "proof-time receipt validity and cross-class one-use identity separation",
+    "complete cross-role nonce reservation and consumption identity uniqueness",
     "four-plane proposal-only optimizer port projection",
     "transaction-time and valid-time timeline projection",
     "Trace replay rollback and proof-level readback",

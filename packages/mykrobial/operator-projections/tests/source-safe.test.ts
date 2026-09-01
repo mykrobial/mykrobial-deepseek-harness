@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import test from 'node:test'
 import {
   acceptExternalComponentDecision,
+  canonicalSha256,
   prepareComponentExperimentCapsule,
   prepareComponentMutationProposal,
   prepareComponentReconfigurationPlan,
@@ -28,8 +29,8 @@ function receiptInput(
   issuedAt: string,
 ): any {
   const identity = {
-    verification: ['a', 'b', 'c'], application: ['d', 'e', 'f'],
-    rollback: ['1', '2', '3'], replay: ['4', '5', '6'],
+    verification: ['0', '1', '3'], application: ['4', '5', '7'],
+    rollback: ['8', '9', 'a'], replay: ['b', 'c', 'd'],
   }[receiptClass]
   return {
     receipt_id: receiptId,
@@ -43,6 +44,21 @@ function receiptInput(
     nonce_reservation_receipt_sha256: digest(identity[1]),
     nonce_consumption_receipt_sha256: digest(identity[2]),
   }
+}
+
+function resealOperationResult(result: any): void {
+  for (const envelope of [result.verification_receipt, result.operation_receipt]) {
+    const { envelope_sha256: _oldEnvelopeSha, ...envelopeBody } = envelope
+    envelope.envelope_sha256 = canonicalSha256(envelopeBody)
+  }
+  const {
+    schema: _schema, result_id: _resultId, basis_sha256: _basisSha256,
+    result_sha256: _resultSha256, ...basisBody
+  } = result
+  result.basis_sha256 = canonicalSha256(basisBody)
+  result.result_id = `component-result-${result.basis_sha256.slice(0, 24)}`
+  const { result_sha256: _oldResultSha, ...resultBody } = result
+  result.result_sha256 = canonicalSha256(resultBody)
 }
 
 const componentSeamFixture: any = JSON.parse(readFileSync(
@@ -1457,7 +1473,7 @@ test('operation-result basis is receipt-distinct exhaustive causal and lineage-c
       'verification', digest('6'), 'receipt-plan-verification', '2026-09-01T00:01:30Z',
     ),
     operation_receipt: receiptInput(
-      'application', digest('3'), 'receipt-component-application-two', '2026-09-01T00:02:00Z',
+      'application', digest('e'), 'receipt-component-application-two', '2026-09-01T00:02:00Z',
     ),
     before_observed_at: first.before_observed_at,
     observed_at: first.observed_at,
@@ -1593,6 +1609,32 @@ test('receipt envelopes are live at use time and unique across evidence classes'
       after_components: result.after_components,
       verification_receipt: aliasedVerification,
       operation_receipt: aliasedOperation,
+      before_observed_at: result.before_observed_at,
+      observed_at: result.observed_at,
+    }),
+    /typed_blocker:component_operation_result_receipt_identity_alias/,
+  )
+
+  const crossRoleVerification = receiptInput(
+    'verification', digest('6'), 'receipt-cross-role-verification', '2026-09-01T00:01:30Z',
+  )
+  const crossRoleOperation = receiptInput(
+    'application', digest('2'), 'receipt-cross-role-operation', result.observed_at,
+  )
+  crossRoleOperation.nonce_reservation_receipt_sha256
+    = crossRoleVerification.nonce_consumption_receipt_sha256
+  crossRoleOperation.nonce_consumption_receipt_sha256
+    = crossRoleVerification.nonce_reservation_receipt_sha256
+  assert.throws(
+    () => buildComponentOperationResult({
+      capsule: experiment.capsule_artifact,
+      decision: experiment.decision.artifact!,
+      plan: experiment.plan.artifact!,
+      post_loadout_manifest_sha256: result.post_loadout_manifest_sha256,
+      before_components: result.before_components,
+      after_components: result.after_components,
+      verification_receipt: crossRoleVerification,
+      operation_receipt: crossRoleOperation,
       before_observed_at: result.before_observed_at,
       observed_at: result.observed_at,
     }),
@@ -1868,6 +1910,20 @@ test('public component projection revalidation rejects semantic reseals', () => 
   assert.throws(
     () => validateOmniGentComponentEvolutionView(futureReceiptReseal),
     /typed_blocker:component_view_post_operation_readback_invalid/,
+  )
+  const crossRoleReceiptReseal: any = buildOmniGentComponentEvolutionView(
+    withComponentRuntimeEvidence(componentEvolutionView()),
+  )
+  const crossRoleResult = crossRoleReceiptReseal.experiments[0].plan.operation_result
+  crossRoleResult.operation_receipt.nonce_reservation_receipt_sha256
+    = crossRoleResult.verification_receipt.nonce_consumption_receipt_sha256
+  crossRoleResult.operation_receipt.nonce_consumption_receipt_sha256
+    = crossRoleResult.verification_receipt.nonce_reservation_receipt_sha256
+  resealOperationResult(crossRoleResult)
+  crossRoleReceiptReseal.view_sha256 = '5e6fc65ef8e4ea2d30104eb010a6d8345fad533fdca9fa984de85af6de769b1d'
+  assert.throws(
+    () => validateOmniGentComponentEvolutionView(crossRoleReceiptReseal),
+    /typed_blocker:component_operation_result_receipt_identity_alias/,
   )
   const wrongViewHash: any = structuredClone(source)
   wrongViewHash.view_sha256 = digest('f')

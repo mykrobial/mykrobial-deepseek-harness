@@ -6,7 +6,7 @@
   },
   "content_manifest": {
     "ref": "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
-    "sha256": "4887cf468f921c698fbc0bfb4d0ff093f1cfef2516b5b4c502c2ddcb340b41e6",
+    "sha256": "08c6c43ec3cc184565ade399dd35ef38074b8a79e715ddea123f67b6ba2cd5c0",
     "content_file_count": 12,
     "manifest_excludes": [
       "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
@@ -18,7 +18,8 @@
       "goalrun/component-rsi-operator-view-v1/ROUND-5-FRESH-CRITIC-BLOCKER.v1.json",
       "goalrun/component-rsi-operator-view-v1/ROUND-6-FRESH-CRITIC-BLOCKER.v1.json",
       "goalrun/component-rsi-operator-view-v1/ROUND-7-FRESH-CRITIC-BLOCKER.v1.json",
-      "goalrun/component-rsi-operator-view-v1/ROUND-8-FRESH-CRITIC-BLOCKER.v1.json"
+      "goalrun/component-rsi-operator-view-v1/ROUND-8-FRESH-CRITIC-BLOCKER.v1.json",
+      "goalrun/component-rsi-operator-view-v1/ROUND-9-FRESH-CRITIC-BLOCKER.v1.json"
     ]
   },
   "verification": {
@@ -53,6 +54,7 @@
     "classed_subject_expiry_replay_receipt_envelopes_exact": true,
     "receipt_live_at_evidence_and_projection_time": true,
     "cross_class_receipt_and_nonce_identity_unique": true,
+    "cross_role_reservation_consumption_identity_unique": true,
     "transaction_and_valid_time": true,
     "optimizer_ports_proposal_only": true,
     "trace_replay_rollback_readback": true,
@@ -174,6 +176,17 @@
       "bound all receipt issuance at or before the generated OmniGent projection",
       "preserve issuer authenticity and action authority as explicit false nonclaims",
       "reject the exact runtime deployed result basis observation and public-revalidation receipt-lifecycle counterexamples"
+    ]
+  },
+  "round_9_repair_basis": {
+    "critic_ref": "goalrun/component-rsi-operator-view-v1/ROUND-9-FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "95140607178fd00736a3967c7aec3cb4c3724c653e2cb05913796ba231b881a6",
+    "finding": "typed_blocker:component_evolution_cross_class_nonce_receipt_role_alias",
+    "repairs": [
+      "collapse both raw receipts both nonces both reservations and both consumptions into one uniqueness set",
+      "reject every cross-class and cross-role digest intersection",
+      "preserve replay authority issuer authenticity and action authority as separate nonclaims",
+      "reject the exact result runtime deployed basis observation envelope and public-revalidation counterexamples"
     ]
   },
   "authority": {

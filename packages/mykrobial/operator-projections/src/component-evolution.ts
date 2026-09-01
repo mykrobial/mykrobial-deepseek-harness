@@ -646,13 +646,18 @@ export function validateComponentOperationResult(
   row.operation_receipt = validateComponentReceiptEnvelope(
     row.operation_receipt, expectedOperationClass, expectedObservation,
   )
+  const crossClassDigestIdentities = [
+    row.verification_receipt.receipt_sha256,
+    row.verification_receipt.nonce_sha256,
+    row.verification_receipt.nonce_reservation_receipt_sha256,
+    row.verification_receipt.nonce_consumption_receipt_sha256,
+    row.operation_receipt.receipt_sha256,
+    row.operation_receipt.nonce_sha256,
+    row.operation_receipt.nonce_reservation_receipt_sha256,
+    row.operation_receipt.nonce_consumption_receipt_sha256,
+  ]
   if (row.verification_receipt.receipt_id === row.operation_receipt.receipt_id
-    || row.verification_receipt.receipt_sha256 === row.operation_receipt.receipt_sha256
-    || row.verification_receipt.nonce_sha256 === row.operation_receipt.nonce_sha256
-    || row.verification_receipt.nonce_reservation_receipt_sha256
-      === row.operation_receipt.nonce_reservation_receipt_sha256
-    || row.verification_receipt.nonce_consumption_receipt_sha256
-      === row.operation_receipt.nonce_consumption_receipt_sha256) {
+    || new Set(crossClassDigestIdentities).size !== crossClassDigestIdentities.length) {
     throw new Error('typed_blocker:component_operation_result_receipt_identity_alias')
   }
   const beforeById = new Map(row.before_components.map(component => [component.component_id, component]))
