@@ -169,6 +169,7 @@ export interface ComponentGenerationViewInput {
 
 export interface ExperimentArmViewInput {
   role: 'BASE' | 'TRUE' | 'SHAM'
+  control_strategy: 'unchanged_baseline' | 'candidate_delta' | 'placebo_delta'
   loadout_manifest_sha256: string
   component_set_sha256: string
   applied_delta_sha256: string
@@ -183,18 +184,25 @@ export interface ComponentExperimentViewInput {
   plane: EvolutionPlane
   target_component_ids: string[]
   target_surface_ids: EvolutionSurfaceId[]
+  target_set_sha256: string
   arms: [ExperimentArmViewInput, ExperimentArmViewInput, ExperimentArmViewInput]
   decision: {
     state: 'none' | 'untrusted' | 'verified' | 'blocked'
     decision_id: string | null
-    decision_sha256: string | null
+    capsule_id: string | null
+    external_input_sha256: string | null
+    capsule_sha256: string | null
     disposition: 'accept_candidate' | 'reject_candidate' | 'revise_candidate' | 'no_change' | 'rollback' | null
     authority_receipt_sha256: string | null
   }
   plan: {
     state: 'none' | 'prepared_unexecuted' | 'verified_unapplied' | 'applied' | 'rolled_back' | 'blocked'
     plan_id: string | null
+    capsule_id: string | null
+    decision_id: string | null
     plan_sha256: string | null
+    capsule_sha256: string | null
+    decision_external_input_sha256: string | null
     verification_receipt_sha256: string | null
     applied_receipt_sha256: string | null
     replay_receipt_sha256: string | null
@@ -293,11 +301,14 @@ function componentRow(value: unknown): ComponentGenerationViewInput {
 
 function experimentArm(value: unknown): ExperimentArmViewInput {
   exact(value, [
-    'role', 'loadout_manifest_sha256', 'component_set_sha256',
+    'role', 'control_strategy', 'loadout_manifest_sha256', 'component_set_sha256',
     'applied_delta_sha256', 'execution_state', 'result_receipt_sha256',
   ], 'component_view_arm_closure_invalid')
   const row = structuredClone(value) as unknown as ExperimentArmViewInput
   row.role = oneOf(row.role, ['BASE', 'TRUE', 'SHAM'] as const, 'component_view_arm_invalid')
+  row.control_strategy = oneOf(row.control_strategy, [
+    'unchanged_baseline', 'candidate_delta', 'placebo_delta',
+  ] as const, 'component_view_arm_control_invalid')
   row.loadout_manifest_sha256 = digest(row.loadout_manifest_sha256)
   row.component_set_sha256 = digest(row.component_set_sha256)
   row.applied_delta_sha256 = digest(row.applied_delta_sha256)
@@ -315,7 +326,7 @@ function experimentArm(value: unknown): ExperimentArmViewInput {
 function experimentRow(value: unknown): ComponentExperimentViewInput {
   exact(value, [
     'experiment_id', 'capsule_id', 'capsule_sha256', 'plane',
-    'target_component_ids', 'target_surface_ids', 'arms', 'decision', 'plan',
+    'target_component_ids', 'target_surface_ids', 'target_set_sha256', 'arms', 'decision', 'plan',
     'proof_level',
   ], 'component_view_experiment_closure_invalid')
   const row = structuredClone(value) as unknown as ComponentExperimentViewInput
@@ -329,56 +340,87 @@ function experimentRow(value: unknown): ComponentExperimentViewInput {
   }
   row.target_surface_ids = row.target_surface_ids.map(surface => oneOf(surface, SURFACES, 'component_view_surface_invalid')).sort()
   if (new Set(row.target_surface_ids).size !== row.target_surface_ids.length) throw new Error('typed_blocker:component_view_target_invalid')
+  row.target_set_sha256 = digest(row.target_set_sha256, 'component_view_target_set_invalid')
   if (row.target_surface_ids.includes('model_weights') && row.plane !== 'future_joint_model_harness') {
     throw new Error('typed_blocker:component_view_model_weights_plane_invalid')
   }
   if (!Array.isArray(row.arms) || row.arms.length !== 3) throw new Error('typed_blocker:component_view_arms_invalid')
   row.arms = row.arms.map(experimentArm) as [ExperimentArmViewInput, ExperimentArmViewInput, ExperimentArmViewInput]
   if (row.arms.map(arm => arm.role).join(',') !== 'BASE,TRUE,SHAM'
+    || row.arms[0].control_strategy !== 'unchanged_baseline'
+    || row.arms[1].control_strategy !== 'candidate_delta'
+    || row.arms[2].control_strategy !== 'placebo_delta'
+    || row.arms[1].applied_delta_sha256 !== row.target_set_sha256
     || new Set(row.arms.map(arm => arm.component_set_sha256)).size !== 3
     || new Set(row.arms.map(arm => arm.applied_delta_sha256)).size !== 3
     || new Set(row.arms.map(arm => arm.loadout_manifest_sha256)).size !== 1) {
     throw new Error('typed_blocker:component_view_arms_invalid')
   }
   exact(row.decision, [
-    'state', 'decision_id', 'decision_sha256', 'disposition',
+    'state', 'decision_id', 'capsule_id', 'external_input_sha256', 'capsule_sha256', 'disposition',
     'authority_receipt_sha256',
   ], 'component_view_decision_closure_invalid')
   row.decision.state = oneOf(row.decision.state, ['none', 'untrusted', 'verified', 'blocked'] as const, 'component_view_decision_state_invalid')
   row.decision.decision_id = row.decision.decision_id === null ? null : identifier(row.decision.decision_id)
-  row.decision.decision_sha256 = optionalDigest(row.decision.decision_sha256, 'component_view_decision_digest_invalid')
+  row.decision.capsule_id = row.decision.capsule_id === null ? null : identifier(row.decision.capsule_id)
+  row.decision.external_input_sha256 = optionalDigest(
+    row.decision.external_input_sha256, 'component_view_decision_digest_invalid',
+  )
+  row.decision.capsule_sha256 = optionalDigest(row.decision.capsule_sha256, 'component_view_decision_capsule_invalid')
   row.decision.authority_receipt_sha256 = optionalDigest(row.decision.authority_receipt_sha256, 'component_view_authority_receipt_invalid')
   if (row.decision.disposition !== null) {
     row.decision.disposition = oneOf(row.decision.disposition, [
       'accept_candidate', 'reject_candidate', 'revise_candidate', 'no_change', 'rollback',
     ] as const, 'component_view_decision_disposition_invalid')
   }
-  const decisionCore = [row.decision.decision_id, row.decision.decision_sha256, row.decision.disposition]
+  const decisionCore = [
+    row.decision.decision_id, row.decision.capsule_id, row.decision.external_input_sha256,
+    row.decision.capsule_sha256, row.decision.disposition,
+  ]
   if ((row.decision.state === 'none' && [...decisionCore, row.decision.authority_receipt_sha256].some(item => item !== null))
     || (row.decision.state !== 'none' && decisionCore.some(item => item === null))
+    || (row.decision.state !== 'none' && (row.decision.capsule_id !== row.capsule_id
+      || row.decision.capsule_sha256 !== row.capsule_sha256))
     || (row.decision.state === 'verified' && row.decision.authority_receipt_sha256 === null)
     || (row.decision.state !== 'verified' && row.decision.authority_receipt_sha256 !== null)) {
     throw new Error('typed_blocker:component_view_decision_state_invalid')
   }
   exact(row.plan, [
-    'state', 'plan_id', 'plan_sha256', 'verification_receipt_sha256', 'applied_receipt_sha256',
+    'state', 'plan_id', 'capsule_id', 'decision_id', 'plan_sha256',
+    'capsule_sha256', 'decision_external_input_sha256',
+    'verification_receipt_sha256', 'applied_receipt_sha256',
     'replay_receipt_sha256', 'rollback_receipt_sha256',
   ], 'component_view_plan_closure_invalid')
   row.plan.state = oneOf(row.plan.state, [
     'none', 'prepared_unexecuted', 'verified_unapplied', 'applied', 'rolled_back', 'blocked',
   ] as const, 'component_view_plan_state_invalid')
   row.plan.plan_id = row.plan.plan_id === null ? null : identifier(row.plan.plan_id)
+  row.plan.capsule_id = row.plan.capsule_id === null ? null : identifier(row.plan.capsule_id)
+  row.plan.decision_id = row.plan.decision_id === null ? null : identifier(row.plan.decision_id)
   row.plan.plan_sha256 = optionalDigest(row.plan.plan_sha256, 'component_view_plan_digest_invalid')
+  row.plan.capsule_sha256 = optionalDigest(row.plan.capsule_sha256, 'component_view_plan_capsule_invalid')
+  row.plan.decision_external_input_sha256 = optionalDigest(
+    row.plan.decision_external_input_sha256, 'component_view_plan_decision_invalid',
+  )
   row.plan.verification_receipt_sha256 = optionalDigest(row.plan.verification_receipt_sha256, 'component_view_plan_receipt_invalid')
   row.plan.applied_receipt_sha256 = optionalDigest(row.plan.applied_receipt_sha256, 'component_view_plan_receipt_invalid')
   row.plan.replay_receipt_sha256 = optionalDigest(row.plan.replay_receipt_sha256, 'component_view_plan_receipt_invalid')
   row.plan.rollback_receipt_sha256 = optionalDigest(row.plan.rollback_receipt_sha256, 'component_view_plan_receipt_invalid')
-  const planCore = [row.plan.plan_id, row.plan.plan_sha256]
+  const planCore = [
+    row.plan.plan_id, row.plan.capsule_id, row.plan.decision_id,
+    row.plan.plan_sha256, row.plan.capsule_sha256,
+    row.plan.decision_external_input_sha256,
+  ]
   if ((row.plan.state === 'none' && [
     ...planCore, row.plan.verification_receipt_sha256, row.plan.applied_receipt_sha256, row.plan.replay_receipt_sha256,
     row.plan.rollback_receipt_sha256,
   ].some(item => item !== null))
     || (row.plan.state !== 'none' && planCore.some(item => item === null))
+    || (row.plan.state !== 'none' && (row.decision.state === 'none'
+      || row.plan.capsule_id !== row.capsule_id
+      || row.plan.capsule_sha256 !== row.capsule_sha256
+      || row.plan.decision_id !== row.decision.decision_id
+      || row.plan.decision_external_input_sha256 !== row.decision.external_input_sha256))
     || (['verified_unapplied', 'applied', 'rolled_back'].includes(row.plan.state)
       !== (row.plan.verification_receipt_sha256 !== null))
     || (row.plan.state === 'applied' && row.plan.applied_receipt_sha256 === null)

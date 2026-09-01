@@ -5,6 +5,10 @@ This pure package shapes real backend facts for OmniGent and either Software Fac
 The component-evolution projection adds a second closed read model for active
 component generations, exact BASE/TRUE/SHAM experiments, the four shared
 evolution planes, proposal-only optimizer ports, component transaction time and
-valid time, Trace state, replay, and rollback. It projects backend facts only;
+valid time, Trace state, replay, and rollback. Each arm retains its exact
+control strategy; the TRUE arm is bound to the capsule target set; and the
+capsule, external decision, and reconfiguration plan retain matching identities
+and digests. Four-digit UTC civil time is ordered literally, including years
+0000 through 0099. It projects backend facts only;
 it cannot run an optimizer, apply a component, append Trace, train, promote, or
 deploy.

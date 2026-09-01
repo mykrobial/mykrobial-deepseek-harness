@@ -709,31 +709,39 @@ function componentEvolutionView(): OmniGentComponentEvolutionViewInput {
         plane: 'local_idle_compute',
         target_component_ids: ['prompt-v2'],
         target_surface_ids: ['prompt'],
+        target_set_sha256: digest('6'),
         arms: [
           {
-            role: 'BASE', loadout_manifest_sha256: digest('a'),
+            role: 'BASE', control_strategy: 'unchanged_baseline',
+            loadout_manifest_sha256: digest('a'),
             component_set_sha256: digest('3'), applied_delta_sha256: digest('4'),
             execution_state: 'planned', result_receipt_sha256: null,
           },
           {
-            role: 'TRUE', loadout_manifest_sha256: digest('a'),
+            role: 'TRUE', control_strategy: 'candidate_delta',
+            loadout_manifest_sha256: digest('a'),
             component_set_sha256: digest('5'), applied_delta_sha256: digest('6'),
             execution_state: 'planned', result_receipt_sha256: null,
           },
           {
-            role: 'SHAM', loadout_manifest_sha256: digest('a'),
+            role: 'SHAM', control_strategy: 'placebo_delta',
+            loadout_manifest_sha256: digest('a'),
             component_set_sha256: digest('7'), applied_delta_sha256: digest('8'),
             execution_state: 'planned', result_receipt_sha256: null,
           },
         ],
         decision: {
           state: 'untrusted', decision_id: 'decision-prompt',
-          decision_sha256: digest('9'), disposition: 'accept_candidate',
+          capsule_id: 'capsule-prompt',
+          external_input_sha256: digest('9'), capsule_sha256: digest('2'),
+          disposition: 'accept_candidate',
           authority_receipt_sha256: null,
         },
         plan: {
           state: 'prepared_unexecuted', plan_id: 'plan-prompt',
-          plan_sha256: digest('0'), verification_receipt_sha256: null,
+          capsule_id: 'capsule-prompt', decision_id: 'decision-prompt',
+          plan_sha256: digest('0'), capsule_sha256: digest('2'),
+          decision_external_input_sha256: digest('9'), verification_receipt_sha256: null,
           applied_receipt_sha256: null,
           replay_receipt_sha256: null, rollback_receipt_sha256: null,
         },
@@ -825,11 +833,15 @@ function withComponentRuntimeEvidence(
   experiment.proof_level = 'runtime_verified'
   experiment.decision = {
     state: 'verified', decision_id: 'decision-prompt',
-    decision_sha256: digest('9'), disposition: 'accept_candidate',
+    capsule_id: 'capsule-prompt',
+    external_input_sha256: digest('9'), capsule_sha256: digest('2'),
+    disposition: 'accept_candidate',
     authority_receipt_sha256: digest('1'),
   }
   experiment.plan = {
     state: 'applied', plan_id: 'plan-prompt', plan_sha256: digest('0'),
+    capsule_id: 'capsule-prompt', decision_id: 'decision-prompt',
+    capsule_sha256: digest('2'), decision_external_input_sha256: digest('9'),
     verification_receipt_sha256: digest('6'), applied_receipt_sha256: digest('2'),
     replay_receipt_sha256: null,
     rollback_receipt_sha256: null,
@@ -928,6 +940,15 @@ test('component experiments require exact BASE TRUE SHAM controls and planes', (
   const loadoutDrift = componentEvolutionView()
   loadoutDrift.experiments[0]!.arms[2]!.loadout_manifest_sha256 = digest('f')
   assert.throws(() => buildOmniGentComponentEvolutionView(loadoutDrift), /arms_invalid/)
+  const swappedControlSemantics = componentEvolutionView()
+  const baseDelta = swappedControlSemantics.experiments[0]!.arms[0]!.applied_delta_sha256
+  swappedControlSemantics.experiments[0]!.arms[0]!.applied_delta_sha256
+    = swappedControlSemantics.experiments[0]!.arms[1]!.applied_delta_sha256
+  swappedControlSemantics.experiments[0]!.arms[1]!.applied_delta_sha256 = baseDelta
+  assert.throws(() => buildOmniGentComponentEvolutionView(swappedControlSemantics), /arms_invalid/)
+  const wrongControlStrategy = componentEvolutionView()
+  wrongControlStrategy.experiments[0]!.arms[0]!.control_strategy = 'candidate_delta'
+  assert.throws(() => buildOmniGentComponentEvolutionView(wrongControlStrategy), /arms_invalid/)
   const modelWeights = componentEvolutionView()
   modelWeights.experiments[0]!.target_surface_ids = ['model_weights']
   assert.throws(() => buildOmniGentComponentEvolutionView(modelWeights), /model_weights_plane_invalid/)
@@ -946,6 +967,21 @@ test('component decision and plan states cannot overstate receipts', () => {
   const verifiedWithoutAuthority = componentEvolutionView()
   verifiedWithoutAuthority.experiments[0]!.decision.state = 'verified'
   assert.throws(() => buildOmniGentComponentEvolutionView(verifiedWithoutAuthority), /decision_state_invalid/)
+  const resealedCapsule = withComponentRuntimeEvidence(componentEvolutionView())
+  resealedCapsule.experiments[0]!.capsule_sha256 = digest('f')
+  assert.throws(() => buildOmniGentComponentEvolutionView(resealedCapsule), /decision_state_invalid/)
+  const stalePlanCapsule = componentEvolutionView()
+  stalePlanCapsule.experiments[0]!.plan.capsule_sha256 = digest('f')
+  assert.throws(() => buildOmniGentComponentEvolutionView(stalePlanCapsule), /plan_state_invalid/)
+  const stalePlanDecision = componentEvolutionView()
+  stalePlanDecision.experiments[0]!.plan.decision_external_input_sha256 = digest('f')
+  assert.throws(() => buildOmniGentComponentEvolutionView(stalePlanDecision), /plan_state_invalid/)
+  const staleDecisionCapsuleId = componentEvolutionView()
+  staleDecisionCapsuleId.experiments[0]!.decision.capsule_id = 'different-capsule'
+  assert.throws(() => buildOmniGentComponentEvolutionView(staleDecisionCapsuleId), /decision_state_invalid/)
+  const stalePlanDecisionId = componentEvolutionView()
+  stalePlanDecisionId.experiments[0]!.plan.decision_id = 'different-decision'
+  assert.throws(() => buildOmniGentComponentEvolutionView(stalePlanDecisionId), /plan_state_invalid/)
   const verifiedUnappliedWithoutReceipt = componentEvolutionView()
   verifiedUnappliedWithoutReceipt.experiments[0]!.plan.state = 'verified_unapplied'
   assert.throws(() => buildOmniGentComponentEvolutionView(verifiedUnappliedWithoutReceipt), /plan_state_invalid/)
@@ -1100,6 +1136,25 @@ test('public component projection revalidation rejects semantic reseals', () => 
     () => validateOmniGentComponentEvolutionView(centuryBoundaryReseal),
     /component_state_invalid/,
   )
+  const swappedControlReseal: any = structuredClone(source)
+  const baseDelta = swappedControlReseal.experiments[0].arms[0].applied_delta_sha256
+  swappedControlReseal.experiments[0].arms[0].applied_delta_sha256
+    = swappedControlReseal.experiments[0].arms[1].applied_delta_sha256
+  swappedControlReseal.experiments[0].arms[1].applied_delta_sha256 = baseDelta
+  swappedControlReseal.view_sha256 = '182e44f350ebb5cfe60caca54e66384f71ad0373ec72a6bf998e20aeddacc962'
+  assert.throws(
+    () => validateOmniGentComponentEvolutionView(swappedControlReseal),
+    /arms_invalid/,
+  )
+  const staleCapsuleReseal: any = buildOmniGentComponentEvolutionView(
+    withComponentRuntimeEvidence(componentEvolutionView()),
+  )
+  staleCapsuleReseal.experiments[0].capsule_sha256 = digest('f')
+  staleCapsuleReseal.view_sha256 = '716ae3df84961b631d78180f407ffbb956ce25a5da8d1a89ab2ff812612059d8'
+  assert.throws(
+    () => validateOmniGentComponentEvolutionView(staleCapsuleReseal),
+    /decision_state_invalid/,
+  )
   const wrongViewHash: any = structuredClone(source)
   wrongViewHash.view_sha256 = digest('f')
   assert.throws(() => validateOmniGentComponentEvolutionView(wrongViewHash), /public_revalidation_failed/)
@@ -1107,6 +1162,22 @@ test('public component projection revalidation rejects semantic reseals', () => 
 
 test('component public schema mirrors every expressible proof and receipt join', () => {
   const schema = schemaFiles['omnigent-component-evolution-read-model.v1.schema.json']
+  const wrongControl: any = buildOmniGentComponentEvolutionView(componentEvolutionView())
+  wrongControl.experiments[0].arms[0].control_strategy = 'candidate_delta'
+  assert.notDeepEqual(schemaErrors(wrongControl, schema, schema), [])
+
+  const missingTargetSet: any = buildOmniGentComponentEvolutionView(componentEvolutionView())
+  delete missingTargetSet.experiments[0].target_set_sha256
+  assert.notDeepEqual(schemaErrors(missingTargetSet, schema, schema), [])
+
+  const missingDecisionBinding: any = buildOmniGentComponentEvolutionView(componentEvolutionView())
+  missingDecisionBinding.experiments[0].decision.capsule_sha256 = null
+  assert.notDeepEqual(schemaErrors(missingDecisionBinding, schema, schema), [])
+
+  const missingPlanBinding: any = buildOmniGentComponentEvolutionView(componentEvolutionView())
+  missingPlanBinding.experiments[0].plan.decision_external_input_sha256 = null
+  assert.notDeepEqual(schemaErrors(missingPlanBinding, schema, schema), [])
+
   const verifiedUnapplied: any = buildOmniGentComponentEvolutionView(componentEvolutionView())
   verifiedUnapplied.experiments[0].plan.state = 'verified_unapplied'
   assert.notDeepEqual(schemaErrors(verifiedUnapplied, schema, schema), [])
