@@ -6,7 +6,7 @@
   },
   "content_manifest": {
     "ref": "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
-    "sha256": "4507dac5fc7510b94568f16d1ff3e0acd65c915434d57806b3aa94366eb99b31",
+    "sha256": "37fc5d85243ed67f7ef2b89d2540a9daf06adb47f82a6741e0c29cd4e059ae97",
     "content_file_count": 6,
     "manifest_excludes": [
       "goalrun/component-rsi-operator-view-v1/SHA256SUMS",
@@ -49,6 +49,18 @@
       "deployed proof requires deployed experiment evidence",
       "nonverified causality forbids receipt",
       "public projection revalidation at every consumer"
+    ]
+  },
+  "round_2_repair_basis": {
+    "critic_ref": "goalrun/component-rsi-operator-view-v1/ROUND-2-FRESH-CRITIC-BLOCKER.v1.json",
+    "critic_sha256": "45daa0e5193e3d9a5703c1d625b7a0c77974fcbc84d2f64d68f37f00537a3388",
+    "finding": "typed_blocker:component_evolution_year_00_99_chronology_alias",
+    "repairs": [
+      "replace Date.UTC with fixed-width UTC civil-time ordering",
+      "reject reversed valid intervals across years 0099 and 0100",
+      "reject parent-after-child chronology across years 0099 and 0100",
+      "reject reversed timeline transaction time across years 0099 and 0100",
+      "reject the exact prior content-hashed public projection counterexample"
     ]
   },
   "authority": {

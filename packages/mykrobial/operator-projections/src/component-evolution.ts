@@ -116,12 +116,13 @@ function timestamp(value: unknown, blocker: string): string {
 function timestampOrdinal(value: string): bigint {
   const match = UTC.exec(value)
   if (match === null) throw new Error('typed_blocker:component_view_timestamp_invalid')
-  const milliseconds = Date.UTC(
-    Number(match[1]), Number(match[2]) - 1, Number(match[3]), Number(match[4]),
-    Number(match[5]), Number(match[6]),
+  // The accepted language is fixed-width UTC civil time. Packing those fields
+  // preserves its total chronological order without Date.UTC's legacy rule
+  // that silently remaps numeric years 00-99 into 1900-1999.
+  const microseconds = (match[7] ?? '').padEnd(6, '0')
+  return BigInt(
+    `${match[1]}${match[2]}${match[3]}${match[4]}${match[5]}${match[6]}${microseconds}`,
   )
-  const microseconds = BigInt((match[7] ?? '').padEnd(6, '0') || '0')
-  return BigInt(milliseconds) * 1000n + microseconds
 }
 
 function oneOf<T extends string>(value: unknown, allowed: readonly T[], blocker: string): T {

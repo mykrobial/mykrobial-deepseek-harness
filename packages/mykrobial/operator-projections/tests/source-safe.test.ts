@@ -1003,6 +1003,27 @@ test('component valid time and strict UTC calendar dates reject normalization', 
   fractionalReversal.components[1]!.valid_from = '2026-09-01T00:00:00.1Z'
   fractionalReversal.components[1]!.valid_until = '2026-09-01T00:00:00Z'
   assert.throws(() => buildOmniGentComponentEvolutionView(fractionalReversal), /component_state_invalid/)
+  const centuryBoundaryReversal = componentEvolutionView()
+  centuryBoundaryReversal.components[1]!.valid_from = '0100-01-01T00:00:00Z'
+  centuryBoundaryReversal.components[1]!.valid_until = '0099-12-31T23:59:59Z'
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(centuryBoundaryReversal),
+    /component_state_invalid/,
+  )
+  const centuryParentAfterChild = componentEvolutionView()
+  centuryParentAfterChild.components[0]!.transaction_time = '0100-01-01T00:00:00Z'
+  centuryParentAfterChild.components[1]!.transaction_time = '0099-12-31T23:59:59Z'
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(centuryParentAfterChild),
+    /parent_identity_invalid/,
+  )
+  const centuryTimelineReversal = componentEvolutionView()
+  centuryTimelineReversal.timeline[0]!.transaction_time = '0100-01-01T00:00:00Z'
+  centuryTimelineReversal.timeline[1]!.transaction_time = '0099-12-31T23:59:59Z'
+  assert.throws(
+    () => buildOmniGentComponentEvolutionView(centuryTimelineReversal),
+    /timeline_identity_or_order_invalid/,
+  )
   const activeUntil = componentEvolutionView()
   activeUntil.components[0]!.valid_until = '2026-09-02T00:00:00Z'
   assert.throws(() => buildOmniGentComponentEvolutionView(activeUntil), /component_state_invalid/)
@@ -1070,6 +1091,15 @@ test('public component projection revalidation rejects semantic reseals', () => 
   const reversedTimeline: any = structuredClone(source)
   reversedTimeline.timeline[0].transaction_time = '2026-09-01T00:02:00Z'
   assert.throws(() => validateOmniGentComponentEvolutionView(reversedTimeline), /timeline_identity_or_order_invalid/)
+  const centuryBoundaryReseal: any = structuredClone(source)
+  centuryBoundaryReseal.components[1].valid_from = '0100-01-01T00:00:00Z'
+  centuryBoundaryReseal.components[1].valid_until = '0099-12-31T23:59:59Z'
+  // Bind the exact stale view hash produced by the Round 2 counterexample.
+  centuryBoundaryReseal.view_sha256 = '5721ecebd3006ed080af63ce958150bbd3f6b24988670fbec8d20567a8a24d24'
+  assert.throws(
+    () => validateOmniGentComponentEvolutionView(centuryBoundaryReseal),
+    /component_state_invalid/,
+  )
   const wrongViewHash: any = structuredClone(source)
   wrongViewHash.view_sha256 = digest('f')
   assert.throws(() => validateOmniGentComponentEvolutionView(wrongViewHash), /public_revalidation_failed/)
