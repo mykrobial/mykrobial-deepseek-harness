@@ -6,6 +6,7 @@
   "required": [
     "schema",
     "state",
+    "context_request",
     "context_request_sha256",
     "subject",
     "scope",
@@ -21,6 +22,9 @@
     },
     "state": {
       "const": "source_only_unsigned_unsubmitted"
+    },
+    "context_request": {
+      "$ref": "./external-harness-terminal-task-context-request.v1.schema.json"
     },
     "context_request_sha256": {
       "$ref": "./external-harness-event.v1.schema.json#/$defs/sha256"

@@ -231,6 +231,7 @@ export interface PrepareTerminalTaskAuthorityHostRequestInput {
 export interface TerminalTaskAuthorityHostRequestV38 {
   schema: 'mykrobial.external-harness.terminal-task-authority-host-request.v38'
   state: 'source_only_unsigned_unsubmitted'
+  context_request: TerminalTaskContextRequest
   context_request_sha256: string
   subject: {
     schema: 'mykrobial.trace.terminal_task_context_subject.v38'
@@ -371,7 +372,7 @@ const TERMINAL_CONTEXT_REQUEST_KEYS = [
 ] as const
 
 const V38_HOST_REQUEST_KEYS = [
-  'schema', 'state', 'context_request_sha256', 'subject', 'scope',
+  'schema', 'state', 'context_request', 'context_request_sha256', 'subject', 'scope',
   'authority_delegate_contract', 'authority', 'reviewed', 'nonclaims',
   'request_sha256',
 ] as const
@@ -1098,6 +1099,7 @@ export function prepareTerminalTaskAuthorityHostRequestV38(
   const body = {
     schema: 'mykrobial.external-harness.terminal-task-authority-host-request.v38' as const,
     state: 'source_only_unsigned_unsubmitted' as const,
+    context_request: context,
     context_request_sha256: context.request_sha256,
     subject,
     scope,
@@ -1142,6 +1144,7 @@ export function validateTerminalTaskAuthorityHostRequestV38(
     throw new Error('typed_blocker:terminal_task_authority_host_request_invalid')
   }
   const value = structuredClone(source)
+  const context = validateTerminalTaskContextRequest(value.context_request)
   const subject = value.subject
   const scope = value.scope
   const contract = value.authority_delegate_contract
@@ -1167,21 +1170,21 @@ export function validateTerminalTaskAuthorityHostRequestV38(
   }
   if (value.schema !== 'mykrobial.external-harness.terminal-task-authority-host-request.v38'
     || value.state !== 'source_only_unsigned_unsubmitted'
-    || digest(value.context_request_sha256) !== value.context_request_sha256
+    || value.context_request_sha256 !== context.request_sha256
     || subject.schema !== 'mykrobial.trace.terminal_task_context_subject.v38'
     || subject.state !== 'unsigned_unapproved'
-    || digest(subject.terminal_row_sha256) !== subject.terminal_row_sha256
-    || digest(subject.task_label_sha256) !== subject.task_label_sha256
-    || digest(subject.session_id_sha256) !== subject.session_id_sha256
-    || digest(subject.tenant_scope_sha256) !== subject.tenant_scope_sha256
-    || contextIdentifier(subject.domain) !== subject.domain
-    || digest(subject.requested_receipt_ref) !== subject.requested_receipt_ref
-    || digest(subject.served_receipt_ref) !== subject.served_receipt_ref
-    || contextIdentifier(subject.source_generation) !== subject.source_generation
-    || digest(subject.visible_generation_sha256) !== subject.visible_generation_sha256
-    || contextIdentifier(subject.first_visible_event_id) !== subject.first_visible_event_id
-    || contextIdentifier(subject.last_visible_event_id) !== subject.last_visible_event_id
-    || !Number.isSafeInteger(subject.visible_event_count) || subject.visible_event_count <= 0
+    || subject.terminal_row_sha256 !== context.canonical_terminal_row_sha256
+    || subject.task_label_sha256 !== context.task_label_sha256
+    || subject.session_id_sha256 !== context.session_id_sha256
+    || subject.tenant_scope_sha256 !== context.tenant_scope_sha256
+    || subject.domain !== context.domain
+    || subject.requested_receipt_ref !== context.requested_receipt_ref
+    || subject.served_receipt_ref !== context.served_receipt_ref
+    || subject.source_generation !== context.source_generation
+    || subject.visible_generation_sha256 !== context.visible_generation_sha256
+    || subject.first_visible_event_id !== context.first_visible_event_id
+    || subject.last_visible_event_id !== context.last_visible_event_id
+    || subject.visible_event_count !== context.visible_event_count
     || digest(subject.operation_profile_receipt_sha256) !== subject.operation_profile_receipt_sha256
     || subject.namespace !== 'mykrobial.trace.terminal-task-context.v37'
     || subject.operation !== 'bind_terminal_row_to_visible_task_range'

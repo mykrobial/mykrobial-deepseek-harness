@@ -600,6 +600,8 @@ test('V38 host request binds the unsigned subject, exact scope and callback voca
     requested_ttl_seconds: 600,
   })
   assert.equal(request.subject.schema, 'mykrobial.trace.terminal_task_context_subject.v38')
+  assert.equal(request.context_request_sha256, request.context_request.request_sha256)
+  assert.deepEqual(request.context_request, context)
   assert.equal(request.subject.state, 'unsigned_unapproved')
   assert.equal(request.subject.terminal_row_sha256, context.canonical_terminal_row_sha256)
   assert.equal(request.subject.task_label_sha256, context.task_label_sha256)
@@ -745,4 +747,26 @@ test('V38 canonical blocker vocabulary is exact ordered and reseal-resistant', (
     )
   }
   assert.deepEqual(validateTerminalTaskAuthorityHostRequestV38(baseline), baseline)
+})
+
+test('V38 standalone validation binds every derived subject field to the embedded context', () => {
+  const baseline = prepareTerminalTaskAuthorityHostRequestV38(validTerminalContextRequest(), {
+    operation_profile_receipt_sha256: digest('operation-profile-receipt'),
+    requested_ttl_seconds: 300,
+  })
+  const forged = structuredClone(baseline)
+  forged.subject.session_id_sha256 = digest('forged-session')
+  forged.subject.tenant_scope_sha256 = digest('forged-tenant')
+  forged.subject.subject_sha256 = externalEventCanonicalSha256(
+    Object.fromEntries(
+      Object.entries(forged.subject).filter(([key]) => key !== 'subject_sha256'),
+    ),
+  )
+  forged.scope.context_subject_sha256 = forged.subject.subject_sha256
+  const resealed = resealV38HostRequest(forged)
+  assert.equal(resealed.context_request_sha256, baseline.context_request_sha256)
+  assert.throws(
+    () => validateTerminalTaskAuthorityHostRequestV38(resealed),
+    /typed_blocker:terminal_task_authority_host_request_invalid/,
+  )
 })
