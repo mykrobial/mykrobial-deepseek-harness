@@ -1,0 +1,129 @@
+{
+  "schema": "mykrobial.next-deepseek-cordis.retrodict-first-class-loadout-binding.v1",
+  "status": "accepted_public_contract_provenance_and_fixture_bound_unmounted",
+  "source": {
+    "repository": "/Users/kalcypher/Projects/_worktrees/mykrobial-deepseek-harness-program-audit-v28-retrodict-loadout",
+    "candidate_commit": "a26125668b1c489bf9c2c5d6c37f80c72d3f007c",
+    "candidate_tree": "0fbb2c94d1dc72c1fb8da886dc5eef31af2c6d5c",
+    "candidate_parent": "40221989a1e4db9de8ba253773f83d0765ed9766",
+    "review_seal_commit": "90e18ce69df607fdbd6c0558d4792924e61eb9f7",
+    "review_seal_tree": "cfe982de0a82753f00dd869171d06e9c9a97abd7",
+    "fresh_critic_path": "evidence/rounds/audit-successor-v28r2-retrodict-loadout-fresh-critic/VERDICT.v1.json",
+    "fresh_critic_sha256": "e6eb6fe354cf6f93b85a945b365a60bd877ab0c4bac857bb72448d919d3ef80c",
+    "bundle_sha256": "b5ccc81eba934e7a1209a848f9eee24184f51b081c2356b2dd5b3d8ea0934305",
+    "decision": "accept_source_only"
+  },
+  "copied_public_artifacts": [
+    {
+      "kind": "capability_contract",
+      "path": "contracts/mykrobial/retrodict-first-class-loadout.v1.json",
+      "sha256": "e2356028f79778383641bb0911365a407b1e73085412e2bbbb10e9e4a2a236d5"
+    },
+    {
+      "kind": "primary_source_authority",
+      "path": "contracts/mykrobial/evidence/retrodict-v28/source-authority.v1.json",
+      "sha256": "67c4793195a3a4a5b967a6d418feede214601d90cfdfc814bcf9d9b11ca75c61"
+    },
+    {
+      "kind": "deterministic_behavior_fixture",
+      "path": "contracts/mykrobial/evidence/retrodict-v28/deterministic-state-fixture.v1.json",
+      "sha256": "c714c549d87293710faa01ec8381323f22ed37489f6ba15a6df630820a019bb1"
+    }
+  ],
+  "parity_shape": {
+    "requirement_id": "retrodict_first_class_loadout",
+    "compiler_entrypoint": "retrodict_loadout_v1.compile_retrodict_loadout",
+    "primary_source_commit": "71672e8e5adb008360f52a61ef9e2adf91a62d89",
+    "mechanism_order": [
+      "snapshot_log_history_paper_pencil",
+      "log_as_context",
+      "history_retrodiction_gate",
+      "expected_action_queue",
+      "first_mismatch_stop_divergence",
+      "persistent_playbook_reset_resume",
+      "stuck_threshold_simulator_search",
+      "bounded_containment"
+    ]
+  },
+  "native_correspondence": [
+    {
+      "mechanism": "snapshot_log_history_paper_pencil",
+      "native_source": "packages/mykrobial/scientific-retrodiction/src/types.ts",
+      "native_symbol": "ScientificRunState",
+      "state": "source_implemented_unmounted"
+    },
+    {
+      "mechanism": "log_as_context",
+      "native_source": "packages/mykrobial/scientific-retrodiction/src/fold.ts",
+      "native_symbol": "behaviorProjection",
+      "state": "partial_source_correspondence_model_context_projection_unverified"
+    },
+    {
+      "mechanism": "history_retrodiction_gate",
+      "native_source": "packages/mykrobial/scientific-retrodiction/src/commands.ts",
+      "native_symbol": "certifyHypothesis",
+      "state": "source_implemented_unmounted"
+    },
+    {
+      "mechanism": "expected_action_queue",
+      "native_source": "packages/mykrobial/scientific-retrodiction/src/commands.ts",
+      "native_symbol": "commitActions",
+      "state": "source_implemented_unmounted"
+    },
+    {
+      "mechanism": "first_mismatch_stop_divergence",
+      "native_source": "packages/mykrobial/scientific-retrodiction/src/commands.ts",
+      "native_symbol": "recordActionResult",
+      "state": "source_implemented_unmounted_fixture_action_spend_semantics_unresolved"
+    },
+    {
+      "mechanism": "persistent_playbook_reset_resume",
+      "native_source": "packages/mykrobial/scientific-retrodiction/src/types.ts",
+      "native_symbol": "ScientificCheckpoint",
+      "state": "checkpoint_source_implemented_explicit_playbook_field_unimplemented"
+    },
+    {
+      "mechanism": "stuck_threshold_simulator_search",
+      "native_source": "packages/mykrobial/scientific-retrodiction/src/fold.ts",
+      "native_symbol": "escalationState",
+      "state": "source_implemented_with_action_and_reset_thresholds_not_stuck_trials"
+    },
+    {
+      "mechanism": "bounded_containment",
+      "native_source": "packages/mykrobial/scientific-retrodiction/src/simulator.ts",
+      "native_symbol": "searchCertifiedSimulator",
+      "state": "bounded_source_search_implemented_containment_and_admission_unverified"
+    }
+  ],
+  "semantic_differences_requiring_successor": [
+    "the accepted fixture marks its mismatch row live_action_spent false while the native reducer counts an observed mismatch as a real action",
+    "the accepted fixture binds a persistent playbook hash while the native checkpoint has no explicit playbook or notes field",
+    "the accepted fixture escalates on stuck_trials while the native loadout currently escalates on real-action and reset thresholds",
+    "the native behavior projection is not yet proven to be the exact model-visible log-as-context view"
+  ],
+  "next_generation_boundary": {
+    "public_contract_provenance_and_fixture_available": true,
+    "current_production_runtime_implementation_copied": false,
+    "native_cordis_service_replaced": false,
+    "loadout_mounted_or_executed": false,
+    "exact_behavioral_parity_claimed": false,
+    "required_future_decision": "implement and fresh-review a generation-neutral RetroDICT conformance adapter for playbook persistence, mismatch accounting, stuck escalation, and model-visible log projection"
+  },
+  "authority": {
+    "source_binding_authorized": true,
+    "runtime_authorized": false,
+    "provider_execution_authorized": false,
+    "tool_execution_authorized": false,
+    "evaluator_execution_authorized": false,
+    "trace_append_authorized": false,
+    "training_authorized": false,
+    "promotion_authorized": false,
+    "deployment_authorized": false
+  },
+  "nonclaims": [
+    "not an executed or mounted RetroDICT loadout",
+    "not exact native behavior parity for the four declared semantic differences",
+    "not provider model tool simulator evaluator Trace training promotion deployment or fleet action",
+    "not Current Production runtime implementation reuse"
+  ]
+}
