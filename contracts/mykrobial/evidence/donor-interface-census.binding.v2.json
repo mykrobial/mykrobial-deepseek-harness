@@ -1,0 +1,144 @@
+{
+  "schema": "mykrobial.next-deepseek-cordis.donor-interface-census-binding.v2",
+  "status": "accepted_source_contract_census_bound_ports_unexecuted",
+  "predecessor": {
+    "path": "contracts/mykrobial/evidence/donor-organ-backlog.binding.v1.json",
+    "sha256": "0e8ba4912831902476cf43d14ed319dd720e2c095aa706a0b97ca7afb239052d",
+    "state": "preserved"
+  },
+  "source": {
+    "repository": "/Users/kalcypher/Projects/_worktrees/mykrobial-deepseek-harness-program-audit-v24-interface-contracts",
+    "candidate_commit": "d3ca34a9b7f62d2936c2e7a896c4bd1a418daf8e",
+    "candidate_tree": "f6116ebcb08063d3c3a7b904f7427427d84da264",
+    "review_seal_commit": "11b3cad343fa8a7ae7b9c9f4f835a4490b1b8027",
+    "review_seal_tree": "434f0a50cb3d076ca1cf5e871a8831162bb79165",
+    "fresh_critic_path": "evidence/rounds/audit-successor-v24-interface-contracts-fresh-critic/VERDICT.v1.json",
+    "fresh_critic_sha256": "9cf3b078f6faffd5f50540383128f4f878a4c862a0868709853790b271e3544a",
+    "decision": "accept_source_only"
+  },
+  "copied_evidence": {
+    "catalog": {
+      "path": "contracts/mykrobial/evidence/interface-census-v24/component-organ-catalog.v2.json",
+      "sha256": "17bbeb42f45e9fc632b6b536d886af0bd9d5d21c491b265796eeb66a7549107c",
+      "rows": 83,
+      "unique_organ_ids": 83
+    },
+    "contract_manifest": {
+      "path": "contracts/mykrobial/evidence/interface-census-v24/contract-manifest.v2.json",
+      "sha256": "d83da73192dc6bf5edfe28ea5d4e09f7df025355d56c301b1a46ae337756b629",
+      "entries": 47
+    },
+    "shape_validation": {
+      "path": "contracts/mykrobial/evidence/interface-census-v24/catalog-shape-validation.v2.json",
+      "sha256": "27d64d3052c3d910d29994dc6b1b946e8ff362619b9fb6a23ca13eb35dcd0f63"
+    },
+    "worker_result": {
+      "path": "contracts/mykrobial/evidence/interface-census-v24/worker-result.v2.json",
+      "sha256": "f52ce6b98a8525943ad5c47ff4dcbb1af5374444f1cae9b36608fa6eaaea64ad"
+    },
+    "source_manifest": {
+      "path": "contracts/mykrobial/evidence/interface-census-v24/source-manifest.v24.json",
+      "sha256": "a1d09e24e5b8e38623f1cd812dc51af3df53bc7e6b3d02d39903b707b3a61185"
+    }
+  },
+  "coverage": {
+    "organ_count": 83,
+    "unique_organ_count": 83,
+    "contract_manifest_entries": 47,
+    "null_contract_ref_count": 0,
+    "unresolved_contract_ref_count": 0,
+    "contract_hash_mismatch_count": 0,
+    "new_source_only_contract_count": 10,
+    "repaired_organ_ids": [
+      "RSI-003",
+      "RSI-005",
+      "RSI-015",
+      "ATDP-001",
+      "NA-001",
+      "NA-002",
+      "NA-003",
+      "NA-005",
+      "NA-008",
+      "OMNI-002"
+    ]
+  },
+  "copied_contracts": [
+    {
+      "path": "contracts/interface-census/admit__ucp_capability_contract.mdp.ucp.json",
+      "sha256": "4b867c7c3f827aca423514e6b389dbf2bbf7d4180ec704f91a2fa990aacfffa7",
+      "organ_ids": ["NA-003"]
+    },
+    {
+      "path": "contracts/interface-census/architecture__areal_four_plane_topology.mdp.ucp.json",
+      "sha256": "f494f47d99b089ef4546c0688089c81526bae39442f28c7d55c9df285b0c154c",
+      "organ_ids": ["ATDP-001"]
+    },
+    {
+      "path": "contracts/interface-census/audit__mdp_ucp_interface_coverage.mdp.ucp.json",
+      "sha256": "fe1ebd3fbed8b4ecc5e104730609446cde539d143a7aa6e68be7ae7faaa4a3f1",
+      "organ_ids": ["NA-008"]
+    },
+    {
+      "path": "contracts/interface-census/launch__named_agent_producer_lane.mdp.ucp.json",
+      "sha256": "ae7c3a014fdb08689d65b0b9cf658e18f247e82026e31ea1ce99a247eee17209",
+      "organ_ids": ["NA-005"]
+    },
+    {
+      "path": "contracts/interface-census/loop__contract_delta_preview.mdp.ucp.json",
+      "sha256": "1188d6f7ce56bec4a247527ea5a49f4ebb82ee1c1252eec502f5c4e2755cbc74",
+      "organ_ids": ["RSI-005"]
+    },
+    {
+      "path": "contracts/interface-census/loop__proposal_tree.mdp.ucp.json",
+      "sha256": "8936fb675cee21bbe39ea42ca24476922387824b50f25fce15f1d6e88029ef39",
+      "organ_ids": ["RSI-003"]
+    },
+    {
+      "path": "contracts/interface-census/omnigent__session_orchestration.mdp.ucp.json",
+      "sha256": "de17b15e5a04966470c813c1aadf5052342cf7ffd330983d7e271d247a15ca7f",
+      "organ_ids": ["OMNI-002"]
+    },
+    {
+      "path": "contracts/interface-census/orchestrate__zpd_teaching_attachment.mdp.ucp.json",
+      "sha256": "9e80fef4a4c2cdd13eb04bb23de7c5bd9cc81073fbbb2feef8dbfac9a3577302",
+      "organ_ids": ["RSI-015"]
+    },
+    {
+      "path": "contracts/interface-census/route__named_agent_task_class.mdp.ucp.json",
+      "sha256": "76167bd7f3fb785fd830766f7a0d6e401acf4d594ee9d64984eea3e70810d88f",
+      "organ_ids": ["NA-002"]
+    },
+    {
+      "path": "contracts/interface-census/validate__named_agent_registry.mdp.ucp.json",
+      "sha256": "b1fd1c426e7d7d7d679249643566be07c927c8f14e506155601ceb791c1ac44a",
+      "organ_ids": ["NA-001"]
+    }
+  ],
+  "next_generation_boundary": {
+    "contracts_are_shared_source_inputs": true,
+    "current_production_implementation_copied": false,
+    "organs_claimed_ported_by_this_binding": 0,
+    "port_rule": "one reversible organ at a time behind DeepSeek services and CORDIS lifecycle with mount unmount restart replay rollback and behavior-equivalence fixtures",
+    "next_port_candidates": [
+      "ATDP-001",
+      "NA-001",
+      "NA-002",
+      "OMNI-002"
+    ]
+  },
+  "authority": {
+    "source_binding_authorized": true,
+    "contract_adoption_authorized": false,
+    "runtime_activation_authorized": false,
+    "trace_append_authorized": false,
+    "promotion_authorized": false,
+    "deployment_authorized": false
+  },
+  "non_claims": [
+    "not 83 organs implemented or ported",
+    "not Current Production implementation copied",
+    "not contract adoption provider model or runtime execution",
+    "not Trace append promotion deployment or fleet rollout",
+    "not complete program acceptance"
+  ]
+}
