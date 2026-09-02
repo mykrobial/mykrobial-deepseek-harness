@@ -1,5 +1,6 @@
 /** Model-free CORDIS-shaped reversible component lifecycle reference. */
 import { createHash } from 'node:crypto'
+import { types as nodeTypes } from 'node:util'
 
 const ID = /^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$/
 const SHA = /^[0-9a-f]{64}$/
@@ -1034,21 +1035,38 @@ const GUARDIAN_EVENT_KINDS = new Set<ComponentGuardianEventKind>([
 ])
 
 function guardianRecord(value: unknown, keys: readonly string[], blocker: string): Record<string, unknown> {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+  if (value === null
+    || typeof value !== 'object'
+    || nodeTypes.isProxy(value)
+    || Array.isArray(value)) {
     throw new Error(`typed_blocker:${blocker}`)
   }
   const prototype = Object.getPrototypeOf(value)
-  const descriptors = Object.getOwnPropertyDescriptors(value)
+  const ownKeys = Reflect.ownKeys(value)
+  const expectedKeys = new Set(keys)
   if ((prototype !== Object.prototype && prototype !== null)
-    || Object.values(descriptors).some(item => item.get !== undefined || item.set !== undefined || !item.enumerable)
-    || !exactKeys(value, keys)) {
+    || ownKeys.length !== expectedKeys.size
+    || ownKeys.some(key => typeof key !== 'string' || !expectedKeys.has(key))) {
     throw new Error(`typed_blocker:${blocker}`)
+  }
+  for (const key of keys) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key)
+    if (descriptor === undefined
+      || descriptor.get !== undefined
+      || descriptor.set !== undefined
+      || descriptor.enumerable !== true) {
+      throw new Error(`typed_blocker:${blocker}`)
+    }
   }
   return value as Record<string, unknown>
 }
 
 function guardianArray(value: unknown, maximumLength: number, blocker: string): unknown[] {
-  if (!Array.isArray(value)
+  if (value === null
+    || typeof value !== 'object'
+    || nodeTypes.isProxy(value)
+    || !Array.isArray(value)
+    || Object.getPrototypeOf(value) !== Array.prototype
     || !Number.isSafeInteger(value.length)
     || value.length > maximumLength) {
     throw new Error(`typed_blocker:${blocker}`)

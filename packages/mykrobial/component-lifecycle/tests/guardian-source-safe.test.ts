@@ -71,6 +71,51 @@ function proposedGuardian(): ComponentEvolutionGuardian {
   return guardian
 }
 
+function readPath(root: unknown, path: readonly string[]): unknown {
+  let current = root
+  for (const key of path) current = (current as Record<string, unknown>)[key]
+  return current
+}
+
+function replacePath(root: unknown, path: readonly string[], value: unknown): void {
+  let parent = root as Record<string, unknown>
+  for (const key of path.slice(0, -1)) parent = parent[key] as Record<string, unknown>
+  parent[path[path.length - 1]!] = value
+}
+
+function withAuthorityPrototype(value: unknown[]): unknown[] {
+  const prototype = Object.create(Array.prototype) as Record<string, unknown>
+  Object.defineProperty(prototype, 'apply_authorized', { value: true, enumerable: true })
+  Object.setPrototypeOf(value, prototype)
+  return value
+}
+
+function asAuthoritySubclass(value: unknown[]): unknown[] {
+  class AuthorityArray extends Array<unknown> {}
+  Object.defineProperty(AuthorityArray.prototype, 'apply_authorized', {
+    value: true,
+    enumerable: true,
+  })
+  return new AuthorityArray(...value)
+}
+
+function transparentProxy(value: unknown[], reads: { count: number }): unknown[] {
+  return new Proxy(value, {
+    get(target, property, receiver) {
+      reads.count += 1
+      return Reflect.get(target, property, receiver)
+    },
+  })
+}
+
+function withAuthoritySymbol<T extends object>(value: T): T {
+  Object.defineProperty(value, Symbol('apply_authorized'), {
+    value: true,
+    enumerable: true,
+  })
+  return value
+}
+
 test('guardian starts with one sealed append-only baseline event', () => {
   const guardian = new ComponentEvolutionGuardian(config())
   const snapshot = guardian.snapshot()
@@ -207,6 +252,154 @@ test('closed inputs reject getters, extras, and non-string digest aliases', () =
   assert.throws(() => guardian.append(event('snapshot_captured', 1, {
     evidence_sha256: true as unknown as string,
   })), /typed_blocker:component_guardian_event_digest_invalid/)
+})
+
+test('all persisted arrays reject custom prototypes subclasses and proxies before reads', () => {
+  const snapshot = proposedGuardian().snapshot()
+  const snapshotRows = [
+    { path: ['events'], blocker: /typed_blocker:component_guardian_events_invalid/ },
+    {
+      path: ['known_snapshot_sha256s'],
+      blocker: /typed_blocker:component_guardian_known_snapshots_invalid/,
+    },
+    {
+      path: ['candidate_attempts'],
+      blocker: /typed_blocker:component_guardian_candidate_attempts_invalid/,
+    },
+    {
+      path: ['proposal_bindings'],
+      blocker: /typed_blocker:component_guardian_proposal_bindings_invalid/,
+    },
+    {
+      path: ['events', '0', 'non_claims'],
+      blocker: /typed_blocker:component_guardian_event_non_claims_invalid/,
+    },
+  ] as const
+  for (const row of snapshotRows) {
+    const custom = structuredClone(snapshot)
+    replacePath(custom, row.path, withAuthorityPrototype(readPath(custom, row.path) as unknown[]))
+    assert.throws(() => ComponentEvolutionGuardian.rehydrate(custom), row.blocker)
+
+    const subclass = structuredClone(snapshot)
+    replacePath(subclass, row.path, asAuthoritySubclass(readPath(subclass, row.path) as unknown[]))
+    assert.throws(() => ComponentEvolutionGuardian.rehydrate(subclass), row.blocker)
+
+    const proxied = structuredClone(snapshot)
+    const reads = { count: 0 }
+    replacePath(proxied, row.path, transparentProxy(readPath(proxied, row.path) as unknown[], reads))
+    assert.throws(() => ComponentEvolutionGuardian.rehydrate(proxied), row.blocker)
+    assert.equal(reads.count, 0)
+  }
+
+  const guardian = proposedGuardian()
+  const command = guardian.prepareCommand({
+    operation: 'rewind_component',
+    target_snapshot_sha256: digest('snapshot-baseline'),
+    reconfiguration_plan_sha256: digest('reconfiguration-plan'),
+    external_state_rollback_receipt_sha256: null,
+    requested_at: '2030-01-01T00:00:03Z',
+  })
+  const commandRows = [
+    { path: ['blockers'], blocker: /typed_blocker:component_guardian_command_blockers_invalid/ },
+    { path: ['non_claims'], blocker: /typed_blocker:component_guardian_command_non_claims_invalid/ },
+  ] as const
+  for (const row of commandRows) {
+    const custom = structuredClone(command)
+    replacePath(custom, row.path, withAuthorityPrototype(readPath(custom, row.path) as unknown[]))
+    assert.throws(() => validateComponentGuardianCommand(custom), row.blocker)
+
+    const subclass = structuredClone(command)
+    replacePath(subclass, row.path, asAuthoritySubclass(readPath(subclass, row.path) as unknown[]))
+    assert.throws(() => validateComponentGuardianCommand(subclass), row.blocker)
+
+    const proxied = structuredClone(command)
+    const reads = { count: 0 }
+    replacePath(proxied, row.path, transparentProxy(readPath(proxied, row.path) as unknown[], reads))
+    assert.throws(() => validateComponentGuardianCommand(proxied), row.blocker)
+    assert.equal(reads.count, 0)
+  }
+})
+
+test('all guardian record surfaces reject symbol keys and public proxy aliases', () => {
+  assert.throws(() => new ComponentEvolutionGuardian(withAuthoritySymbol(config())),
+    /typed_blocker:component_guardian_config_invalid/)
+  const configReads = { count: 0 }
+  const proxiedConfig = new Proxy(config(), {
+    get(target, property, receiver) {
+      configReads.count += 1
+      return Reflect.get(target, property, receiver)
+    },
+  })
+  assert.throws(() => new ComponentEvolutionGuardian(proxiedConfig),
+    /typed_blocker:component_guardian_config_invalid/)
+  assert.equal(configReads.count, 0)
+
+  const guardian = proposedGuardian()
+  assert.throws(() => guardian.append(withAuthoritySymbol(event('snapshot_captured', 2))),
+    /typed_blocker:component_guardian_append_input_invalid/)
+  const appendReads = { count: 0 }
+  const proxiedAppend = new Proxy(event('snapshot_captured', 2), {
+    get(target, property, receiver) {
+      appendReads.count += 1
+      return Reflect.get(target, property, receiver)
+    },
+  })
+  assert.throws(() => guardian.append(proxiedAppend),
+    /typed_blocker:component_guardian_append_input_invalid/)
+  assert.equal(appendReads.count, 0)
+
+  const snapshot = guardian.snapshot()
+  const snapshotRows = [
+    { path: [] as string[], blocker: /typed_blocker:component_guardian_snapshot_invalid/ },
+    { path: ['events', '0'], blocker: /typed_blocker:component_guardian_event_invalid/ },
+    {
+      path: ['candidate_attempts', '0'],
+      blocker: /typed_blocker:component_guardian_candidate_attempts_invalid/,
+    },
+    {
+      path: ['proposal_bindings', '0'],
+      blocker: /typed_blocker:component_guardian_proposal_bindings_invalid/,
+    },
+  ]
+  for (const row of snapshotRows) {
+    const candidate = structuredClone(snapshot)
+    const target = row.path.length === 0 ? candidate : readPath(candidate, row.path)
+    withAuthoritySymbol(target as object)
+    assert.throws(() => ComponentEvolutionGuardian.rehydrate(candidate), row.blocker)
+  }
+
+  const command = guardian.prepareCommand({
+    operation: 'rewind_component',
+    target_snapshot_sha256: digest('snapshot-baseline'),
+    reconfiguration_plan_sha256: digest('reconfiguration-plan'),
+    external_state_rollback_receipt_sha256: null,
+    requested_at: '2030-01-01T00:00:03Z',
+  })
+  assert.throws(() => validateComponentGuardianCommand(
+    withAuthoritySymbol(structuredClone(command)),
+  ), /typed_blocker:component_guardian_command_invalid/)
+
+  const snapshotReads = { count: 0 }
+  const proxiedSnapshot = new Proxy(snapshot, {
+    get(target, property, receiver) {
+      snapshotReads.count += 1
+      return Reflect.get(target, property, receiver)
+    },
+  })
+  assert.throws(() => ComponentEvolutionGuardian.rehydrate(proxiedSnapshot),
+    /typed_blocker:component_guardian_snapshot_invalid/)
+  assert.equal(snapshotReads.count, 0)
+
+  const commandReads = { count: 0 }
+  const proxiedCommand = new Proxy(command, {
+    get(target, property, receiver) {
+      commandReads.count += 1
+      return Reflect.get(target, property, receiver)
+    },
+  })
+  assert.throws(() => validateComponentGuardianCommand(proxiedCommand),
+    /typed_blocker:component_guardian_command_invalid/)
+  assert.equal(commandReads.count, 0)
 })
 
 test('snapshot and command tampering fail deterministic readback', () => {
