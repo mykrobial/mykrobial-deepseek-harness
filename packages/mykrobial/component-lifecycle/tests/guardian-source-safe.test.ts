@@ -116,6 +116,39 @@ function withAuthoritySymbol<T extends object>(value: T): T {
   return value
 }
 
+function trappedScalar(reads: { count: number }): object {
+  return new Proxy(Object.create(null) as object, {
+    get() {
+      reads.count += 1
+      return undefined
+    },
+    getOwnPropertyDescriptor() {
+      reads.count += 1
+      return undefined
+    },
+    getPrototypeOf() {
+      reads.count += 1
+      return null
+    },
+    ownKeys() {
+      reads.count += 1
+      return []
+    },
+  })
+}
+
+function getterBearingScalar(reads: { count: number }): object {
+  const value = Object.create(null) as object
+  Object.defineProperty(value, 'coerce', {
+    enumerable: true,
+    get() {
+      reads.count += 1
+      return 'forged'
+    },
+  })
+  return value
+}
+
 test('guardian starts with one sealed append-only baseline event', () => {
   const guardian = new ComponentEvolutionGuardian(config())
   const snapshot = guardian.snapshot()
@@ -402,6 +435,117 @@ test('all guardian record surfaces reject symbol keys and public proxy aliases',
   assert.equal(commandReads.count, 0)
 })
 
+test('nested scalar aliases reject before proxy traps getters or canonical hashing', () => {
+  const guardian = proposedGuardian()
+  const snapshot = guardian.snapshot()
+  const command = guardian.prepareCommand({
+    operation: 'rewind_component',
+    target_snapshot_sha256: digest('snapshot-baseline'),
+    reconfiguration_plan_sha256: digest('reconfiguration-plan'),
+    external_state_rollback_receipt_sha256: null,
+    requested_at: '2030-01-01T00:00:03Z',
+  })
+  const snapshotPaths = [
+    ['schema'],
+    ['guardian_id'],
+    ['component_id'],
+    ['task_capsule_id'],
+    ['loadout_id'],
+    ['baseline_definition_sha256'],
+    ['created_at'],
+    ['max_events'],
+    ['max_candidate_attempts'],
+    ['head_event_sha256'],
+    ['known_snapshot_sha256s', '0'],
+    ['candidate_attempts', '0', 'candidate_definition_sha256'],
+    ['candidate_attempts', '0', 'attempt_count'],
+    ['proposal_bindings', '0', 'candidate_definition_sha256'],
+    ['proposal_bindings', '0', 'mutation_proposal_sha256'],
+    ['proposal_bindings', '0', 'attempt_count'],
+    ...[
+      'schema',
+      'guardian_id',
+      'event_id',
+      'sequence',
+      'previous_event_sha256',
+      'occurred_at',
+      'component_id',
+      'task_capsule_id',
+      'loadout_id',
+      'kind',
+      'component_snapshot_sha256',
+      'candidate_definition_sha256',
+      'mutation_proposal_sha256',
+      'activation_receipt_sha256',
+      'trajectory_event_sha256',
+      'trace_v23_intent_sha256',
+      'evidence_sha256',
+      'history_rewrite_authorized',
+      'component_application_authorized',
+      'trace_append_authorized',
+      'deployment_authorized',
+      'event_sha256',
+    ].map(key => ['events', '0', key]),
+    ['snapshot_sha256'],
+  ]
+  const commandPaths = [
+    'schema',
+    'command_id',
+    'operation',
+    'guardian_id',
+    'component_id',
+    'task_capsule_id',
+    'loadout_id',
+    'history_event_count',
+    'history_head_event_sha256',
+    'target_snapshot_sha256',
+    'reconfiguration_plan_sha256',
+    'external_state_rollback_receipt_sha256',
+    'external_state_rollback_verified',
+    'required_authority_profile_id',
+    'state',
+    'apply_authorized',
+    'restart_authorized',
+    'history_rewrite_authorized',
+    'trace_append_authorized',
+    'deployment_authorized',
+    'requested_at',
+    'command_sha256',
+  ].map(key => [key])
+  const rows: Array<{
+    source: unknown
+    path: string[]
+    validate: (value: unknown) => unknown
+  }> = []
+  for (const path of snapshotPaths) {
+    rows.push({
+      source: snapshot,
+      path,
+      validate: value => ComponentEvolutionGuardian.rehydrate(value as typeof snapshot),
+    })
+  }
+  for (const path of commandPaths) {
+    rows.push({
+      source: command,
+      path,
+      validate: value => validateComponentGuardianCommand(value as typeof command),
+    })
+  }
+  for (const row of rows) {
+    const proxyCandidate = structuredClone(row.source)
+    const proxyReads = { count: 0 }
+    replacePath(proxyCandidate, row.path, trappedScalar(proxyReads))
+    assert.throws(() => row.validate(proxyCandidate), /typed_blocker:/)
+    assert.equal(proxyReads.count, 0)
+
+    const getterCandidate = structuredClone(row.source)
+    const getterReads = { count: 0 }
+    replacePath(getterCandidate, row.path, getterBearingScalar(getterReads))
+    assert.throws(() => row.validate(getterCandidate), /typed_blocker:/)
+    assert.equal(getterReads.count, 0)
+  }
+})
+
 test('snapshot and command tampering fail deterministic readback', () => {
   const guardian = proposedGuardian()
   guardian.append(event('activation_rolled_back', 2))
@@ -409,7 +553,7 @@ test('snapshot and command tampering fail deterministic readback', () => {
   const forgedSnapshot = structuredClone(snapshot)
   forgedSnapshot.events[1]!.previous_event_sha256 = digest('forged-previous')
   assert.throws(() => ComponentEvolutionGuardian.rehydrate(forgedSnapshot),
-    /typed_blocker:component_guardian_snapshot_mismatch/)
+    /typed_blocker:component_guardian_event_invalid/)
   const forgedBinding = structuredClone(snapshot)
   forgedBinding.proposal_bindings[0]!.mutation_proposal_sha256 = digest('forged-proposal')
   forgedBinding.snapshot_sha256 = componentCanonicalSha256({

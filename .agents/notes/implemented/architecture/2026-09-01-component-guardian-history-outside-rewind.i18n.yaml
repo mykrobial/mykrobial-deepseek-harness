@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-01-component-guardian-history-outside-rewind.md
-2026-09-01-component-guardian-history-outside-rewind.md: f30f82503eab0f823c298d11148061725927c3ed
-2026-09-01-component-guardian-history-outside-rewind.zh.md: 267aa2195de1e794e2872dbcf4daac12cc46d932
+2026-09-01-component-guardian-history-outside-rewind.md: e46417a1b275f66471f62e1e344018c4de7a3b54
+2026-09-01-component-guardian-history-outside-rewind.zh.md: 5bce32f123deca34cafd489748769fdbbc5c7c12

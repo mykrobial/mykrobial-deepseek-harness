@@ -14,7 +14,7 @@ DeepSeek Harness 可以替换 Cordis 组件并恢复先前的组件代次，而 
 
 [`ComponentEvolutionGuardian`](../../../../packages/mykrobial/component-lifecycle/src/index.ts) 为一个组件、任务 capsule 与 loadout 保存只追加且内容寻址的历史。它创建一个确定性的基线事件，为后续事件分配序号与前一事件摘要，拒绝重复事件标识与倒退时间戳，并把每个变更事实绑定到组件快照、trajectory-event、Trace v2.3 intent 与证据摘要。
 
-guardian 从事件链派生已知快照、候选尝试与精确候选加提案关联索引。激活必须指向此前为该候选记录的提案。持久输入路径会在哈希前拒绝装箱标量别名、稀疏或访问器数组、自定义属性、符号键、非内建数组原型、数组子类与 Proxy 别名。它对总事件数和单个候选的尝试次数施加有限上限，而 [`rehydrate`](../../../../packages/mykrobial/component-lifecycle/src/index.ts) 会重放每个事件并重建这些索引，然后才接受序列化快照。激活、回退或重启都不会删除先前的 guardian 事件。
+guardian 从事件链派生已知快照、候选尝试与精确候选加提案关联索引。激活必须指向此前为该候选记录的提案。持久输入路径会在哈希前拒绝装箱标量别名、稀疏或访问器数组、自定义属性、符号键、非内建数组原型、数组子类与 Proxy 别名。任何不可信快照或命令进入标准哈希前，所有持久化标量与事件自身哈希都必须先完成验证。它对总事件数和单个候选的尝试次数施加有限上限，而 [`rehydrate`](../../../../packages/mykrobial/component-lifecycle/src/index.ts) 会重放每个事件并重建这些索引，然后才接受序列化快照。激活、回退或重启都不会删除先前的 guardian 事件。
 
 guardian 仅针对已记录快照和当前历史头准备 `rewind_component` 与 `rebuild_and_restart_component` 命令。这些命令保持 `prepared_unexecuted`，将组件应用、重启、历史改写、Trace 追加与部署权限维持为 false，并把任何外部状态回退收据标记为未验证。现有组件激活事务仍是唯一的组件效果执行器，并继续要求独立 permit 验证器。
 

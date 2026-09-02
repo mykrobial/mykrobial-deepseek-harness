@@ -1145,6 +1145,54 @@ function sealGuardianCommand(
   return value
 }
 
+function validateStoredGuardianEvent(source: unknown): ComponentGuardianEvent {
+  const value = guardianRecord(
+    source,
+    GUARDIAN_EVENT_KEYS,
+    'component_guardian_event_invalid',
+  )
+  const nonClaims = guardianArray(
+    value.non_claims,
+    5,
+    'component_guardian_event_non_claims_invalid',
+  )
+  if (value.schema !== 'mykrobial.component-guardian-event.v1'
+    || typeof value.kind !== 'string'
+    || !GUARDIAN_EVENT_KINDS.has(value.kind as ComponentGuardianEventKind)
+    || value.history_rewrite_authorized !== false
+    || value.component_application_authorized !== false
+    || value.trace_append_authorized !== false
+    || value.deployment_authorized !== false
+    || nonClaims.some(item => typeof item !== 'string')
+    || nonClaims.join('\u0000') !== GUARDIAN_NON_CLAIMS.join('\u0000')) {
+    throw new Error('typed_blocker:component_guardian_event_invalid')
+  }
+  guardianIdentifier(value.guardian_id, 'component_guardian_event_invalid')
+  guardianIdentifier(value.event_id, 'component_guardian_event_invalid')
+  guardianBoundedInteger(value.sequence, 0, 4095, 'component_guardian_event_invalid')
+  guardianDigest(value.previous_event_sha256, 'component_guardian_event_invalid')
+  if (typeof value.occurred_at !== 'string') {
+    throw new Error('typed_blocker:component_guardian_event_invalid')
+  }
+  strictTimestamp(value.occurred_at, 'component_guardian_event_invalid')
+  guardianIdentifier(value.component_id, 'component_guardian_event_invalid')
+  guardianIdentifier(value.task_capsule_id, 'component_guardian_event_invalid')
+  guardianIdentifier(value.loadout_id, 'component_guardian_event_invalid')
+  guardianDigest(value.component_snapshot_sha256, 'component_guardian_event_invalid')
+  guardianNullableDigest(value.candidate_definition_sha256, 'component_guardian_event_invalid')
+  guardianNullableDigest(value.mutation_proposal_sha256, 'component_guardian_event_invalid')
+  guardianNullableDigest(value.activation_receipt_sha256, 'component_guardian_event_invalid')
+  guardianDigest(value.trajectory_event_sha256, 'component_guardian_event_invalid')
+  guardianDigest(value.trace_v23_intent_sha256, 'component_guardian_event_invalid')
+  guardianDigest(value.evidence_sha256, 'component_guardian_event_invalid')
+  const eventSha256 = guardianDigest(value.event_sha256, 'component_guardian_event_invalid')
+  const candidate = { ...value, event_sha256: '0'.repeat(64) }
+  if (eventSha256 !== hash(candidate)) {
+    throw new Error('typed_blocker:component_guardian_event_invalid')
+  }
+  return value as unknown as ComponentGuardianEvent
+}
+
 function guardianCommandBlockers(rollbackReceipt: string | null): string[] {
   const blockers = [
     'typed_blocker:component_guardian_authority_unverified',
@@ -1259,6 +1307,35 @@ export class ComponentEvolutionGuardian {
       || knownSnapshots.length === 0) {
       throw new Error('typed_blocker:component_guardian_snapshot_invalid')
     }
+    const guardianId = guardianIdentifier(value.guardian_id, 'component_guardian_identity_invalid')
+    const componentId = guardianIdentifier(value.component_id, 'component_guardian_identity_invalid')
+    const taskCapsuleId = guardianIdentifier(value.task_capsule_id, 'component_guardian_identity_invalid')
+    const loadoutId = guardianIdentifier(value.loadout_id, 'component_guardian_identity_invalid')
+    const baselineDefinition = guardianDigest(
+      value.baseline_definition_sha256,
+      'component_guardian_baseline_invalid',
+    )
+    if (typeof value.created_at !== 'string') {
+      throw new Error('typed_blocker:component_guardian_created_at_invalid')
+    }
+    strictTimestamp(value.created_at, 'component_guardian_created_at')
+    const maxEvents = guardianBoundedInteger(
+      value.max_events,
+      2,
+      4096,
+      'component_guardian_event_budget_invalid',
+    )
+    const maxCandidateAttempts = guardianBoundedInteger(
+      value.max_candidate_attempts,
+      1,
+      32,
+      'component_guardian_attempt_budget_invalid',
+    )
+    guardianDigest(value.head_event_sha256, 'component_guardian_snapshot_invalid')
+    const snapshotSha256 = guardianDigest(
+      value.snapshot_sha256,
+      'component_guardian_snapshot_invalid',
+    )
     for (const snapshot of knownSnapshots) {
       guardianDigest(snapshot, 'component_guardian_known_snapshots_invalid')
     }
@@ -1300,32 +1377,22 @@ export class ComponentEvolutionGuardian {
         'component_guardian_proposal_bindings_invalid',
       )
     }
-    const baseline = guardianRecord(
-      events[0],
-      GUARDIAN_EVENT_KEYS,
-      'component_guardian_event_invalid',
-    ) as unknown as ComponentGuardianEvent
-    guardianArray(baseline.non_claims, 5, 'component_guardian_event_non_claims_invalid')
+    const validatedEvents = events.map(validateStoredGuardianEvent)
+    const baseline = validatedEvents[0]!
     const guardian = new ComponentEvolutionGuardian({
-      guardian_id: guardianIdentifier(value.guardian_id, 'component_guardian_identity_invalid'),
-      component_id: guardianIdentifier(value.component_id, 'component_guardian_identity_invalid'),
-      task_capsule_id: guardianIdentifier(value.task_capsule_id, 'component_guardian_identity_invalid'),
-      loadout_id: guardianIdentifier(value.loadout_id, 'component_guardian_identity_invalid'),
+      guardian_id: guardianId,
+      component_id: componentId,
+      task_capsule_id: taskCapsuleId,
+      loadout_id: loadoutId,
       baseline_snapshot_sha256: guardianDigest(baseline.component_snapshot_sha256, 'component_guardian_baseline_invalid'),
-      baseline_definition_sha256: guardianDigest(value.baseline_definition_sha256, 'component_guardian_baseline_invalid'),
+      baseline_definition_sha256: baselineDefinition,
       baseline_trajectory_event_sha256: guardianDigest(baseline.trajectory_event_sha256, 'component_guardian_baseline_invalid'),
       baseline_trace_v23_intent_sha256: guardianDigest(baseline.trace_v23_intent_sha256, 'component_guardian_baseline_invalid'),
-      created_at: typeof value.created_at === 'string' ? value.created_at : '',
-      max_events: guardianBoundedInteger(value.max_events, 2, 4096, 'component_guardian_event_budget_invalid'),
-      max_candidate_attempts: guardianBoundedInteger(value.max_candidate_attempts, 1, 32, 'component_guardian_attempt_budget_invalid'),
+      created_at: value.created_at,
+      max_events: maxEvents,
+      max_candidate_attempts: maxCandidateAttempts,
     })
-    for (const eventValue of events.slice(1)) {
-      const event = guardianRecord(
-        eventValue,
-        GUARDIAN_EVENT_KEYS,
-        'component_guardian_event_invalid',
-      ) as unknown as ComponentGuardianEvent
-      guardianArray(event.non_claims, 5, 'component_guardian_event_non_claims_invalid')
+    for (const event of validatedEvents.slice(1)) {
       if (!GUARDIAN_EVENT_KINDS.has(event.kind) || event.kind === 'baseline_registered') {
         throw new Error('typed_blocker:component_guardian_event_kind_invalid')
       }
@@ -1343,6 +1410,10 @@ export class ComponentEvolutionGuardian {
       })
     }
     const rebuilt = guardian.snapshot()
+    const snapshotCandidate = { ...value, snapshot_sha256: '0'.repeat(64) }
+    if (snapshotSha256 !== hash(snapshotCandidate)) {
+      throw new Error('typed_blocker:component_guardian_snapshot_mismatch')
+    }
     if (hash(rebuilt) !== hash(source)) {
       throw new Error('typed_blocker:component_guardian_snapshot_mismatch')
     }
@@ -1557,17 +1628,9 @@ export function validateComponentGuardianCommand(
   ) as unknown as ComponentGuardianCommand
   guardianArray(value.blockers, 4, 'component_guardian_command_blockers_invalid')
   guardianArray(value.non_claims, 6, 'component_guardian_command_non_claims_invalid')
-  const candidate = { ...value, command_sha256: '0'.repeat(64) }
-  const {
-    command_id: _commandId,
-    command_sha256: _commandSha256,
-    ...commandIdentity
-  } = value
   const rollbackReceipt = value.external_state_rollback_receipt_sha256
-  const expectedCommandId = `component-guardian-${hash(commandIdentity).slice(0, 24)}`
   if (value.schema !== 'mykrobial.component-guardian-command.v1'
     || typeof value.command_id !== 'string'
-    || value.command_id !== expectedCommandId
     || (value.operation !== 'rewind_component' && value.operation !== 'rebuild_and_restart_component')
     || typeof value.guardian_id !== 'string' || !ID.test(value.guardian_id)
     || typeof value.component_id !== 'string' || !ID.test(value.component_id)
@@ -1598,7 +1661,17 @@ export function validateComponentGuardianCommand(
     || value.non_claims.some(item => typeof item !== 'string')
     || value.non_claims.join('\u0000') !== GUARDIAN_COMMAND_NON_CLAIMS.join('\u0000')
     || typeof value.command_sha256 !== 'string'
-    || value.command_sha256 !== hash(candidate)) {
+    || !SHA.test(value.command_sha256)) {
+    throw new Error('typed_blocker:component_guardian_command_invalid')
+  }
+  const candidate = { ...value, command_sha256: '0'.repeat(64) }
+  const {
+    command_id: _commandId,
+    command_sha256: _commandSha256,
+    ...commandIdentity
+  } = value
+  const expectedCommandId = `component-guardian-${hash(commandIdentity).slice(0, 24)}`
+  if (value.command_id !== expectedCommandId || value.command_sha256 !== hash(candidate)) {
     throw new Error('typed_blocker:component_guardian_command_invalid')
   }
   return structuredClone(value)
