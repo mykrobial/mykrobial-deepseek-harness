@@ -1,0 +1,146 @@
+{
+  "schema": "mykrobial.ucp.capability_contract.v2.1",
+  "capability_kind": "recovery",
+  "capability_id": "recover__long_horizon_checkpoint",
+  "alt_id": "mdp.recover.long_horizon_checkpoint.v1",
+  "owner_agent": "agent:mykrobial-engineering",
+  "reviewed": false,
+  "production_authorized": false,
+  "gate_ready": false,
+  "harness_class": "evaluation",
+  "claim_boundary": "Source-only deterministic state simulation for content-addressed checkpoints, crash reopening, pivot children, replay, and partial-write recovery. It proves no process restart, provider/model/evaluator execution, Trace append, service activation, promotion, deployment, or fleet recovery.",
+  "capabilities": [
+    {
+      "name": "build_checkpoint",
+      "description": "Seal a committed action head and state while carrying only hashes for the excluded uncommitted tail.",
+      "mutating": false
+    },
+    {
+      "name": "recover_latest_checkpoint",
+      "description": "Reopen the latest valid committed generation and discard at most one syntactically partial final record.",
+      "mutating": false
+    },
+    {
+      "name": "pivot_from_checkpoint",
+      "description": "Derive a child generation from an exact parent checkpoint without mutating the parent.",
+      "mutating": false
+    }
+  ],
+  "input_contract": {
+    "required": [
+      "scenario and plain-integer generation identity",
+      "domain-separated predecessor checkpoint identity",
+      "complete ordered content-addressed ancestor-core chain for every nonzero generation",
+      "contiguous content-addressed committed action chain",
+      "separate uncommitted tail chain",
+      "bounded canonical state",
+      "all authority fields exactly false"
+    ],
+    "preconditions": [
+      "generation zero binds the scenario-specific genesis sentinel",
+      "each child binds the exact prior checkpoint and prior committed state",
+      "every ancestor core is independently hash-recomputed against its exact prefix",
+      "actions carry contiguous indices, unique identities, exact predecessor hashes, and recomputed action hashes",
+      "a pivot has at least one committed action; an omitted tail is represented only by null/None, never by a falsey alias",
+      "a partial record may occur only after the last fully committed checkpoint"
+    ]
+  },
+  "output_contract": {
+    "success": "A canonical checkpoint or recovery receipt with exact committed-state identity, excluded tail, generation chain, zero execution counts, and all authority false.",
+    "failure": "A typed blocker; a parseable forged record is never downgraded to a harmless partial write.",
+    "verification": "Rebuild or reopen exact bytes and compare checkpoint, state, predecessor, and recovery receipt hashes."
+  },
+  "environment_contract": {
+    "base_contract_refs": [
+      "evaluators/long_horizon_recovery.py",
+      "evaluators/rollback_replay_drift.py"
+    ],
+    "delta_c": [
+      {
+        "kind": "valid_condition",
+        "rule": "Only the committed action head affects recovered state; uncommitted payloads never enter checkpoint state.",
+        "source": "long_horizon_checkpoint_recovery authoritative metric"
+      },
+      {
+        "kind": "calling_rule",
+        "rule": "A pivot child binds the exact parent checkpoint and must not mutate it.",
+        "source": "restart_safe_idle_execution business-value stage"
+      }
+    ],
+    "caps": [
+      {
+        "name": "actions_per_generation",
+        "bound": 256,
+        "on_exceed": "typed_blocker:long_horizon_actions_invalid"
+      },
+      {
+        "name": "operational_side_effects",
+        "bound": 0,
+        "on_exceed": "typed_blocker:long_horizon_authority_invalid"
+      }
+    ],
+    "out_of_scope": [
+      "actual process or service restart",
+      "provider, model, or evaluator execution",
+      "Trace append",
+      "training, promotion, deployment, or fleet rollout"
+    ]
+  },
+  "usage_protocol": {
+    "steps": [
+      "1. Validate the scenario, generation, predecessor, state, and authority envelope.",
+      "2. Recompute every committed and uncommitted action chain hash.",
+      "3. Apply only committed actions and seal the checkpoint state.",
+      "4. Resolve and validate the full ancestry prefix; reject missing, reordered, duplicated, forked, stale, or cyclic links.",
+      "5. On recovery, reject fully parseable invalid records and discard only a final syntactically partial record.",
+      "6. For a pivot, build generation n+1 from the exact parent hash and state and recheck the unchanged parent.",
+      "7. Repeat reopen/replay and require byte-identical receipts."
+    ],
+    "done_definition": [
+      "recovered state equals the latest valid committed state",
+      "uncommitted effects are absent from state and checkpoint payload",
+      "restart and replay are idempotent",
+      "pivot parent bytes remain unchanged",
+      "all execution counters remain zero and all authority remains false"
+    ],
+    "repair_on_failure": [
+      "repair the first divergent generation, action, state, or predecessor hash and regenerate an immutable successor",
+      "never reinterpret a validly parsed forged checkpoint as a partial write"
+    ]
+  },
+  "action_realization": {
+    "validates_against": [
+      "capabilities",
+      "input_contract",
+      "output_contract",
+      "environment_contract"
+    ],
+    "exec_block_rules": [
+      {
+        "when": "any runtime, provider, evaluator, Trace, training, promotion, or deployment authority is true",
+        "decision": "BLOCK",
+        "block_message": "typed_blocker:long_horizon_authority_invalid",
+        "kind": "commit_gate",
+        "outcome_class": "authority_collapse"
+      },
+      {
+        "when": "a checkpoint, state, generation, predecessor, action, pivot, or recovery receipt is not exactly derivable",
+        "decision": "BLOCK",
+        "block_message": "typed_blocker:long_horizon_checkpoint_not_derivable",
+        "kind": "anchor_validate",
+        "outcome_class": "recovery_identity_drift"
+      }
+    ],
+    "fail_closed_on_unknown": true
+  },
+  "non_claims": [
+    "not_actual_runtime_or_process_recovery",
+    "not_provider_or_model_execution",
+    "not_evaluator_execution",
+    "not_trace_append",
+    "not_training_or_weight_update",
+    "not_promotion_or_deployment",
+    "not_fleet_rollout",
+    "not_human_or_founder_approval"
+  ]
+}
