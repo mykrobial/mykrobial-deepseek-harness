@@ -10,7 +10,13 @@
     "review_seal_tree": "cfe982de0a82753f00dd869171d06e9c9a97abd7",
     "fresh_critic_path": "evidence/rounds/audit-successor-v28r2-retrodict-loadout-fresh-critic/VERDICT.v1.json",
     "fresh_critic_sha256": "e6eb6fe354cf6f93b85a945b365a60bd877ab0c4bac857bb72448d919d3ef80c",
-    "bundle_sha256": "b5ccc81eba934e7a1209a848f9eee24184f51b081c2356b2dd5b3d8ea0934305",
+    "source_acceptance_bundle_sha256": "b5ccc81eba934e7a1209a848f9eee24184f51b081c2356b2dd5b3d8ea0934305",
+    "source_acceptance_bundle_preimage_ref": null,
+    "source_acceptance_bundle_preimage_kind": null,
+    "source_acceptance_bundle_preimage_status": "preimage_unverified",
+    "source_acceptance_bundle_relied_on": false,
+    "predecessor_binding_critic_path": "outputs/deepseek-cordis-rsi-kickoff/retrodict-first-class-loadout-binding-fresh-critic/BLOCKER.v1.json",
+    "predecessor_binding_critic_sha256": "2ca41d503a1cb04219637e9793d122bd1456d618f6a65769d8e5748cb4e3d52d",
     "decision": "accept_source_only"
   },
   "copied_public_artifacts": [
@@ -60,19 +66,19 @@
     },
     {
       "mechanism": "history_retrodiction_gate",
-      "native_source": "packages/mykrobial/scientific-retrodiction/src/commands.ts",
+      "native_source": "packages/mykrobial/scientific-retrodiction/src/index.ts",
       "native_symbol": "certifyHypothesis",
       "state": "source_implemented_unmounted"
     },
     {
       "mechanism": "expected_action_queue",
-      "native_source": "packages/mykrobial/scientific-retrodiction/src/commands.ts",
+      "native_source": "packages/mykrobial/scientific-retrodiction/src/index.ts",
       "native_symbol": "commitActions",
       "state": "source_implemented_unmounted"
     },
     {
       "mechanism": "first_mismatch_stop_divergence",
-      "native_source": "packages/mykrobial/scientific-retrodiction/src/commands.ts",
+      "native_source": "packages/mykrobial/scientific-retrodiction/src/index.ts",
       "native_symbol": "recordActionResult",
       "state": "source_implemented_unmounted_fixture_action_spend_semantics_unresolved"
     },

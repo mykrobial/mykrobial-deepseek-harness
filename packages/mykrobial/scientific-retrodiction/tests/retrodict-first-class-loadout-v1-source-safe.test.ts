@@ -10,8 +10,12 @@ function raw(path: string): Uint8Array {
   return readFileSync(new URL(path, ROOT))
 }
 
+function text(path: string): string {
+  return new TextDecoder().decode(raw(path))
+}
+
 function json<T>(path: string): T {
-  return JSON.parse(new TextDecoder().decode(raw(path))) as T
+  return JSON.parse(text(path)) as T
 }
 
 function sha256(value: Uint8Array): string {
@@ -27,7 +31,12 @@ interface Binding {
     review_seal_commit: string
     review_seal_tree: string
     fresh_critic_sha256: string
-    bundle_sha256: string
+    source_acceptance_bundle_sha256: string
+    source_acceptance_bundle_preimage_ref: null
+    source_acceptance_bundle_preimage_kind: null
+    source_acceptance_bundle_preimage_status: string
+    source_acceptance_bundle_relied_on: boolean
+    predecessor_binding_critic_sha256: string
     decision: string
   }
   copied_public_artifacts: Array<{ kind: string; path: string; sha256: string }>
@@ -117,7 +126,12 @@ test('accepted RetroDICT public artifacts retain exact source bytes', () => {
   assert.equal(binding.source.review_seal_commit, '90e18ce69df607fdbd6c0558d4792924e61eb9f7')
   assert.equal(binding.source.review_seal_tree, 'cfe982de0a82753f00dd869171d06e9c9a97abd7')
   assert.equal(binding.source.fresh_critic_sha256, 'e6eb6fe354cf6f93b85a945b365a60bd877ab0c4bac857bb72448d919d3ef80c')
-  assert.equal(binding.source.bundle_sha256, 'b5ccc81eba934e7a1209a848f9eee24184f51b081c2356b2dd5b3d8ea0934305')
+  assert.equal(binding.source.source_acceptance_bundle_sha256, 'b5ccc81eba934e7a1209a848f9eee24184f51b081c2356b2dd5b3d8ea0934305')
+  assert.equal(binding.source.source_acceptance_bundle_preimage_ref, null)
+  assert.equal(binding.source.source_acceptance_bundle_preimage_kind, null)
+  assert.equal(binding.source.source_acceptance_bundle_preimage_status, 'preimage_unverified')
+  assert.equal(binding.source.source_acceptance_bundle_relied_on, false)
+  assert.equal(binding.source.predecessor_binding_critic_sha256, '2ca41d503a1cb04219637e9793d122bd1456d618f6a65769d8e5748cb4e3d52d')
   assert.equal(binding.source.decision, 'accept_source_only')
   assert.equal(binding.copied_public_artifacts.length, 3)
   for (const artifact of binding.copied_public_artifacts) {
@@ -178,6 +192,10 @@ test('native correspondence is exhaustive while unresolved semantics and authori
   assert.equal(new Set(binding.native_correspondence.map(row => row.mechanism)).size, MECHANISMS.length)
   assert.equal(binding.native_correspondence.every(row => row.native_source.startsWith('packages/mykrobial/scientific-retrodiction/src/')), true)
   assert.equal(binding.native_correspondence.every(row => row.native_symbol.length > 0 && row.state.length > 0), true)
+  for (const row of binding.native_correspondence) {
+    const escaped = row.native_symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    assert.match(text(row.native_source), new RegExp(`\\b${escaped}\\b`), `${row.native_source}:${row.native_symbol}`)
+  }
   assert.equal(binding.semantic_differences_requiring_successor.length, 4)
   assert.equal(binding.next_generation_boundary.public_contract_provenance_and_fixture_available, true)
   assert.equal(binding.next_generation_boundary.current_production_runtime_implementation_copied, false)
