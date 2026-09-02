@@ -1,0 +1,114 @@
+{
+  "schema": "mykrobial.next-deepseek-cordis.expert-mixture-lineage-binding.v1",
+  "status": "accepted_public_contract_and_receipt_shape_bound_unexecuted",
+  "source": {
+    "repository": "/Users/kalcypher/Projects/_worktrees/mykrobial-deepseek-harness-program-audit-v25-expert-mixture",
+    "candidate_commit": "20a495d4dea494c9ad67abccb3eb4a2234521c2c",
+    "candidate_tree": "a68e9439cb8500acb265afb9b0be315c97af8796",
+    "review_seal_commit": "4d7b1df428cd006c4a994f188b137a8184565069",
+    "review_seal_tree": "028316b20d74ef1f9e32badaa039d15be4d6ec4b",
+    "fresh_critic_path": "evidence/rounds/audit-successor-v25-expert-mixture-fresh-critic/VERDICT.v1.json",
+    "fresh_critic_sha256": "eba2cd6c9a646b9c5cdd203477e8c21e31e7649e5fd0104d5ea3badce81a8b27",
+    "preservation_bundle_sha256": "c48c629755beb4a8dda09732ca9aa4a37080943f2ebce8bfe41c1c0c53d62e3f",
+    "decision": "accept_source_only"
+  },
+  "copied_public_artifacts": [
+    {
+      "kind": "capability_contract",
+      "path": "contracts/mykrobial/expert-mixture-lineage.v1.json",
+      "sha256": "4da79d58cf363548d177f4e76ddd347a3d846d5e29c44caa5f5cf5a9b58fc30f"
+    },
+    {
+      "kind": "expert_registry_fixture",
+      "path": "contracts/mykrobial/evidence/expert-mixture-v25/expert-registry.v1.json",
+      "sha256": "309460711c992e6ebe265e2da18b61e2775623c311d35b6c402d087d664fae19"
+    },
+    {
+      "kind": "prior_evidence_receipt_fixture",
+      "path": "contracts/mykrobial/evidence/expert-mixture-v25/prior-evidence-receipt.v1.json",
+      "sha256": "f31a0e93df43f8ccacec92dbf71a29bd2dfde96eea0bf13084d91c556032d499"
+    },
+    {
+      "kind": "adaptive_budget_ledger_fixture",
+      "path": "contracts/mykrobial/evidence/expert-mixture-v25/adaptive-budget-ledger.v1.json",
+      "sha256": "31bd7fe9c5178da0333721899f7d5814b867ad57e97c08d374dbcd421da7724d"
+    },
+    {
+      "kind": "lineage_receipt_fixture",
+      "path": "contracts/mykrobial/evidence/expert-mixture-v25/lineage-receipt.v1.json",
+      "sha256": "30cecb69ca514f4e6853bdc8ecacb83263c550bee275e7e029de67d6ca521289"
+    },
+    {
+      "kind": "candidate_batch_fixture",
+      "path": "contracts/mykrobial/evidence/expert-mixture-v25/candidate-batch.v1.json",
+      "sha256": "28e20b4b351ca2e4fa147e1990a7c26614f0782b2510b67174167aee528382b0"
+    },
+    {
+      "kind": "verification_fixture",
+      "path": "contracts/mykrobial/evidence/expert-mixture-v25/verification.v1.json",
+      "sha256": "00109ea3a58c1478d1eaf73e39e9027c7a432189acad1ff96b981bc924ad0dde"
+    },
+    {
+      "kind": "source_manifest",
+      "path": "contracts/mykrobial/evidence/expert-mixture-v25/source-manifest.v25.json",
+      "sha256": "2894aa567517d9fc8a98a00b69017a5492191d19083a174508c3e705bcf3cec5"
+    }
+  ],
+  "parity_shape": {
+    "requirement_id": "expert_mixture_lineage",
+    "epoch_id": "expert-mixture-v25",
+    "candidate_state": "proposal_only_unexecuted",
+    "expert_count": 3,
+    "unique_lineage_count": 3,
+    "avoidable_single_lineage_collapse": false,
+    "candidate_budgets": [5, 8, 11],
+    "total_budget": 24,
+    "budget_minimum": 4,
+    "budget_maximum": 12,
+    "required_candidate_bindings": [
+      "candidate_id",
+      "candidate_sha256",
+      "expert_id",
+      "lineage_id",
+      "definition_ref_sha256_and_bytes",
+      "parent_candidate_sha256",
+      "parent_receipt_ref_sha256_and_bytes",
+      "prior_evidence_ref_sha256_and_bytes",
+      "budget_units_and_derivation"
+    ],
+    "required_controls": [
+      "two_to_eight_healthy_unique_experts",
+      "finite_plain_integer_epoch_and_candidate_budgets",
+      "input_order_canonicalization",
+      "exact_parent_and_prior_evidence_joins",
+      "rebuild_complete_output_before_citation",
+      "all_execution_counts_zero",
+      "all_authority_false"
+    ]
+  },
+  "next_generation_boundary": {
+    "contract_and_receipt_shape_available": true,
+    "current_production_runtime_implementation_copied": false,
+    "expert_generator_or_allocator_implemented": false,
+    "expert_or_model_dispatched": false,
+    "optimizer_or_evaluator_executed": false,
+    "training_or_promotion_authorized": false,
+    "future_consumer": "Next-Generation component-RSI proposal plane and dynamic loadout planner",
+    "required_future_decision": "separately decide and review a native DeepSeek/CORDIS proposal-only adapter before any runtime use"
+  },
+  "authority": {
+    "source_binding_authorized": true,
+    "dispatch_authorized": false,
+    "provider_execution_authorized": false,
+    "evaluator_execution_authorized": false,
+    "training_authorized": false,
+    "promotion_authorized": false,
+    "deployment_authorized": false
+  },
+  "nonclaims": [
+    "not expert generator allocator or runtime implementation",
+    "not candidate dispatch model or evaluator execution",
+    "not training selection promotion deployment fleet rollout or causal business value",
+    "not complete program acceptance"
+  ]
+}
