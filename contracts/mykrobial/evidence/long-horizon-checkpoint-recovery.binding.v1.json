@@ -1,0 +1,102 @@
+{
+  "schema": "mykrobial.next-deepseek-cordis.long-horizon-checkpoint-recovery-binding.v1",
+  "status": "accepted_public_contract_and_receipt_shape_bound_unexecuted",
+  "source": {
+    "repository": "/Users/kalcypher/Projects/_worktrees/mykrobial-deepseek-harness-program-audit-v26-long-horizon",
+    "candidate_commit": "f4ad0a9a97ed56d483d9facdb364104b06f3bd79",
+    "candidate_tree": "7f0ffe4af847d506ba52744c3773231795ff4666",
+    "candidate_parent": "9f9d4ffb44b9e2ab7a0683b9974f1639620b3625",
+    "review_seal_commit": "e264a0e2735e1e7afd080934f9da9df3ae3ee17f",
+    "review_seal_tree": "f1db1cb0b8e4a65a50331664a187e48824a7b0f2",
+    "fresh_critic_path": "evidence/rounds/audit-successor-v26r3-long-horizon-fresh-critic/VERDICT.v1.json",
+    "fresh_critic_sha256": "040503f4fa14593a50be0339356db6a4fabca9cae6d803c2ff8a30433e5fb7f5",
+    "preservation_bundle_sha256": "5953a80429b940644faf4611fe79f4b1ff379d73cd0777d89e7f6931714c7cc0",
+    "decision": "accept_source_only"
+  },
+  "copied_public_artifacts": [
+    {
+      "kind": "capability_contract",
+      "path": "contracts/mykrobial/long-horizon-checkpoint-recovery.v1.json",
+      "sha256": "7dc63c43c5c1dc93ec2e6f92351f648b84c1ba5787096e5b0711128ae35f2fc1"
+    },
+    {
+      "kind": "baseline_checkpoint_fixture",
+      "path": "contracts/mykrobial/evidence/long-horizon-v26/baseline-state.v1.json",
+      "sha256": "310d3834d3faedc6d6de3700bdab94230c16fee3481537df1d21da69f245dd99"
+    },
+    {
+      "kind": "generation_three_checkpoint_fixture",
+      "path": "contracts/mykrobial/evidence/long-horizon-v26/checkpoint.v1.json",
+      "sha256": "c8d7ab17cf535ae8e5a0db9e380b3d73497728e169bc002be623b062769ea5c0"
+    },
+    {
+      "kind": "restart_recovery_receipt_fixture",
+      "path": "contracts/mykrobial/evidence/long-horizon-v26/restart-recovery.receipt.v1.json",
+      "sha256": "d49db887263c94c770c9d1dd7d37ec7751f76eeb52d558f04635b7fdbea5205f"
+    },
+    {
+      "kind": "pivot_recovery_receipt_fixture",
+      "path": "contracts/mykrobial/evidence/long-horizon-v26/pivot-recovery.receipt.v1.json",
+      "sha256": "27292d1c39fe9027c90990386d57da0851595abec860e5b7f536e8fc97a4c018"
+    },
+    {
+      "kind": "crash_recovery_receipt_fixture",
+      "path": "contracts/mykrobial/evidence/long-horizon-v26/crash-recovery.receipt.v1.json",
+      "sha256": "d0e0c203af207fadd5482a1c24020a1f25e0779c3b54c78824a60522857631c6"
+    },
+    {
+      "kind": "scenario_matrix_fixture",
+      "path": "contracts/mykrobial/evidence/long-horizon-v26/scenario-matrix.v1.json",
+      "sha256": "cd2e77ebbf403aac34c24a3b2bfcd4c975f1d24321fd429810fffed0a99c86d7"
+    },
+    {
+      "kind": "verification_fixture",
+      "path": "contracts/mykrobial/evidence/long-horizon-v26/verification.v1.json",
+      "sha256": "748a49c6db169c300f42bc9ed333f478d1a5eae0bac44e3be80640a1b1b9f650"
+    }
+  ],
+  "parity_shape": {
+    "requirement_id": "long_horizon_checkpoint_recovery",
+    "scenario_id": "long-horizon-v26",
+    "validated_generations": [0, 1, 2, 3],
+    "generation_count": 4,
+    "latest_generation": 3,
+    "latest_checkpoint_sha256": "8ae79be3bb2687baea67f9ccfb90aa7913fa6670c4a586e4e2738f5f5c1f7b09",
+    "latest_state_sha256": "68991cede9e678b4eb9a35c7726c91c6966f75780e89e1f3edfa9403eac75341",
+    "required_invariants": [
+      "content_addressed_contiguous_generation_chain",
+      "complete_ancestor_core_validation",
+      "committed_head_excludes_uncommitted_tail",
+      "one_syntactically_partial_final_record_may_be_discarded",
+      "fully_parseable_invalid_record_must_be_rejected",
+      "pivot_child_binds_exact_parent_without_mutating_parent_bytes",
+      "standalone_latest_generation_reopens",
+      "restart_and_recovery_receipts_are_idempotent",
+      "cycle_fork_reorder_duplicate_and_stale_hashes_reject",
+      "all_execution_counts_zero_and_authority_false"
+    ]
+  },
+  "next_generation_boundary": {
+    "contract_and_receipt_shape_available": true,
+    "current_production_runtime_implementation_copied": false,
+    "recovery_engine_implemented": false,
+    "actual_process_or_service_restart_executed": false,
+    "future_consumer": "DeepSeek Session checkpoint store, CORDIS component lifecycle, and OmniGent timeline replay",
+    "required_future_decision": "separately decide and review a native DeepSeek/CORDIS checkpoint adapter and durable storage provider before runtime use"
+  },
+  "authority": {
+    "source_binding_authorized": true,
+    "runtime_authorized": false,
+    "provider_execution_authorized": false,
+    "evaluator_execution_authorized": false,
+    "trace_append_authorized": false,
+    "training_authorized": false,
+    "promotion_authorized": false,
+    "deployment_authorized": false
+  },
+  "nonclaims": [
+    "not checkpoint recovery runtime or durable storage implementation",
+    "not actual process restart provider model evaluator or Trace execution",
+    "not training promotion deployment fleet recovery or complete program acceptance"
+  ]
+}
