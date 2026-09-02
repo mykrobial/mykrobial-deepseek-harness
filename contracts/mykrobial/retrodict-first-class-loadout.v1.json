@@ -1,0 +1,112 @@
+{
+  "schema": "mykrobial.ucp.capability_contract.v2.1",
+  "capability_kind": "orchestration",
+  "capability_id": "compose__retrodict_first_class_loadout",
+  "alt_id": "mdp.compose.retrodict_first_class_loadout.v1",
+  "owner_agent": "agent:mykrobial-engineering",
+  "reviewed": false,
+  "production_authorized": false,
+  "gate_ready": false,
+  "harness_class": "guidance",
+  "claim_boundary": "Source-only composition of one content-addressed RetroDICT profile, bundle, typed plugin descriptor, primary-source pin, and deterministic fixture. It proves neither a mounted loadout nor live RetroDICT behavior, provider/tool execution, Trace, promotion, deployment, or business uplift.",
+  "capabilities": [
+    {
+      "name": "compile_retrodict_loadout",
+      "description": "Validate the exact eight-mechanism default loadout and its source-safe deterministic fixture.",
+      "mutating": false
+    }
+  ],
+  "input_contract": {
+    "required": [
+      "content-addressed primary-source record",
+      "typed plugin descriptor with sidecar and direct-inline false",
+      "default profile and bundle with exact canonical mechanism order",
+      "deterministic mismatch/reset/escalation fixture",
+      "finite plain-integer budgets",
+      "all authority false and counters zero"
+    ]
+  },
+  "output_contract": {
+    "success": "A source_only_unmounted loadout receipt with zero required-mechanism failures.",
+    "failure": "A typed source, plugin, profile, bundle, fixture, budget, behavior, authority, or counter blocker.",
+    "verification": "Reopen every artifact, recompute hashes, and rerun the exact deterministic fixture."
+  },
+  "environment_contract": {
+    "compiler_entrypoint": "retrodict_loadout_v1.compile_retrodict_loadout",
+    "required_primary_source_refs": [
+      "README.md",
+      "src/arc3/prompts.py",
+      "src/arc3/plan_parser.py",
+      "src/arc3/runner.py",
+      "src/arc3/logwriter.py"
+    ],
+    "base_contract_refs": [
+      "evidence/worker-results/deepseek-cordis-source-authority/PRIMARY-SOURCE-MAP.v1.json",
+      "docs/plans/deepseek-cordis-retrodict-migration/03-program-design.md"
+    ],
+    "mechanism_order": [
+      "snapshot_log_history_paper_pencil",
+      "log_as_context",
+      "history_retrodiction_gate",
+      "expected_action_queue",
+      "first_mismatch_stop_divergence",
+      "persistent_playbook_reset_resume",
+      "stuck_threshold_simulator_search",
+      "bounded_containment"
+    ],
+    "out_of_scope": [
+      "mounting or executing the loadout",
+      "provider, model, tool, simulator, or evaluator execution",
+      "Trace append, training, promotion, deployment, or fleet rollout"
+    ]
+  },
+  "usage_protocol": {
+    "steps": [
+      "1. Reopen and hash the source, plugin, profile, fixture, and bundle.",
+      "2. Reject sidecar/direct-inline bypass and require exact mechanism order.",
+      "3. Require every live action to follow a logged observation and checked hypothesis with expected state.",
+      "4. Stop at the first mismatch and emit a divergence state.",
+      "5. Preserve the playbook across reset/resume.",
+      "6. Permit simulator/search escalation only at the finite stuck threshold.",
+      "7. Return an unmounted receipt with all authority false and counters zero."
+    ],
+    "done_definition": [
+      "all eight mechanisms are present exactly once in canonical order",
+      "the deterministic fixture satisfies history, expectation, mismatch, resume, escalation, and containment rules",
+      "no operational authority or execution is inferred"
+    ],
+    "repair_on_failure": [
+      "repair the source artifact or mechanism fixture and freeze a new immutable successor",
+      "do not bypass the typed plugin boundary or treat source presence as runtime behavior"
+    ]
+  },
+  "action_realization": {
+    "validates_against": [
+      "capabilities",
+      "input_contract",
+      "output_contract",
+      "environment_contract"
+    ],
+    "exec_block_rules": [
+      {
+        "when": "any mount, sidecar, direct-inline, provider/tool action, or authority is requested",
+        "decision": "BLOCK",
+        "block_message": "typed_blocker:retrodict_authority_invalid",
+        "kind": "commit_gate",
+        "outcome_class": "runtime_or_authority_collapse"
+      }
+    ],
+    "fail_closed_on_unknown": true
+  },
+  "non_claims": [
+    "not_actual_loadout_mount_or_runtime",
+    "not_provider_or_model_execution",
+    "not_tool_or_evaluator_execution",
+    "not_trace_append",
+    "not_training_or_weight_update",
+    "not_promotion_or_deployment",
+    "not_fleet_rollout",
+    "not_causal_business_value",
+    "not_human_or_founder_approval"
+  ]
+}
