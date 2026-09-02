@@ -1,0 +1,141 @@
+{
+  "schema": "mykrobial.ucp.capability_contract.v2.1",
+  "capability_kind": "recovery",
+  "capability_id": "verify__rollback_replay_drift",
+  "alt_id": "mdp.verify.rollback_replay_drift.v1",
+  "owner_agent": "agent:mykrobial-engineering",
+  "reviewed": false,
+  "production_authorized": false,
+  "gate_ready": false,
+  "harness_class": "evaluation",
+  "claim_boundary": "Pure source simulation of exact generation restore, bound suffix replay, checkpoint drift reporting, and restart reconciliation. It performs no actual rollback or restart, provider/model/evaluator execution, Trace append, training, promotion, deployment, or fleet action.",
+  "capabilities": [
+    {
+      "name": "restore_generation",
+      "description": "Reconstruct and validate an exact prior checkpoint from the descendant's self-contained ancestry.",
+      "mutating": false
+    },
+    {
+      "name": "replay_suffix",
+      "description": "Replay a contiguous, bound generation suffix and require canonical equality with the original descendant.",
+      "mutating": false
+    },
+    {
+      "name": "detect_drift",
+      "description": "Compare every checkpoint identity surface and return a content-addressed drift report.",
+      "mutating": false
+    },
+    {
+      "name": "reconcile_restart",
+      "description": "Accept only an exact branch and head; all drift returns a typed blocker.",
+      "mutating": false
+    }
+  ],
+  "input_contract": {
+    "required": [
+      "exact V26 self-contained current checkpoint",
+      "plain-integer target generation present in ancestry",
+      "contiguous generation replay suffix with committed actions and explicit tails",
+      "observed restart checkpoint",
+      "all authority false and all execution counters zero"
+    ],
+    "preconditions": [
+      "the current and observed checkpoints independently validate",
+      "the target is not before genesis or after the current generation",
+      "replay steps are exact, contiguous, nonempty, and preserve tail boundaries",
+      "the expected current checkpoint remains immutable throughout evaluation"
+    ]
+  },
+  "output_contract": {
+    "success": "An exact rollback plan, restored checkpoint, replayed checkpoint, zero-drift report, and accepted exact-branch restart receipt.",
+    "failure": "A typed target, suffix, checkpoint, drift, authority, or counter blocker; no partial acceptance.",
+    "verification": "Rebuild and compare canonical bytes for restore, replay, drift report, and restart receipt."
+  },
+  "environment_contract": {
+    "base_contract_refs": [
+      "contracts/long-horizon-checkpoint-recovery.v1.json",
+      "runtime/long_horizon_checkpoint_recovery_v1.py"
+    ],
+    "delta_c": [
+      {
+        "kind": "valid_condition",
+        "rule": "A rollback target must be byte-identical to the original ancestor entry and prefix.",
+        "source": "rollback_replay_drift authoritative metric"
+      },
+      {
+        "kind": "valid_condition",
+        "rule": "Replay and restart may accept only the exact original branch and head.",
+        "source": "restart_safe_idle_execution business-value stage"
+      }
+    ],
+    "caps": [
+      {
+        "name": "operational_side_effects",
+        "bound": 0,
+        "on_exceed": "typed_blocker:rollback_authority_invalid"
+      }
+    ],
+    "out_of_scope": [
+      "actual rollback, process restart, or service reconciliation",
+      "provider, model, or evaluator execution",
+      "Trace append",
+      "training, promotion, deployment, or fleet rollout"
+    ]
+  },
+  "usage_protocol": {
+    "steps": [
+      "1. Validate the exact current checkpoint and requested target generation.",
+      "2. Reconstruct the target checkpoint from its ancestor core and exact prefix.",
+      "3. Replay every generation in the supplied suffix, preserving committed actions and excluded tails.",
+      "4. Require the replayed checkpoint to equal the original descendant byte-for-byte.",
+      "5. Compare scenario, generation, predecessor, action journal, head, state, tail, ancestry, and checkpoint hashes.",
+      "6. Accept restart reconciliation only when no drift field exists."
+    ],
+    "done_definition": [
+      "rollback target equals the original ancestor",
+      "replayed suffix equals the original current checkpoint",
+      "forked or stale restart state is detected",
+      "the source checkpoint is unchanged",
+      "all authority remains false and counters remain zero"
+    ],
+    "repair_on_failure": [
+      "localize the first differing generation or checkpoint field and rebuild from the last exact ancestor",
+      "never coerce, ignore, or relabel drift as equivalence"
+    ]
+  },
+  "action_realization": {
+    "validates_against": [
+      "capabilities",
+      "input_contract",
+      "output_contract",
+      "environment_contract"
+    ],
+    "exec_block_rules": [
+      {
+        "when": "any operational authority or execution counter is nonzero",
+        "decision": "BLOCK",
+        "block_message": "typed_blocker:rollback_authority_invalid",
+        "kind": "commit_gate",
+        "outcome_class": "authority_collapse"
+      },
+      {
+        "when": "restore, replay, drift comparison, or restart branch is not exactly derivable",
+        "decision": "BLOCK",
+        "block_message": "typed_blocker:rollback_restart_drift_detected",
+        "kind": "anchor_validate",
+        "outcome_class": "rollback_replay_drift"
+      }
+    ],
+    "fail_closed_on_unknown": true
+  },
+  "non_claims": [
+    "not_actual_rollback_or_restart",
+    "not_provider_or_model_execution",
+    "not_evaluator_execution",
+    "not_trace_append",
+    "not_training_or_weight_update",
+    "not_promotion_or_deployment",
+    "not_fleet_rollout",
+    "not_human_or_founder_approval"
+  ]
+}

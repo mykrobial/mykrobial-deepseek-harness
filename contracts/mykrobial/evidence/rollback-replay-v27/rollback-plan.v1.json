@@ -1,0 +1,1 @@
+{"replay_generation_count":2,"scenario_id":"rollback-v27","schema":"mykrobial.rollback-plan.v1","source_checkpoint_sha256":"8a39a57423838e3eb4317528d464903347d8cd0b8364884f4376d251d39c6f95","source_generation":3,"state":"source_simulation_complete_unexecuted","target_checkpoint_sha256":"2308aba7daf603c541d3e80885b7ea15c7efbe5f386018830003018a32922a8c","target_generation":1}

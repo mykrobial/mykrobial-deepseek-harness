@@ -1,0 +1,99 @@
+{
+  "schema": "mykrobial.next-deepseek-cordis.rollback-replay-drift-binding.v1",
+  "status": "accepted_public_contract_and_receipt_shape_bound_unexecuted",
+  "source": {
+    "repository": "/Users/kalcypher/Projects/_worktrees/mykrobial-deepseek-harness-program-audit-v27-rollback-replay",
+    "candidate_commit": "741cd480b3c74d54b66ac30f56e0b3f9db778848",
+    "candidate_tree": "05214ca44da83bdf074251f44bc0b028c2128ef7",
+    "candidate_parent": "e264a0e2735e1e7afd080934f9da9df3ae3ee17f",
+    "review_seal_commit": "4ca12a7ed9e9a5e02b219294e4c6c47c2ecff41d",
+    "review_seal_tree": "60a656a942447d43be6e1e2cfeaca5848d0cfca3",
+    "fresh_critic_path": "evidence/rounds/audit-successor-v27-rollback-replay-fresh-critic/VERDICT.v1.json",
+    "fresh_critic_sha256": "9036cf79ec68c0cdf54a07f548666b2231fada8840c479893d033ab31459e283",
+    "preservation_bundle_sha256": "1588e759ae0fe1597d075f17ea18b2a5f40ae3a27c5e071cfa7ae2938b3ffff6",
+    "decision": "accept_source_only"
+  },
+  "copied_public_artifacts": [
+    {
+      "kind": "capability_contract",
+      "path": "contracts/mykrobial/rollback-replay-drift.v1.json",
+      "sha256": "098ae30094f7a2e7b8d83f6af87cccbf54e08f25de9fc0a760059bac75f48e89"
+    },
+    {
+      "kind": "rollback_plan_fixture",
+      "path": "contracts/mykrobial/evidence/rollback-replay-v27/rollback-plan.v1.json",
+      "sha256": "df861acb8adda8e42f0400989d1fa56f4ad9060faaed5b51dc20cf08d33fdad2"
+    },
+    {
+      "kind": "generation_restore_receipt_fixture",
+      "path": "contracts/mykrobial/evidence/rollback-replay-v27/generation-restore.receipt.v1.json",
+      "sha256": "35506ce57b05fdc4acce135a516ca1142899f613f599e659f0e3816f37a9095e"
+    },
+    {
+      "kind": "replay_equivalence_receipt_fixture",
+      "path": "contracts/mykrobial/evidence/rollback-replay-v27/replay-equivalence.receipt.v1.json",
+      "sha256": "2e1ab42942961ebe49bf171d0a9dd02df1357b97c3d46c83bd8e3b8e787f923b"
+    },
+    {
+      "kind": "restart_reconciliation_receipt_fixture",
+      "path": "contracts/mykrobial/evidence/rollback-replay-v27/restart-reconciliation.receipt.v1.json",
+      "sha256": "a402c30529c5565c1c6f0cc76f445418de2a143373187a823612c8283614caf6"
+    },
+    {
+      "kind": "drift_detection_receipt_fixture",
+      "path": "contracts/mykrobial/evidence/rollback-replay-v27/drift-detection.receipt.v1.json",
+      "sha256": "0053aa0fd9f6f32eb5733eff15018029514ef3d5cba2ba2e66f83cd74aa3e4e0"
+    },
+    {
+      "kind": "scenario_matrix_fixture",
+      "path": "contracts/mykrobial/evidence/rollback-replay-v27/scenario-matrix.v1.json",
+      "sha256": "a030865a0fe87ac1bf45edb02c9bfd30a7116b4758e8d945902231754b55293a"
+    },
+    {
+      "kind": "verification_fixture",
+      "path": "contracts/mykrobial/evidence/rollback-replay-v27/verification.v1.json",
+      "sha256": "55622e9fb1c539ed97377321a34e42ea665fb664c0d11fe9e451aa5bd70c8718"
+    }
+  ],
+  "parity_shape": {
+    "requirement_id": "rollback_replay_drift",
+    "scenario_id": "rollback-v27",
+    "source_generation": 3,
+    "target_generation": 1,
+    "replay_generation_count": 2,
+    "source_checkpoint_sha256": "8a39a57423838e3eb4317528d464903347d8cd0b8364884f4376d251d39c6f95",
+    "target_checkpoint_sha256": "2308aba7daf603c541d3e80885b7ea15c7efbe5f386018830003018a32922a8c",
+    "drift_report_sha256": "b5b42d0bd8be8dcc8f5faefcc812ee4bcf6c8ef52ed7ec583c1d38a51329618a",
+    "required_invariants": [
+      "restore_target_byte_equal_original_ancestor",
+      "bound_suffix_replay_canonical_equal_original_descendant",
+      "exact_branch_restart_reconciliation_accepted",
+      "forked_or_drifted_branch_rejected",
+      "generation_predecessor_actions_head_state_tail_ancestry_and_checkpoint_fields_compared",
+      "source_checkpoint_input_unchanged",
+      "all_execution_counts_zero_and_authority_false"
+    ]
+  },
+  "next_generation_boundary": {
+    "contract_and_receipt_shape_available": true,
+    "current_production_runtime_implementation_copied": false,
+    "rollback_replay_or_drift_engine_implemented": false,
+    "actual_rollback_restart_or_state_mutation_executed": false,
+    "future_consumer": "CORDIS component rollback, DeepSeek Session replay, and OmniGent drift diagnostics",
+    "required_future_decision": "separately decide and review a native DeepSeek/CORDIS rollback and replay adapter before runtime use"
+  },
+  "authority": {
+    "source_binding_authorized": true,
+    "runtime_authorized": false,
+    "provider_execution_authorized": false,
+    "evaluator_execution_authorized": false,
+    "trace_append_authorized": false,
+    "training_authorized": false,
+    "promotion_authorized": false,
+    "deployment_authorized": false
+  },
+  "nonclaims": [
+    "not rollback replay drift runtime or durable storage implementation",
+    "not actual rollback restart provider model evaluator Trace training promotion deployment or fleet action"
+  ]
+}
