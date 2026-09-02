@@ -1,0 +1,144 @@
+{
+  "schema": "mykrobial.ucp.capability_contract.v2.1",
+  "capability_kind": "learning_loop",
+  "capability_id": "generate__expert_mixture_lineage",
+  "alt_id": "mdp.generate.expert_mixture_lineage.v1",
+  "owner_agent": "agent:mykrobial-engineering",
+  "reviewed": false,
+  "production_authorized": false,
+  "gate_ready": false,
+  "harness_class": "guidance",
+  "claim_boundary": "Source-only, proposal-only construction of a content-addressed expert candidate batch with exact lineage, parent, frozen-prior-evidence, and finite adaptive-budget receipts. It does not dispatch an agent, call a model or evaluator, train weights, select a winner, promote, deploy, or establish causal business value.",
+  "capabilities": [
+    {
+      "name": "build_expert_mixture",
+      "description": "Reopen exact expert definitions plus parent and prior-evidence receipts, allocate a bounded deterministic budget, and return canonical proposal-only candidates.",
+      "mutating": false
+    },
+    {
+      "name": "verify_expert_mixture",
+      "description": "Rebuild the complete batch and reject any field that is not derivable from the bound inputs.",
+      "mutating": false
+    }
+  ],
+  "input_contract": {
+    "required": [
+      "closed expert registry",
+      "two to eight healthy uniquely identified expert definitions",
+      "one unique lineage and content-addressed parent receipt per expert",
+      "one content-addressed source-only prior-evidence receipt",
+      "finite plain-integer epoch, minimum, and maximum budgets",
+      "all authority fields exactly false"
+    ],
+    "preconditions": [
+      "every descriptor has a reopenable byte preimage with exact SHA-256 and byte count",
+      "prior evidence contains exactly one bounded count row per expert",
+      "the registry contains at least two distinct healthy lineages",
+      "the epoch budget fits between aggregate minimum and aggregate maximum"
+    ]
+  },
+  "output_contract": {
+    "success": "A canonical proposal_only_unexecuted candidate batch, adaptive-budget ledger, lineage receipt, source receipt SHA-256, zero execution counts, and all authority false.",
+    "failure": "A typed blocker; no partial candidate batch or authority is returned.",
+    "verification": "A separate verifier rebuilds the whole output from exact inputs and compares canonical bytes."
+  },
+  "environment_contract": {
+    "base_contract_refs": [
+      "contracts/skills/swarm__population_operator.slot.ucp.json",
+      "contracts/skills/ranker__lse_advantage.mdp.ucp.json",
+      "contracts/skills/monitor__lineage_diversity.mdp.ucp.json"
+    ],
+    "delta_c": [
+      {
+        "kind": "calling_rule",
+        "rule": "Candidate generation is proposal-only; allocation never dispatches.",
+        "source": "ARCH-011 Shepherd allocation boundary"
+      },
+      {
+        "kind": "valid_condition",
+        "rule": "Diversity, parent identity, prior evidence, and budget derivation are content-addressed and jointly verified.",
+        "source": "expert_mixture_lineage authoritative metric"
+      }
+    ],
+    "caps": [
+      {
+        "name": "expert_count",
+        "bound": 8,
+        "on_exceed": "typed_blocker:expert_registry_count_invalid"
+      },
+      {
+        "name": "epoch_budget_units",
+        "bound": 1000000,
+        "on_exceed": "typed_blocker:expert_budget_invalid"
+      },
+      {
+        "name": "operational_side_effects",
+        "bound": 0,
+        "on_exceed": "typed_blocker:expert_authority_invalid"
+      }
+    ],
+    "out_of_scope": [
+      "agent dispatch or provider/model execution",
+      "live evaluator execution or score production",
+      "weight training",
+      "candidate selection, promotion, or deployment",
+      "fleet rollout or causal value claims"
+    ]
+  },
+  "usage_protocol": {
+    "steps": [
+      "1. Reopen and hash every expert definition and parent/prior receipt.",
+      "2. Normalize expert and evidence order by stable identity.",
+      "3. Reject missing, duplicate, unhealthy, or avoidably collapsed lineages.",
+      "4. Allocate the exact finite epoch budget with the frozen smoothed-evidence diminishing-return rule.",
+      "5. Build candidate, lineage, and budget receipts and seal the canonical batch.",
+      "6. Rebuild the entire output before any downstream consumer may cite it."
+    ],
+    "done_definition": [
+      "all candidates bind exact expert, lineage, parent, prior evidence, and derived budget",
+      "allocated units equal the epoch budget and every allocation remains within bounds",
+      "input order cannot change canonical output",
+      "all execution counters and authority fields remain zero or false"
+    ],
+    "repair_on_failure": [
+      "repair the source preimage, identity, lineage, or budget evidence and regenerate a new immutable candidate",
+      "never fill missing evidence with zero, infer an authority, or permit the generator to grade itself"
+    ]
+  },
+  "action_realization": {
+    "validates_against": [
+      "capabilities",
+      "input_contract",
+      "output_contract",
+      "environment_contract"
+    ],
+    "exec_block_rules": [
+      {
+        "when": "any dispatch, model/evaluator execution, training, promotion, or deployment authority is true",
+        "decision": "BLOCK",
+        "block_message": "typed_blocker:expert_authority_invalid",
+        "kind": "commit_gate",
+        "outcome_class": "authority_collapse"
+      },
+      {
+        "when": "a candidate lineage, parent, source, prior-evidence, or budget field is not exactly derivable",
+        "decision": "BLOCK",
+        "block_message": "typed_blocker:expert_mixture_output_not_derivable",
+        "kind": "anchor_validate",
+        "outcome_class": "underbound_candidate"
+      }
+    ],
+    "fail_closed_on_unknown": true
+  },
+  "non_claims": [
+    "not_dispatch",
+    "not_provider_or_model_execution",
+    "not_evaluator_execution",
+    "not_training_or_weight_update",
+    "not_self_evaluation_or_selection",
+    "not_promotion_or_deployment",
+    "not_fleet_rollout",
+    "not_causal_business_value",
+    "not_human_or_founder_approval"
+  ]
+}
